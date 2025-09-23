@@ -102,7 +102,7 @@ const Prontuario = () => {
     const matchesSearch = record.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          record.diagnosis.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          record.procedure.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPatient = selectedPatient ? record.patientId === selectedPatient : true;
+    const matchesPatient = selectedPatient && selectedPatient !== "all" ? record.patientId === selectedPatient : true;
     return matchesSearch && matchesPatient;
   });
 
@@ -233,7 +233,7 @@ const Prontuario = () => {
                 <SelectValue placeholder="Filtrar por paciente" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os pacientes</SelectItem>
+                <SelectItem value="all">Todos os pacientes</SelectItem>
                 {patients.map(patient => (
                   <SelectItem key={patient.id} value={patient.id}>
                     {patient.name}
