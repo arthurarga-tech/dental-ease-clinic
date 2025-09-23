@@ -1,0 +1,68 @@
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { 
+  Calendar, 
+  Users, 
+  FileText, 
+  CreditCard, 
+  LayoutDashboard,
+  Stethoscope
+} from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+
+const menuItems = [
+  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+  { icon: Users, label: "Pacientes", path: "/pacientes" },
+  { icon: Calendar, label: "Agenda", path: "/agenda" },
+  { icon: FileText, label: "Prontuário", path: "/prontuario" },
+  { icon: CreditCard, label: "Financeiro", path: "/financeiro" },
+];
+
+export const Sidebar = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  return (
+    <div className="w-64 h-screen bg-card border-r border-border flex flex-col">
+      <div className="p-6 border-b border-border">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary rounded-lg">
+            <Stethoscope className="w-6 h-6 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-foreground">DentalCare</h1>
+            <p className="text-sm text-muted-foreground">Sistema Odontológico</p>
+          </div>
+        </div>
+      </div>
+
+      <nav className="flex-1 p-4 space-y-2">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.path;
+          
+          return (
+            <Button
+              key={item.path}
+              variant={isActive ? "secondary" : "ghost"}
+              className={cn(
+                "w-full justify-start gap-3 h-12",
+                isActive && "bg-accent text-accent-foreground"
+              )}
+              onClick={() => navigate(item.path)}
+            >
+              <Icon className="w-5 h-5" />
+              {item.label}
+            </Button>
+          );
+        })}
+      </nav>
+
+      <div className="p-4 border-t border-border">
+        <div className="text-xs text-muted-foreground text-center">
+          © 2024 DentalCare System
+        </div>
+      </div>
+    </div>
+  );
+};
