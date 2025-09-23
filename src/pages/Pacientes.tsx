@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import { PatientForm } from "@/components/PatientForm";
+import { usePatients } from "@/hooks/usePatients";
 import { 
   Plus, 
   Search, 
@@ -13,63 +14,32 @@ import {
   MapPin,
   Calendar,
   Edit,
-  Eye
+  Eye,
+  FileText,
+  Loader2
 } from "lucide-react";
-
-interface Patient {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  birthDate: string;
-  address: string;
-  status: "Ativo" | "Inativo";
-  lastVisit: string;
-}
 
 const Pacientes = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  // Dados simulados
-  const patients: Patient[] = [
-    {
-      id: "1",
-      name: "Maria Silva Santos",
-      email: "maria.silva@email.com",
-      phone: "(11) 99999-1234",
-      birthDate: "1985-03-15",
-      address: "Rua das Flores, 123 - São Paulo/SP",
-      status: "Ativo",
-      lastVisit: "2024-01-15"
-    },
-    {
-      id: "2", 
-      name: "João Pedro Costa",
-      email: "joao.costa@email.com",
-      phone: "(11) 98888-5678",
-      birthDate: "1990-07-22",
-      address: "Av. Paulista, 456 - São Paulo/SP",
-      status: "Ativo",
-      lastVisit: "2024-01-10"
-    },
-    {
-      id: "3",
-      name: "Ana Carolina Lima",
-      email: "ana.lima@email.com", 
-      phone: "(11) 97777-9012",
-      birthDate: "1978-12-05",
-      address: "Rua Augusta, 789 - São Paulo/SP",
-      status: "Inativo",
-      lastVisit: "2023-11-20"
-    }
-  ];
+  
+  const { 
+    patients, 
+    isLoading, 
+    createPatient, 
+    isCreating 
+  } = usePatients();
 
   const filteredPatients = patients.filter(patient =>
     patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (patient.email && patient.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
     patient.phone.includes(searchTerm)
   );
+
+  const handleCreatePatient = (data: any) => {
+    createPatient(data);
+    setIsDialogOpen(false);
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -86,40 +56,15 @@ const Pacientes = () => {
               Novo Paciente
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Cadastrar Novo Paciente</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="name">Nome Completo</Label>
-                <Input id="name" placeholder="Digite o nome completo" />
-              </div>
-              <div>
-                <Label htmlFor="email">E-mail</Label>
-                <Input id="email" type="email" placeholder="email@exemplo.com" />
-              </div>
-              <div>
-                <Label htmlFor="phone">Telefone</Label>
-                <Input id="phone" placeholder="(11) 99999-9999" />
-              </div>
-              <div>
-                <Label htmlFor="birthDate">Data de Nascimento</Label>
-                <Input id="birthDate" type="date" />
-              </div>
-              <div>
-                <Label htmlFor="address">Endereço</Label>
-                <Input id="address" placeholder="Endereço completo" />
-              </div>
-              <div className="flex gap-2 pt-4">
-                <Button className="flex-1" onClick={() => setIsDialogOpen(false)}>
-                  Cadastrar
-                </Button>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancelar
-                </Button>
-              </div>
-            </div>
+            <PatientForm 
+              onSubmit={handleCreatePatient}
+              onCancel={() => setIsDialogOpen(false)}
+              isLoading={isCreating}
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -139,8 +84,14 @@ const Pacientes = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {filteredPatients.map((patient) => (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              <span className="ml-2 text-muted-foreground">Carregando pacientes...</span>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredPatients.map((patient) => (
               <Card key={patient.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
@@ -156,22 +107,32 @@ const Pacientes = () => {
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Mail className="w-4 h-4" />
-                          {patient.email}
-                        </div>
+                        {patient.email && (
+                          <div className="flex items-center gap-2">
+                            <Mail className="w-4 h-4" />
+                            {patient.email}
+                          </div>
+                        )}
                         <div className="flex items-center gap-2">
                           <Phone className="w-4 h-4" />
                           {patient.phone}
                         </div>
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4" />
-                          Última consulta: {new Date(patient.lastVisit).toLocaleDateString('pt-BR')}
+                          Cadastrado em: {new Date(patient.created_at).toLocaleDateString('pt-BR')}
                         </div>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4" />
-                          {patient.address}
-                        </div>
+                        {patient.address && (
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4" />
+                            {patient.address}
+                          </div>
+                        )}
+                        {patient.medical_notes && (
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-4 h-4" />
+                            Observações médicas
+                          </div>
+                        )}
                       </div>
                     </div>
                     
@@ -186,12 +147,13 @@ const Pacientes = () => {
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
           
-          {filteredPatients.length === 0 && (
+          {!isLoading && filteredPatients.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
-              Nenhum paciente encontrado com os critérios de busca.
+              {searchTerm ? "Nenhum paciente encontrado com os critérios de busca." : "Nenhum paciente cadastrado ainda."}
             </div>
           )}
         </CardContent>
