@@ -7,12 +7,26 @@ import {
   CreditCard,
   TrendingUp,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Gift
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { usePatients } from "@/hooks/usePatients";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { patients } = usePatients();
+
+  // Get today's birthdays
+  const today = new Date();
+  const todayString = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  
+  const birthdayPatients = patients.filter(patient => {
+    if (!patient.birth_date) return false;
+    const birthDate = new Date(patient.birth_date);
+    const birthString = `${String(birthDate.getMonth() + 1).padStart(2, '0')}-${String(birthDate.getDate()).padStart(2, '0')}`;
+    return birthString === todayString;
+  });
 
   const stats = [
     {
@@ -89,7 +103,44 @@ const Dashboard = () => {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Birthday reminder card */}
+        {birthdayPatients.length > 0 && (
+          <Card className="lg:col-span-3">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Gift className="w-5 h-5 text-primary" />
+                Aniversariantes de Hoje
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {birthdayPatients.map((patient) => (
+                  <div 
+                    key={patient.id}
+                    className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/20"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                        <Gift className="w-4 h-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">{patient.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {patient.phone}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-sm text-primary font-medium">
+                      🎉 Parabéns!
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

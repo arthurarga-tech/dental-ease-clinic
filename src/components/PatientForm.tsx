@@ -27,21 +27,22 @@ const patientSchema = z.object({
 type PatientFormData = z.infer<typeof patientSchema>;
 
 interface PatientFormProps {
-  onSubmit: (data: NewPatient) => void;
+  onSubmit: (data: PatientFormData) => void;
   onCancel: () => void;
   isLoading?: boolean;
+  initialData?: Partial<PatientFormData>;
 }
 
-export const PatientForm = ({ onSubmit, onCancel, isLoading }: PatientFormProps) => {
+export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData }: PatientFormProps) => {
   const form = useForm<PatientFormData>({
     resolver: zodResolver(patientSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      birth_date: "",
-      address: "",
-      medical_notes: "",
+      name: initialData?.name || "",
+      email: initialData?.email || "",
+      phone: initialData?.phone || "",
+      birth_date: initialData?.birth_date || "",
+      address: initialData?.address || "",
+      medical_notes: initialData?.medical_notes || "",
     },
   });
 
@@ -151,7 +152,7 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading }: PatientFormProps)
 
         <div className="flex gap-2 pt-4">
           <Button type="submit" className="flex-1" disabled={isLoading}>
-            {isLoading ? "Cadastrando..." : "Cadastrar"}
+            {isLoading ? (initialData ? "Atualizando..." : "Cadastrando...") : (initialData ? "Atualizar" : "Cadastrar")}
           </Button>
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar

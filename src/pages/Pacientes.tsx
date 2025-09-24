@@ -5,7 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PatientForm } from "@/components/PatientForm";
-import { usePatients } from "@/hooks/usePatients";
+import { PatientViewDialog } from "@/components/PatientViewDialog";
+import { PatientDeleteDialog } from "@/components/PatientDeleteDialog";
+import { usePatients, Patient } from "@/hooks/usePatients";
 import { 
   Plus, 
   Search, 
@@ -16,18 +18,27 @@ import {
   Edit,
   Eye,
   FileText,
-  Loader2
+  Loader2,
+  Trash2
 } from "lucide-react";
 
 const Pacientes = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   
   const { 
     patients, 
     isLoading, 
     createPatient, 
-    isCreating 
+    updatePatient,
+    deletePatient,
+    isCreating,
+    isUpdating,
+    isDeleting
   } = usePatients();
 
   const filteredPatients = patients.filter(patient =>
@@ -38,7 +49,38 @@ const Pacientes = () => {
 
   const handleCreatePatient = (data: any) => {
     createPatient(data);
-    setIsDialogOpen(false);
+    setIsCreateDialogOpen(false);
+  };
+
+  const handleEditPatient = (data: any) => {
+    if (selectedPatient) {
+      updatePatient({ id: selectedPatient.id, ...data });
+      setIsEditDialogOpen(false);
+      setSelectedPatient(null);
+    }
+  };
+
+  const handleDeletePatient = () => {
+    if (selectedPatient) {
+      deletePatient(selectedPatient.id);
+      setIsDeleteDialogOpen(false);
+      setSelectedPatient(null);
+    }
+  };
+
+  const openViewDialog = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setIsViewDialogOpen(true);
+  };
+
+  const openEditDialog = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setIsEditDialogOpen(true);
+  };
+
+  const openDeleteDialog = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setIsDeleteDialogOpen(true);
   };
 
   return (
@@ -49,7 +91,7 @@ const Pacientes = () => {
           <p className="text-muted-foreground">Gerenciamento de pacientes do consultório</p>
         </div>
         
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-primary hover:bg-primary/90">
               <Plus className="w-4 h-4 mr-2" />
@@ -62,7 +104,7 @@ const Pacientes = () => {
             </DialogHeader>
             <PatientForm 
               onSubmit={handleCreatePatient}
-              onCancel={() => setIsDialogOpen(false)}
+              onCancel={() => setIsCreateDialogOpen(false)}
               isLoading={isCreating}
             />
           </DialogContent>
@@ -137,11 +179,27 @@ const Pacientes = () => {
                     </div>
                     
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openViewDialog(patient)}
+                      >
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openEditDialog(patient)}
+                      >
                         <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openDeleteDialog(patient)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
@@ -158,6 +216,42 @@ const Pacientes = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Patient Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Paciente</DialogTitle>
+          </DialogHeader>
+          {selectedPatient && (
+            <PatientForm 
+              initialData={selectedPatient}
+              onSubmit={handleEditPatient}
+              onCancel={() => {
+                setIsEditDialogOpen(false);
+                setSelectedPatient(null);
+              }}
+              isLoading={isUpdating}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* View Patient Dialog */}
+      <PatientViewDialog
+        patient={selectedPatient}
+        open={isViewDialogOpen}
+        onOpenChange={setIsViewDialogOpen}
+      />
+
+      {/* Delete Patient Dialog */}
+      <PatientDeleteDialog
+        patient={selectedPatient}
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDeletePatient}
+        isDeleting={isDeleting}
+      />
     </div>
   );
 };
