@@ -28,6 +28,12 @@ export const AppointmentDeleteDialog = ({
 }: AppointmentDeleteDialogProps) => {
   if (!appointment) return null;
 
+  const formatLocalDate = (dateStr: string | Date) => {
+    const s = String(dateStr);
+    const [y, m, d] = s.split('-').map(Number);
+    return new Date(y, (m || 1) - 1, d || 1).toLocaleDateString('pt-BR');
+  };
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -37,7 +43,7 @@ export const AppointmentDeleteDialog = ({
             <p>Tem certeza que deseja excluir esta consulta?</p>
             <div className="bg-muted p-3 rounded-md text-sm">
               <p><strong>Paciente:</strong> {appointment.patients.name}</p>
-              <p><strong>Data:</strong> {new Date(appointment.appointment_date).toLocaleDateString('pt-BR')}</p>
+              <p><strong>Data:</strong> {formatLocalDate(appointment.appointment_date as any)}</p>
               <p><strong>Horário:</strong> {appointment.appointment_time}</p>
               <p><strong>Tipo:</strong> {appointment.type}</p>
             </div>

@@ -20,13 +20,18 @@ import { AppointmentViewDialog } from "@/components/AppointmentViewDialog";
 import { AppointmentDeleteDialog } from "@/components/AppointmentDeleteDialog";
 
 const Agenda = () => {
-  // Helper function to get current date without timezone issues
+  // Helper functions to avoid timezone issues
   const getCurrentDate = () => {
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  };
+
+  const parseLocalDateString = (dateStr: string) => {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, (m || 1) - 1, d || 1);
   };
 
   const [selectedDate, setSelectedDate] = useState(getCurrentDate());
@@ -65,9 +70,12 @@ const Agenda = () => {
   };
 
   const changeDate = (days: number) => {
-    const current = new Date(selectedDate);
+    const current = parseLocalDateString(selectedDate);
     current.setDate(current.getDate() + days);
-    setSelectedDate(current.toISOString().split('T')[0]);
+    const year = current.getFullYear();
+    const month = String(current.getMonth() + 1).padStart(2, '0');
+    const day = String(current.getDate()).padStart(2, '0');
+    setSelectedDate(`${year}-${month}-${day}`);
   };
 
   const handleCreateAppointment = (data: any) => {
@@ -151,7 +159,7 @@ const Agenda = () => {
                 <ChevronLeft className="w-4 h-4" />
               </Button>
               <div className="px-4 py-2 bg-secondary rounded-md text-sm font-medium">
-                {new Date(selectedDate).toLocaleDateString('pt-BR', {
+                {parseLocalDateString(selectedDate).toLocaleDateString('pt-BR', {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',

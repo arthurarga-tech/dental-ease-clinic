@@ -27,6 +27,12 @@ export const AppointmentViewDialog = ({ appointment, open, onOpenChange }: Appoi
     }
   };
 
+  const formatLocalDate = (dateStr: string | Date) => {
+    const s = String(dateStr);
+    const [y, m, d] = s.split('-').map(Number);
+    return new Date(y, (m || 1) - 1, d || 1).toLocaleDateString('pt-BR');
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
@@ -49,7 +55,7 @@ export const AppointmentViewDialog = ({ appointment, open, onOpenChange }: Appoi
                 <div>
                   <p className="text-sm text-muted-foreground">Data</p>
                   <p className="font-medium">
-                    {new Date(appointment.appointment_date).toLocaleDateString('pt-BR')}
+                    {formatLocalDate(appointment.appointment_date as any)}
                   </p>
                 </div>
               </div>
