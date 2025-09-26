@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { usePatients } from "@/hooks/usePatients";
 import { Loader2 } from "lucide-react";
-import { NewAppointment } from "@/hooks/useAppointments";
+import { NewAppointment, Appointment } from "@/hooks/useAppointments";
 
 const appointmentSchema = z.object({
   patient_id: z.string().min(1, "Selecione um paciente"),
@@ -26,10 +26,25 @@ interface AppointmentFormProps {
   onCancel: () => void;
   isLoading?: boolean;
   initialDate?: string;
+  appointment?: Appointment;
 }
 
-export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate }: AppointmentFormProps) => {
+export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, appointment }: AppointmentFormProps) => {
   const { patients, isLoading: loadingPatients } = usePatients();
+
+  // Helper function to format date correctly for date input
+  const formatDateForInput = (date: string) => {
+    const d = new Date(date + 'T00:00:00');
+    return d.toISOString().split('T')[0];
+  };
+
+  const getCurrentDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   const {
     register,
@@ -40,8 +55,12 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate }: 
   } = useForm<AppointmentFormData>({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
-      appointment_date: initialDate || new Date().toISOString().split('T')[0],
-      duration: 60,
+      patient_id: appointment?.patient_id || "",
+      appointment_date: appointment ? formatDateForInput(appointment.appointment_date) : (initialDate || getCurrentDate()),
+      appointment_time: appointment?.appointment_time || "",
+      type: appointment?.type || "",
+      duration: appointment?.duration || 60,
+      notes: appointment?.notes || "",
     },
   });
 
@@ -173,7 +192,7 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate }: 
       <div className="flex gap-2 pt-4">
         <Button type="submit" className="flex-1" disabled={isLoading}>
           {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-          Agendar Consulta
+          {appointment ? "Atualizar Consulta" : "Agendar Consulta"}
         </Button>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar

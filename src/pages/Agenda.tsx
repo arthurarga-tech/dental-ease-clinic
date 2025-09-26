@@ -13,12 +13,26 @@ import {
   ChevronRight,
   Loader2
 } from "lucide-react";
-import { useAppointments } from "@/hooks/useAppointments";
+import { useAppointments, Appointment } from "@/hooks/useAppointments";
 import { AppointmentForm } from "@/components/AppointmentForm";
+import { AppointmentViewDialog } from "@/components/AppointmentViewDialog";
 
 const Agenda = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  // Helper function to get current date without timezone issues
+  const getCurrentDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const [selectedDate, setSelectedDate] = useState(getCurrentDate());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+  const [viewingAppointment, setViewingAppointment] = useState<Appointment | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
   const { 
     appointments, 
@@ -53,6 +67,24 @@ const Agenda = () => {
   const handleCreateAppointment = (data: any) => {
     createAppointment(data);
     setIsDialogOpen(false);
+  };
+
+  const handleEditAppointment = (data: any) => {
+    if (editingAppointment) {
+      updateAppointment({ id: editingAppointment.id, ...data });
+      setIsEditDialogOpen(false);
+      setEditingAppointment(null);
+    }
+  };
+
+  const handleOpenEdit = (appointment: Appointment) => {
+    setEditingAppointment(appointment);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleOpenView = (appointment: Appointment) => {
+    setViewingAppointment(appointment);
+    setIsViewDialogOpen(true);
   };
 
   const handleStatusUpdate = (appointmentId: string, newStatus: string) => {
@@ -156,25 +188,31 @@ const Agenda = () => {
                     </div>
                     
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => handleOpenEdit(appointment)}>
                         Editar
                       </Button>
-                      <Button 
-                        variant={appointment.status === "Agendado" ? "default" : "secondary"} 
-                        size="sm"
-                        onClick={() => {
-                          const nextStatus = appointment.status === "Agendado" ? "Em andamento" : 
-                                           appointment.status === "Em andamento" ? "Concluído" : appointment.status;
-                          if (nextStatus !== appointment.status) {
-                            handleStatusUpdate(appointment.id, nextStatus);
-                          }
-                        }}
-                        disabled={isUpdating}
-                      >
-                        {isUpdating && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
-                        {appointment.status === "Agendado" ? "Iniciar" : 
-                         appointment.status === "Em andamento" ? "Finalizar" : "Visualizar"}
-                      </Button>
+                      {(appointment.status === "Concluído" || appointment.status === "Cancelado") ? (
+                        <Button variant="secondary" size="sm" onClick={() => handleOpenView(appointment)}>
+                          Visualizar
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant={appointment.status === "Agendado" ? "default" : "secondary"} 
+                          size="sm"
+                          onClick={() => {
+                            const nextStatus = appointment.status === "Agendado" ? "Em andamento" : 
+                                             appointment.status === "Em andamento" ? "Concluído" : appointment.status;
+                            if (nextStatus !== appointment.status) {
+                              handleStatusUpdate(appointment.id, nextStatus);
+                            }
+                          }}
+                          disabled={isUpdating}
+                        >
+                          {isUpdating && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
+                          {appointment.status === "Agendado" ? "Iniciar" : 
+                           appointment.status === "Em andamento" ? "Finalizar" : "Visualizar"}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -190,6 +228,31 @@ const Agenda = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Appointment Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Consulta</DialogTitle>
+          </DialogHeader>
+          <AppointmentForm 
+            onSubmit={handleEditAppointment}
+            onCancel={() => {
+              setIsEditDialogOpen(false);
+              setEditingAppointment(null);
+            }}
+            isLoading={isUpdating}
+            appointment={editingAppointment || undefined}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* View Appointment Dialog */}
+      <AppointmentViewDialog
+        appointment={viewingAppointment}
+        open={isViewDialogOpen}
+        onOpenChange={setIsViewDialogOpen}
+      />
     </div>
   );
 };
