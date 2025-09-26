@@ -11,11 +11,13 @@ import {
   Phone,
   ChevronLeft,
   ChevronRight,
-  Loader2
+  Loader2,
+  Trash2
 } from "lucide-react";
 import { useAppointments, Appointment } from "@/hooks/useAppointments";
 import { AppointmentForm } from "@/components/AppointmentForm";
 import { AppointmentViewDialog } from "@/components/AppointmentViewDialog";
+import { AppointmentDeleteDialog } from "@/components/AppointmentDeleteDialog";
 
 const Agenda = () => {
   // Helper function to get current date without timezone issues
@@ -31,16 +33,20 @@ const Agenda = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [viewingAppointment, setViewingAppointment] = useState<Appointment | null>(null);
+  const [deletingAppointment, setDeletingAppointment] = useState<Appointment | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const { 
     appointments, 
     isLoading, 
     createAppointment, 
     updateAppointment, 
+    deleteAppointment,
     isCreating,
-    isUpdating 
+    isUpdating,
+    isDeleting
   } = useAppointments(selectedDate);
 
   const getStatusColor = (status: string) => {
@@ -85,6 +91,19 @@ const Agenda = () => {
   const handleOpenView = (appointment: Appointment) => {
     setViewingAppointment(appointment);
     setIsViewDialogOpen(true);
+  };
+
+  const handleOpenDelete = (appointment: Appointment) => {
+    setDeletingAppointment(appointment);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deletingAppointment) {
+      deleteAppointment(deletingAppointment.id);
+      setIsDeleteDialogOpen(false);
+      setDeletingAppointment(null);
+    }
   };
 
   const handleStatusUpdate = (appointmentId: string, newStatus: string) => {
@@ -191,6 +210,14 @@ const Agenda = () => {
                       <Button variant="outline" size="sm" onClick={() => handleOpenEdit(appointment)}>
                         Editar
                       </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleOpenDelete(appointment)}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
                       {(appointment.status === "Concluído" || appointment.status === "Cancelado") ? (
                         <Button variant="secondary" size="sm" onClick={() => handleOpenView(appointment)}>
                           Visualizar
@@ -252,6 +279,15 @@ const Agenda = () => {
         appointment={viewingAppointment}
         open={isViewDialogOpen}
         onOpenChange={setIsViewDialogOpen}
+      />
+
+      {/* Delete Appointment Dialog */}
+      <AppointmentDeleteDialog
+        appointment={deletingAppointment}
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
       />
     </div>
   );
