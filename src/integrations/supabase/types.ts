@@ -61,6 +61,53 @@ export type Database = {
           },
         ]
       }
+      medical_records: {
+        Row: {
+          created_at: string
+          diagnosis: string
+          id: string
+          observations: string | null
+          patient_id: string
+          procedure_type: string
+          record_date: string
+          status: string
+          treatment: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          diagnosis: string
+          id?: string
+          observations?: string | null
+          patient_id: string
+          procedure_type: string
+          record_date?: string
+          status?: string
+          treatment: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          diagnosis?: string
+          id?: string
+          observations?: string | null
+          patient_id?: string
+          procedure_type?: string
+          record_date?: string
+          status?: string
+          treatment?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_medical_records_patient"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patients: {
         Row: {
           address: string | null
