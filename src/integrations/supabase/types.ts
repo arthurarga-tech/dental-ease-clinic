@@ -19,6 +19,7 @@ export type Database = {
           appointment_date: string
           appointment_time: string
           created_at: string
+          dentist_id: string | null
           duration: number
           id: string
           notes: string | null
@@ -31,6 +32,7 @@ export type Database = {
           appointment_date: string
           appointment_time: string
           created_at?: string
+          dentist_id?: string | null
           duration?: number
           id?: string
           notes?: string | null
@@ -43,6 +45,7 @@ export type Database = {
           appointment_date?: string
           appointment_time?: string
           created_at?: string
+          dentist_id?: string | null
           duration?: number
           id?: string
           notes?: string | null
@@ -59,7 +62,89 @@ export type Database = {
             referencedRelation: "patients"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_appointments_dentist"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      dentist_specializations: {
+        Row: {
+          created_at: string
+          dentist_id: string
+          id: string
+          specialization_id: string
+        }
+        Insert: {
+          created_at?: string
+          dentist_id: string
+          id?: string
+          specialization_id: string
+        }
+        Update: {
+          created_at?: string
+          dentist_id?: string
+          id?: string
+          specialization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_dentist_specializations_dentist"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_dentist_specializations_specialization"
+            columns: ["specialization_id"]
+            isOneToOne: false
+            referencedRelation: "specializations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dentists: {
+        Row: {
+          address: string | null
+          birth_date: string | null
+          created_at: string
+          cro: string
+          email: string | null
+          id: string
+          name: string
+          phone: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          birth_date?: string | null
+          created_at?: string
+          cro: string
+          email?: string | null
+          id?: string
+          name: string
+          phone: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          birth_date?: string | null
+          created_at?: string
+          cro?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       medical_records: {
         Row: {
@@ -144,6 +229,27 @@ export type Database = {
           phone?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      specializations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }

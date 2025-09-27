@@ -11,60 +11,52 @@ import {
   Gift
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { usePatients } from "@/hooks/usePatients";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { patients } = usePatients();
+  const { stats, todayAppointments, birthdayPatients, isLoading } = useDashboardStats();
 
-  // Get today's birthdays
-  const today = new Date();
-  const todayString = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  
-  const birthdayPatients = patients.filter(patient => {
-    if (!patient.birth_date) return false;
-    const birthDate = new Date(patient.birth_date);
-    const birthString = `${String(birthDate.getMonth() + 1).padStart(2, '0')}-${String(birthDate.getDate()).padStart(2, '0')}`;
-    return birthString === todayString;
-  });
-
-  const stats = [
+  const statsCards = [
     {
       title: "Pacientes Ativos",
-      value: "248",
+      value: stats.activePatients.toString(),
       icon: Users,
       color: "text-primary",
       bg: "bg-primary/10"
     },
     {
       title: "Consultas Hoje",
-      value: "12",
+      value: stats.appointmentsToday.toString(),
       icon: Calendar,
       color: "text-success",
       bg: "bg-success/10"
     },
     {
       title: "Faturamento Mensal",
-      value: "R$ 15.240",
+      value: `R$ ${stats.monthlyRevenue.toLocaleString('pt-BR')}`,
       icon: TrendingUp,
       color: "text-warning",
       bg: "bg-warning/10"
     },
     {
       title: "Pendências",
-      value: "3",
+      value: stats.pendingAppointments.toString(),
       icon: AlertCircle,
       color: "text-destructive",
       bg: "bg-destructive/10"
     }
   ];
 
-  const recentAppointments = [
-    { time: "09:00", patient: "Maria Silva", type: "Consulta", status: "Confirmado" },
-    { time: "10:30", patient: "João Santos", type: "Limpeza", status: "Em andamento" },
-    { time: "14:00", patient: "Ana Costa", type: "Extração", status: "Agendado" },
-    { time: "15:30", patient: "Carlos Lima", type: "Canal", status: "Agendado" },
-  ];
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="text-center">Carregando dashboard...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -83,7 +75,7 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => {
+        {statsCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Card key={index} className="hover:shadow-lg transition-shadow">
@@ -149,31 +141,40 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {recentAppointments.map((appointment, index) => (
-              <div 
-                key={index}
-                className="flex items-center justify-between p-3 bg-secondary rounded-lg"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="text-sm font-medium text-primary">
-                    {appointment.time}
+            {todayAppointments.length > 0 ? (
+              todayAppointments.map((appointment) => (
+                <div 
+                  key={appointment.id}
+                  className="flex items-center justify-between p-3 bg-secondary rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-sm font-medium text-primary">
+                      {appointment.appointment_time.slice(0, 5)}
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">{appointment.patients.name}</p>
+                      <p className="text-sm text-muted-foreground">{appointment.type}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-foreground">{appointment.patient}</p>
-                    <p className="text-sm text-muted-foreground">{appointment.type}</p>
+                  <div className={`px-2 py-1 rounded-md text-xs font-medium ${
+                    appointment.status === "Confirmado" 
+                      ? "bg-success/10 text-success"
+                      : appointment.status === "Em andamento"
+                      ? "bg-warning/10 text-warning"
+                      : appointment.status === "Concluído"
+                      ? "bg-primary/10 text-primary"
+                      : "bg-muted text-muted-foreground"
+                  }`}>
+                    {appointment.status}
                   </div>
                 </div>
-                <div className={`px-2 py-1 rounded-md text-xs font-medium ${
-                  appointment.status === "Confirmado" 
-                    ? "bg-success/10 text-success"
-                    : appointment.status === "Em andamento"
-                    ? "bg-warning/10 text-warning"
-                    : "bg-muted text-muted-foreground"
-                }`}>
-                  {appointment.status}
-                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p>Nenhuma consulta agendada para hoje</p>
               </div>
-            ))}
+            )}
           </CardContent>
         </Card>
 
