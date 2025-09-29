@@ -71,6 +71,41 @@ export type Database = {
           },
         ]
       }
+      dentist_availability: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          dentist_id: string
+          end_time: string
+          id: string
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          dentist_id: string
+          end_time?: string
+          id?: string
+          start_time?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          dentist_id?: string
+          end_time?: string
+          id?: string
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_dentist_availability_dentist"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dentist_specializations: {
         Row: {
           created_at: string
@@ -145,6 +180,107 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      financial_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      financial_transactions: {
+        Row: {
+          amount: number
+          appointment_id: string | null
+          category_id: string
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          patient_id: string | null
+          payment_method_id: string | null
+          status: string
+          transaction_date: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          appointment_id?: string | null
+          category_id: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          patient_id?: string | null
+          payment_method_id?: string | null
+          status?: string
+          transaction_date?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          appointment_id?: string | null
+          category_id?: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          patient_id?: string | null
+          payment_method_id?: string | null
+          status?: string
+          transaction_date?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_financial_transactions_appointment"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_financial_transactions_category"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "financial_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_financial_transactions_patient"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_financial_transactions_payment_method"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "payment_methods"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       medical_records: {
         Row: {
@@ -229,6 +365,24 @@ export type Database = {
           phone?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_methods: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }

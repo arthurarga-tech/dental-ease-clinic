@@ -35,18 +35,18 @@ const Dashboard = () => {
       bg: "bg-success/10"
     },
     {
-      title: "Faturamento Mensal",
-      value: `R$ ${stats.monthlyRevenue.toLocaleString('pt-BR')}`,
+      title: "Receitas (Pago)",
+      value: `R$ ${stats.totalReceitas?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0,00'}`,
       icon: TrendingUp,
-      color: "text-warning",
-      bg: "bg-warning/10"
+      color: "text-success",
+      bg: "bg-success/10"
     },
     {
-      title: "Pendências",
-      value: stats.pendingAppointments.toString(),
-      icon: AlertCircle,
-      color: "text-destructive",
-      bg: "bg-destructive/10"
+      title: "Saldo Atual",
+      value: `R$ ${stats.saldoAtual?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0,00'}`,
+      icon: CreditCard,
+      color: stats.saldoAtual && stats.saldoAtual >= 0 ? "text-success" : "text-destructive",
+      bg: stats.saldoAtual && stats.saldoAtual >= 0 ? "bg-success/10" : "bg-destructive/10"
     }
   ];
 

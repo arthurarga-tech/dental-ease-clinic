@@ -3,171 +3,151 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Plus, 
   DollarSign, 
   TrendingUp,
+  TrendingDown,
   AlertCircle,
-  Calendar,
-  User,
-  CreditCard,
-  Eye,
-  Receipt
+  Calendar as CalendarIcon,
+  Receipt,
+  Search
 } from "lucide-react";
-
-interface Transaction {
-  id: string;
-  patientId: string;
-  patientName: string;
-  date: string;
-  type: "Receita" | "Despesa";
-  category: string;
-  description: string;
-  amount: number;
-  status: "Pago" | "Pendente" | "Vencido" | "Cancelado";
-  paymentMethod?: string;
-  dueDate?: string;
-}
+import { useFinancial } from "@/hooks/useFinancial";
+import { usePatients } from "@/hooks/usePatients";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const Financeiro = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState("month");
+  const { 
+    transactions, 
+    categories, 
+    paymentMethods, 
+    isLoadingTransactions,
+    createTransaction 
+  } = useFinancial();
+  
+  const { patients } = usePatients();
+  
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [formData, setFormData] = useState({
+    type: "Receita" as "Receita" | "Despesa",
+    patient_id: "",
+    category_id: "",
+    payment_method_id: "",
+    amount: "",
+    description: "",
+    transaction_date: new Date().toISOString().split("T")[0],
+    due_date: "",
+    status: "Pendente" as "Pendente" | "Pago" | "Vencido" | "Cancelado",
+  });
 
-  // Dados simulados de transações
-  const transactions: Transaction[] = [
-    {
-      id: "1",
-      patientId: "1",
-      patientName: "Maria Silva Santos",
-      date: "2024-01-15",
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    createTransaction({
+      ...formData,
+      amount: parseFloat(formData.amount),
+      patient_id: formData.patient_id || undefined,
+      payment_method_id: formData.payment_method_id || undefined,
+      due_date: formData.due_date || undefined,
+    });
+    
+    setIsDialogOpen(false);
+    setFormData({
       type: "Receita",
-      category: "Consulta",
-      description: "Consulta de rotina + Restauração",
-      amount: 350.00,
-      status: "Pago",
-      paymentMethod: "Cartão de débito"
-    },
-    {
-      id: "2", 
-      patientId: "2",
-      patientName: "João Pedro Costa",
-      date: "2024-01-10",
-      type: "Receita",
-      category: "Limpeza",
-      description: "Profilaxia dental",
-      amount: 150.00,
-      status: "Pago",
-      paymentMethod: "Dinheiro"
-    },
-    {
-      id: "3",
-      patientId: "3",
-      patientName: "Ana Carolina Lima",
-      date: "2024-01-25",
-      type: "Receita",
-      category: "Cirurgia",
-      description: "Extração de siso",
-      amount: 800.00,
+      patient_id: "",
+      category_id: "",
+      payment_method_id: "",
+      amount: "",
+      description: "",
+      transaction_date: new Date().toISOString().split("T")[0],
+      due_date: "",
       status: "Pendente",
-      dueDate: "2024-02-25"
-    },
-    {
-      id: "4",
-      patientId: "",
-      patientName: "Fornecedor Dental",
-      date: "2024-01-08",
-      type: "Despesa",
-      category: "Material",
-      description: "Compra de materiais odontológicos",
-      amount: 1200.00,
-      status: "Pago",
-      paymentMethod: "Transferência"
-    },
-    {
-      id: "5",
-      patientId: "1",
-      patientName: "Maria Silva Santos",
-      date: "2024-01-20",
-      type: "Receita", 
-      category: "Ortodontia",
-      description: "Manutenção de aparelho ortodôntico",
-      amount: 200.00,
-      status: "Vencido",
-      dueDate: "2024-01-20"
-    }
-  ];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Pago":
-        return "bg-success text-success-foreground";
-      case "Pendente":
-        return "bg-warning text-warning-foreground";
-      case "Vencido":
-        return "bg-destructive text-destructive-foreground";
-      case "Cancelado":
-        return "bg-muted text-muted-foreground";
-      default:
-        return "bg-muted text-muted-foreground";
-    }
+    });
   };
 
-  const getTypeColor = (type: string) => {
-    return type === "Receita" 
-      ? "text-success" 
-      : "text-destructive";
-  };
+  // Calculate stats
+  const receitas = transactions.filter(t => t.type === "Receita" && t.status === "Pago");
+  const despesas = transactions.filter(t => t.type === "Despesa" && t.status === "Pago");
+  const receitasPendentes = transactions.filter(t => t.type === "Receita" && t.status === "Pendente");
+  const contasVencidas = transactions.filter(t => t.status === "Vencido");
 
-  // Cálculos de resumo financeiro
-  const totalReceitas = transactions
-    .filter(t => t.type === "Receita" && t.status === "Pago")
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const totalDespesas = transactions
-    .filter(t => t.type === "Despesa" && t.status === "Pago")
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const receitasPendentes = transactions
-    .filter(t => t.type === "Receita" && (t.status === "Pendente" || t.status === "Vencido"))
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const contasVencidas = transactions
-    .filter(t => t.status === "Vencido")
-    .length;
+  const totalReceitas = receitas.reduce((sum, t) => sum + Number(t.amount), 0);
+  const totalDespesas = despesas.reduce((sum, t) => sum + Number(t.amount), 0);
+  const receitasPendentesTotal = receitasPendentes.reduce((sum, t) => sum + Number(t.amount), 0);
+  const saldo = totalReceitas - totalDespesas;
 
   const stats = [
     {
-      title: "Receitas do Mês",
-      value: `R$ ${totalReceitas.toFixed(2).replace('.', ',')}`,
+      title: "Receitas",
+      value: `R$ ${totalReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
       icon: TrendingUp,
       color: "text-success",
       bg: "bg-success/10"
     },
     {
-      title: "Despesas do Mês", 
-      value: `R$ ${totalDespesas.toFixed(2).replace('.', ',')}`,
-      icon: DollarSign,
+      title: "Despesas",
+      value: `R$ ${totalDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      icon: TrendingDown,
       color: "text-destructive",
       bg: "bg-destructive/10"
     },
     {
-      title: "Valores Pendentes",
-      value: `R$ ${receitasPendentes.toFixed(2).replace('.', ',')}`,
+      title: "Receitas Pendentes",
+      value: `R$ ${receitasPendentesTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
       icon: AlertCircle,
       color: "text-warning",
       bg: "bg-warning/10"
     },
     {
-      title: "Contas Vencidas",
-      value: contasVencidas.toString(),
-      icon: AlertCircle,
-      color: "text-destructive", 
-      bg: "bg-destructive/10"
+      title: "Saldo",
+      value: `R$ ${saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      icon: DollarSign,
+      color: saldo >= 0 ? "text-success" : "text-destructive",
+      bg: saldo >= 0 ? "bg-success/10" : "bg-destructive/10"
     }
   ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Pago": return "bg-success/10 text-success";
+      case "Pendente": return "bg-warning/10 text-warning";
+      case "Vencido": return "bg-destructive/10 text-destructive";
+      case "Cancelado": return "bg-muted/10 text-muted-foreground";
+      default: return "bg-muted/10 text-muted-foreground";
+    }
+  };
+
+  const getTypeColor = (type: string) => {
+    return type === "Receita" 
+      ? "bg-success/10 text-success border-success/20" 
+      : "bg-destructive/10 text-destructive border-destructive/20";
+  };
+
+  const filteredTransactions = transactions.filter(transaction => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      transaction.financial_categories.name.toLowerCase().includes(searchLower) ||
+      transaction.description?.toLowerCase().includes(searchLower) ||
+      transaction.patients?.name.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const filteredCategories = categories.filter(c => c.type === formData.type);
+
+  if (isLoadingTransactions) {
+    return (
+      <div className="p-6">
+        <div className="text-center">Carregando transações...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -176,109 +156,18 @@ const Financeiro = () => {
           <h1 className="text-3xl font-bold text-foreground">Financeiro</h1>
           <p className="text-muted-foreground">Controle financeiro do consultório</p>
         </div>
-        
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90">
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Transação
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Registrar Transação</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="transaction-type">Tipo</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Receita ou Despesa" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="receita">Receita</SelectItem>
-                    <SelectItem value="despesa">Despesa</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="patient">Paciente (se receita)</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o paciente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="maria">Maria Silva Santos</SelectItem>
-                    <SelectItem value="joao">João Pedro Costa</SelectItem>
-                    <SelectItem value="ana">Ana Carolina Lima</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="category">Categoria</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="consulta">Consulta</SelectItem>
-                    <SelectItem value="limpeza">Limpeza</SelectItem>
-                    <SelectItem value="cirurgia">Cirurgia</SelectItem>
-                    <SelectItem value="ortodontia">Ortodontia</SelectItem>
-                    <SelectItem value="material">Material</SelectItem>
-                    <SelectItem value="equipamento">Equipamento</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="description">Descrição</Label>
-                <Input id="description" placeholder="Descreva a transação" />
-              </div>
-
-              <div>
-                <Label htmlFor="amount">Valor</Label>
-                <Input id="amount" type="number" step="0.01" placeholder="0,00" />
-              </div>
-
-              <div>
-                <Label htmlFor="date">Data</Label>
-                <Input id="date" type="date" />
-              </div>
-
-              <div>
-                <Label htmlFor="status">Status</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Status do pagamento" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pago">Pago</SelectItem>
-                    <SelectItem value="pendente">Pendente</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <Button className="flex-1" onClick={() => setIsDialogOpen(false)}>
-                  Registrar
-                </Button>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancelar
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setIsDialogOpen(true)} className="bg-primary hover:bg-primary/90">
+          <Plus className="w-4 h-4 mr-2" />
+          Nova Transação
+        </Button>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={index} className="hover:shadow-lg transition-shadow">
+            <Card key={index}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -295,91 +184,256 @@ const Financeiro = () => {
         })}
       </div>
 
+      {/* Search */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar transações..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Transactions List */}
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle className="flex items-center gap-2">
-              <Receipt className="w-5 h-5 text-primary" />
-              Transações Recentes
-            </CardTitle>
-            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="week">Última semana</SelectItem>
-                <SelectItem value="month">Último mês</SelectItem>
-                <SelectItem value="quarter">Último trimestre</SelectItem>
-                <SelectItem value="year">Último ano</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <CardTitle>Transações Recentes</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {transactions.map((transaction) => (
-              <Card key={transaction.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-foreground">
-                          {transaction.patientName || transaction.description}
-                        </h3>
-                        <Badge className={getStatusColor(transaction.status)}>
-                          {transaction.status}
-                        </Badge>
-                        <span className={`text-lg font-bold ${getTypeColor(transaction.type)}`}>
-                          {transaction.type === "Receita" ? "+" : "-"}R$ {transaction.amount.toFixed(2).replace('.', ',')}
-                        </span>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
-                          {new Date(transaction.date).toLocaleDateString('pt-BR')}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4" />
-                          {transaction.category}
-                        </div>
-                        {transaction.paymentMethod && (
-                          <div className="flex items-center gap-2">
-                            <CreditCard className="w-4 h-4" />
-                            {transaction.paymentMethod}
-                          </div>
-                        )}
-                      </div>
-                      
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {transaction.description}
-                      </p>
-                      
-                      {transaction.dueDate && transaction.status !== "Pago" && (
-                        <p className="text-sm text-destructive mt-1">
-                          Vencimento: {new Date(transaction.dueDate).toLocaleDateString('pt-BR')}
-                        </p>
-                      )}
+          {filteredTransactions.length === 0 ? (
+            <div className="text-center py-12">
+              <Receipt className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">
+                {transactions.length === 0 ? "Nenhuma transação cadastrada" : "Nenhuma transação encontrada"}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredTransactions.map((transaction) => (
+                <div
+                  key={transaction.id}
+                  className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Badge variant="outline" className={getTypeColor(transaction.type)}>
+                        {transaction.type}
+                      </Badge>
+                      <Badge className={getStatusColor(transaction.status)}>
+                        {transaction.status}
+                      </Badge>
+                      <span className="text-sm font-medium text-foreground">
+                        {transaction.financial_categories.name}
+                      </span>
                     </div>
                     
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        <Eye className="w-4 h-4" />
-                      </Button>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm text-muted-foreground">
+                      {transaction.patients && (
+                        <div>
+                          <span className="font-medium">Paciente:</span> {transaction.patients.name}
+                        </div>
+                      )}
+                      <div>
+                        <span className="font-medium">Data:</span>{" "}
+                        {format(new Date(transaction.transaction_date), "dd/MM/yyyy", { locale: ptBR })}
+                      </div>
+                      {transaction.payment_methods && (
+                        <div>
+                          <span className="font-medium">Forma:</span> {transaction.payment_methods.name}
+                        </div>
+                      )}
+                      <div>
+                        <span className="font-medium">Valor:</span>{" "}
+                        <span className={transaction.type === "Receita" ? "text-success" : "text-destructive"}>
+                          R$ {Number(transaction.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
                     </div>
+                    
+                    {transaction.description && (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        {transaction.description}
+                      </p>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          
-          {transactions.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              Nenhuma transação encontrada para o período selecionado.
+                </div>
+              ))}
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* New Transaction Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Nova Transação</DialogTitle>
+          </DialogHeader>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="type">Tipo *</Label>
+                <Select
+                  value={formData.type}
+                  onValueChange={(value: "Receita" | "Despesa") => 
+                    setFormData({ ...formData, type: value, category_id: "" })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Receita">Receita</SelectItem>
+                    <SelectItem value="Despesa">Despesa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="category_id">Categoria *</Label>
+                <Select
+                  value={formData.category_id}
+                  onValueChange={(value) => setFormData({ ...formData, category_id: value })}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredCategories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="patient_id">Paciente</Label>
+                <Select
+                  value={formData.patient_id}
+                  onValueChange={(value) => setFormData({ ...formData, patient_id: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o paciente (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {patients.map((patient) => (
+                      <SelectItem key={patient.id} value={patient.id}>
+                        {patient.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="amount">Valor *</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  placeholder="0,00"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="transaction_date">Data da Transação *</Label>
+                <Input
+                  id="transaction_date"
+                  type="date"
+                  value={formData.transaction_date}
+                  onChange={(e) => setFormData({ ...formData, transaction_date: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="status">Status *</Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value: any) => setFormData({ ...formData, status: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pendente">Pendente</SelectItem>
+                    <SelectItem value="Pago">Pago</SelectItem>
+                    <SelectItem value="Vencido">Vencido</SelectItem>
+                    <SelectItem value="Cancelado">Cancelado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="payment_method_id">Forma de Pagamento</Label>
+                <Select
+                  value={formData.payment_method_id}
+                  onValueChange={(value) => setFormData({ ...formData, payment_method_id: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {paymentMethods.map((method) => (
+                      <SelectItem key={method.id} value={method.id}>
+                        {method.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="due_date">Data de Vencimento</Label>
+                <Input
+                  id="due_date"
+                  type="date"
+                  value={formData.due_date}
+                  onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Descrição</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Detalhes da transação..."
+                rows={3}
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" className="flex-1">
+                Cadastrar
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

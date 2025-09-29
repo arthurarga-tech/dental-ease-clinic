@@ -37,23 +37,19 @@ export const useDashboardStats = () => {
     },
   });
 
-  // Get this month's medical records for revenue calculation
-  const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
-
+  // Get financial transactions for revenue calculation
   const {
-    data: monthlyRecords = [],
-    isLoading: isLoadingRecords,
+    data: transactions = [],
+    isLoading: isLoadingTransactions,
   } = useQuery({
-    queryKey: ["medical_records", "monthly", currentMonth],
+    queryKey: ["financial_transactions"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("medical_records")
-        .select("*")
-        .gte("record_date", `${currentMonth}-01`)
-        .lt("record_date", `${currentMonth}-32`);
+        .from("financial_transactions")
+        .select("*");
 
       if (error) {
-        console.error("Error fetching monthly records:", error);
+        console.error("Error fetching transactions:", error);
         throw error;
       }
 
@@ -66,9 +62,15 @@ export const useDashboardStats = () => {
   
   const appointmentsToday = todayAppointments.length;
   
-  // Simple revenue calculation - assume average price per procedure
-  const averageProcedurePrice = 150; // R$ 150 per procedure
-  const monthlyRevenue = monthlyRecords.length * averageProcedurePrice;
+  // Financial calculations from real data
+  const receitas = transactions.filter((t: any) => t.type === "Receita" && t.status === "Pago");
+  const despesas = transactions.filter((t: any) => t.type === "Despesa" && t.status === "Pago");
+  const receitasPendentes = transactions.filter((t: any) => t.type === "Receita" && t.status === "Pendente");
+  
+  const totalReceitas = receitas.reduce((sum, t: any) => sum + Number(t.amount), 0);
+  const totalDespesas = despesas.reduce((sum, t: any) => sum + Number(t.amount), 0);
+  const receitasPendentesTotal = receitasPendentes.reduce((sum, t: any) => sum + Number(t.amount), 0);
+  const monthlyRevenue = totalReceitas;
   
   // Pending appointments (appointments with status "Agendado")
   const pendingAppointments = todayAppointments.filter(a => a.status === "Agendado").length;
@@ -90,9 +92,14 @@ export const useDashboardStats = () => {
       appointmentsToday,
       monthlyRevenue,
       pendingAppointments,
+      totalReceitas,
+      totalDespesas,
+      receitasPendentesTotal,
+      receitasPendentesCount: receitasPendentes.length,
+      saldoAtual: totalReceitas - totalDespesas,
     },
     todayAppointments,
     birthdayPatients,
-    isLoading: isLoadingAppointments || isLoadingRecords,
+    isLoading: isLoadingAppointments || isLoadingTransactions,
   };
 };

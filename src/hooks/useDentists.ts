@@ -2,6 +2,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+export interface DentistAvailability {
+  id: string;
+  dentist_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+}
+
 export interface Dentist {
   id: string;
   name: string;
@@ -20,6 +28,7 @@ export interface Dentist {
       description?: string;
     };
   }[];
+  dentist_availability: DentistAvailability[];
 }
 
 export interface Specialization {
@@ -36,6 +45,7 @@ export interface NewDentist {
   birth_date?: string;
   address?: string;
   specialization_ids: string[];
+  availability_days: number[];
 }
 
 export const useDentists = () => {
@@ -60,6 +70,13 @@ export const useDentists = () => {
               name,
               description
             )
+          ),
+          dentist_availability (
+            id,
+            dentist_id,
+            day_of_week,
+            start_time,
+            end_time
           )
         `)
         .order("name");
@@ -97,6 +114,17 @@ export const useDentists = () => {
   // Create new dentist
   const createDentist = useMutation({
     mutationFn: async (newDentist: NewDentist) => {
+      // Validate CRO uniqueness
+      const { data: existingDentist } = await supabase
+        .from("dentists")
+        .select("cro")
+        .eq("cro", newDentist.cro)
+        .maybeSingle();
+
+      if (existingDentist) {
+        throw new Error("CRO_DUPLICATE");
+      }
+
       // Insert dentist
       const { data: dentist, error: dentistError } = await supabase
         .from("dentists")
@@ -133,6 +161,23 @@ export const useDentists = () => {
         }
       }
 
+      // Insert availability
+      if (newDentist.availability_days.length > 0) {
+        const availabilityData = newDentist.availability_days.map(day => ({
+          dentist_id: dentist.id,
+          day_of_week: day,
+        }));
+
+        const { error: availabilityError } = await supabase
+          .from("dentist_availability")
+          .insert(availabilityData);
+
+        if (availabilityError) {
+          console.error("Error creating dentist availability:", availabilityError);
+          throw availabilityError;
+        }
+      }
+
       return dentist;
     },
     onSuccess: () => {
@@ -142,11 +187,24 @@ export const useDentists = () => {
         description: "O dentista foi cadastrado com sucesso.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Error creating dentist:", error);
+      
+      let errorMessage = "Ocorreu um erro ao cadastrar o dentista. Tente novamente.";
+      
+      if (error.message === "CRO_DUPLICATE") {
+        errorMessage = "Já existe um dentista cadastrado com este CRO.";
+      } else if (error.code === "23505") {
+        if (error.message.includes("cro")) {
+          errorMessage = "Já existe um dentista cadastrado com este CRO.";
+        } else if (error.message.includes("email")) {
+          errorMessage = "Já existe um dentista cadastrado com este email.";
+        }
+      }
+      
       toast({
         title: "Erro ao cadastrar dentista",
-        description: "Ocorreu um erro ao cadastrar o dentista. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -154,7 +212,7 @@ export const useDentists = () => {
 
   // Update dentist
   const updateDentist = useMutation({
-    mutationFn: async ({ id, specialization_ids, ...updateData }: Partial<NewDentist> & { id: string }) => {
+    mutationFn: async ({ id, specialization_ids, availability_days, ...updateData }: Partial<NewDentist> & { id: string }) => {
       // Update dentist data
       const { data: dentist, error: dentistError } = await supabase
         .from("dentists")
@@ -169,7 +227,7 @@ export const useDentists = () => {
       }
 
       // Update specializations if provided
-      if (specialization_ids) {
+      if (specialization_ids !== undefined) {
         // Delete existing specializations
         await supabase
           .from("dentist_specializations")
@@ -194,6 +252,32 @@ export const useDentists = () => {
         }
       }
 
+      // Update availability if provided
+      if (availability_days !== undefined) {
+        // Delete existing availability
+        await supabase
+          .from("dentist_availability")
+          .delete()
+          .eq("dentist_id", id);
+
+        // Insert new availability
+        if (availability_days.length > 0) {
+          const availabilityData = availability_days.map(day => ({
+            dentist_id: id,
+            day_of_week: day,
+          }));
+
+          const { error: availabilityError } = await supabase
+            .from("dentist_availability")
+            .insert(availabilityData);
+
+          if (availabilityError) {
+            console.error("Error updating dentist availability:", availabilityError);
+            throw availabilityError;
+          }
+        }
+      }
+
       return dentist;
     },
     onSuccess: () => {
@@ -203,11 +287,22 @@ export const useDentists = () => {
         description: "O dentista foi atualizado com sucesso.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Error updating dentist:", error);
+      
+      let errorMessage = "Ocorreu um erro ao atualizar o dentista. Tente novamente.";
+      
+      if (error.code === "23505") {
+        if (error.message.includes("cro")) {
+          errorMessage = "Já existe outro dentista cadastrado com este CRO.";
+        } else if (error.message.includes("email")) {
+          errorMessage = "Já existe outro dentista cadastrado com este email.";
+        }
+      }
+      
       toast({
         title: "Erro ao atualizar dentista",
-        description: "Ocorreu um erro ao atualizar o dentista. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       });
     },

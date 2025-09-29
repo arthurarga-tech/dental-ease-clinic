@@ -13,6 +13,16 @@ interface DentistFormProps {
   dentist?: Dentist;
 }
 
+const DAYS_OF_WEEK = [
+  { value: 0, label: "Domingo" },
+  { value: 1, label: "Segunda-feira" },
+  { value: 2, label: "Terça-feira" },
+  { value: 3, label: "Quarta-feira" },
+  { value: 4, label: "Quinta-feira" },
+  { value: 5, label: "Sexta-feira" },
+  { value: 6, label: "Sábado" },
+];
+
 export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) => {
   const { specializations, createDentist, updateDentist, isCreating, isUpdating } = useDentists();
   const [formData, setFormData] = useState({
@@ -23,10 +33,24 @@ export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) =
     birth_date: dentist?.birth_date || "",
     address: dentist?.address || "",
     specialization_ids: dentist?.dentist_specializations.map(ds => ds.specializations.id) || [],
+    availability_days: dentist?.dentist_availability.map(da => da.day_of_week) || [],
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation
+    if (!formData.name.trim()) {
+      return;
+    }
+    
+    if (!formData.cro.trim()) {
+      return;
+    }
+    
+    if (!formData.phone.trim()) {
+      return;
+    }
     
     if (dentist) {
       updateDentist({
@@ -46,6 +70,7 @@ export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) =
       birth_date: "",
       address: "",
       specialization_ids: [],
+      availability_days: [],
     });
   };
 
@@ -55,6 +80,15 @@ export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) =
       specialization_ids: checked
         ? [...prev.specialization_ids, specializationId]
         : prev.specialization_ids.filter(id => id !== specializationId)
+    }));
+  };
+
+  const handleAvailabilityChange = (dayValue: number, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      availability_days: checked
+        ? [...prev.availability_days, dayValue]
+        : prev.availability_days.filter(day => day !== dayValue)
     }));
   };
 
@@ -151,6 +185,29 @@ export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) =
                     className="text-sm font-normal cursor-pointer"
                   >
                     {specialization.name}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Dias Disponíveis</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {DAYS_OF_WEEK.map((day) => (
+                <div key={day.value} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`day-${day.value}`}
+                    checked={formData.availability_days.includes(day.value)}
+                    onCheckedChange={(checked) => 
+                      handleAvailabilityChange(day.value, checked as boolean)
+                    }
+                  />
+                  <Label 
+                    htmlFor={`day-${day.value}`}
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    {day.label}
                   </Label>
                 </div>
               ))}
