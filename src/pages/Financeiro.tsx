@@ -15,12 +15,14 @@ import {
   AlertCircle,
   Calendar as CalendarIcon,
   Receipt,
-  Search
+  Search,
+  Trash2
 } from "lucide-react";
 import { useFinancial } from "@/hooks/useFinancial";
 import { usePatients } from "@/hooks/usePatients";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { FinancialTransactionDeleteDialog } from "@/components/FinancialTransactionDeleteDialog";
 
 const Financeiro = () => {
   const { 
@@ -28,13 +30,16 @@ const Financeiro = () => {
     categories, 
     paymentMethods, 
     isLoadingTransactions,
-    createTransaction 
+    createTransaction,
+    deleteTransaction
   } = useFinancial();
   
   const { patients } = usePatients();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     type: "Receita" as "Receita" | "Despesa",
     patient_id: "",
@@ -70,6 +75,19 @@ const Financeiro = () => {
       due_date: "",
       status: "Pendente",
     });
+  };
+
+  const handleDeleteClick = (transactionId: string) => {
+    setTransactionToDelete(transactionId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (transactionToDelete) {
+      deleteTransaction(transactionToDelete);
+      setDeleteDialogOpen(false);
+      setTransactionToDelete(null);
+    }
   };
 
   // Calculate stats
@@ -217,7 +235,7 @@ const Financeiro = () => {
               {filteredTransactions.map((transaction) => (
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center justify-between gap-4 p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -261,6 +279,15 @@ const Financeiro = () => {
                       </p>
                     )}
                   </div>
+                  
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDeleteClick(transaction.id)}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
               ))}
             </div>
@@ -434,6 +461,18 @@ const Financeiro = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Transaction Dialog */}
+      <FinancialTransactionDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteConfirm}
+        transactionDescription={
+          transactionToDelete
+            ? transactions.find(t => t.id === transactionToDelete)?.financial_categories?.name
+            : undefined
+        }
+      />
     </div>
   );
 };
