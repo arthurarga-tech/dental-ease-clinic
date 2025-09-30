@@ -118,6 +118,41 @@ const Agenda = () => {
     updateAppointment({ id: appointmentId, status: newStatus as any });
   };
 
+  // Generate time slots from 08:00 to 18:00 (30-minute intervals)
+  const generateTimeSlots = () => {
+    const slots = [];
+    const startHour = 8;
+    const endHour = 18;
+    
+    for (let hour = startHour; hour < endHour; hour++) {
+      slots.push(`${String(hour).padStart(2, '0')}:00`);
+      slots.push(`${String(hour).padStart(2, '0')}:30`);
+    }
+    slots.push('18:00'); // Add final slot
+    
+    return slots;
+  };
+
+  // Map appointments to their time slots
+  const getSlotsWithAppointments = () => {
+    const timeSlots = generateTimeSlots();
+    const appointmentMap = new Map<string, Appointment>();
+    
+    // Map appointments by their time
+    appointments.forEach(appointment => {
+      const time = appointment.appointment_time.substring(0, 5); // Get HH:MM format
+      appointmentMap.set(time, appointment);
+    });
+    
+    // Create slots array with appointments or null
+    return timeSlots.map(time => ({
+      time,
+      appointment: appointmentMap.get(time) || null
+    }));
+  };
+
+  const slots = getSlotsWithAppointments();
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -179,86 +214,97 @@ const Agenda = () => {
               <span className="ml-2 text-muted-foreground">Carregando consultas...</span>
             </div>
           ) : (
-            <div className="space-y-4">
-              {appointments.map((appointment) => (
-              <Card key={appointment.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-primary">{appointment.appointment_time}</div>
-                        <div className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {appointment.duration}min
-                        </div>
-                      </div>
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-foreground">{appointment.patients.name}</h3>
-                          <Badge className={getStatusColor(appointment.status)}>
-                            {appointment.status}
-                          </Badge>
+            <div className="space-y-2">
+              {slots.map((slot) => (
+                slot.appointment ? (
+                  // Occupied slot - show appointment card
+                  <Card key={slot.time} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="text-center">
+                            <div className="text-lg font-bold text-primary">{slot.appointment.appointment_time}</div>
+                            <div className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {slot.appointment.duration}min
+                            </div>
+                          </div>
+                          
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-foreground">{slot.appointment.patients.name}</h3>
+                              <Badge className={getStatusColor(slot.appointment.status)}>
+                                {slot.appointment.status}
+                              </Badge>
+                            </div>
+                            
+                            <div className="space-y-1 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-2">
+                                <User className="w-4 h-4" />
+                                {slot.appointment.type}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Phone className="w-4 h-4" />
+                                {slot.appointment.patients.phone}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                         
-                        <div className="space-y-1 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <User className="w-4 h-4" />
-                            {appointment.type}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Phone className="w-4 h-4" />
-                            {appointment.patients.phone}
-                          </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" onClick={() => handleOpenEdit(slot.appointment!)}>
+                            Editar
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleOpenDelete(slot.appointment!)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                          {(slot.appointment.status === "Concluído" || slot.appointment.status === "Cancelado") ? (
+                            <Button variant="secondary" size="sm" onClick={() => handleOpenView(slot.appointment!)}>
+                              Visualizar
+                            </Button>
+                          ) : (
+                            <Button 
+                              variant={slot.appointment.status === "Agendado" ? "default" : "secondary"} 
+                              size="sm"
+                              onClick={() => {
+                                const nextStatus = slot.appointment!.status === "Agendado" ? "Em andamento" : 
+                                                 slot.appointment!.status === "Em andamento" ? "Concluído" : slot.appointment!.status;
+                                if (nextStatus !== slot.appointment!.status) {
+                                  handleStatusUpdate(slot.appointment!.id, nextStatus);
+                                }
+                              }}
+                              disabled={isUpdating}
+                            >
+                              {isUpdating && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
+                              {slot.appointment.status === "Agendado" ? "Iniciar" : 
+                               slot.appointment.status === "Em andamento" ? "Finalizar" : "Visualizar"}
+                            </Button>
+                          )}
                         </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => handleOpenEdit(appointment)}>
-                        Editar
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleOpenDelete(appointment)}
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                      {(appointment.status === "Concluído" || appointment.status === "Cancelado") ? (
-                        <Button variant="secondary" size="sm" onClick={() => handleOpenView(appointment)}>
-                          Visualizar
-                        </Button>
-                      ) : (
-                        <Button 
-                          variant={appointment.status === "Agendado" ? "default" : "secondary"} 
-                          size="sm"
-                          onClick={() => {
-                            const nextStatus = appointment.status === "Agendado" ? "Em andamento" : 
-                                             appointment.status === "Em andamento" ? "Concluído" : appointment.status;
-                            if (nextStatus !== appointment.status) {
-                              handleStatusUpdate(appointment.id, nextStatus);
-                            }
-                          }}
-                          disabled={isUpdating}
-                        >
-                          {isUpdating && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
-                          {appointment.status === "Agendado" ? "Iniciar" : 
-                           appointment.status === "Em andamento" ? "Finalizar" : "Visualizar"}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  // Empty slot - show placeholder
+                  <Card key={slot.time} className="opacity-60 hover:opacity-80 transition-opacity">
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="text-center min-w-[60px]">
+                          <div className="text-sm font-medium text-muted-foreground">{slot.time}</div>
+                        </div>
+                        <div className="flex-1 text-sm text-muted-foreground italic">
+                          Horário disponível
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
               ))}
-            </div>
-          )}
-          
-          {!isLoading && appointments.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              Nenhuma consulta agendada para este dia.
             </div>
           )}
         </CardContent>
