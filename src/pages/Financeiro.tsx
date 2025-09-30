@@ -133,9 +133,9 @@ const Financeiro = () => {
   const filteredTransactions = transactions.filter(transaction => {
     const searchLower = searchTerm.toLowerCase();
     return (
-      transaction.financial_categories.name.toLowerCase().includes(searchLower) ||
+      transaction.financial_categories?.name?.toLowerCase().includes(searchLower) ||
       transaction.description?.toLowerCase().includes(searchLower) ||
-      transaction.patients?.name.toLowerCase().includes(searchLower)
+      transaction.patients?.name?.toLowerCase().includes(searchLower)
     );
   });
 
