@@ -228,12 +228,12 @@ const Financeiro = () => {
                         {transaction.status}
                       </Badge>
                       <span className="text-sm font-medium text-foreground">
-                        {transaction.financial_categories.name}
+                        {transaction.financial_categories?.name || "Categoria não definida"}
                       </span>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm text-muted-foreground">
-                      {transaction.patients && (
+                      {transaction.patients?.name && (
                         <div>
                           <span className="font-medium">Paciente:</span> {transaction.patients.name}
                         </div>
@@ -242,7 +242,7 @@ const Financeiro = () => {
                         <span className="font-medium">Data:</span>{" "}
                         {format(new Date(transaction.transaction_date), "dd/MM/yyyy", { locale: ptBR })}
                       </div>
-                      {transaction.payment_methods && (
+                      {transaction.payment_methods?.name && (
                         <div>
                           <span className="font-medium">Forma:</span> {transaction.payment_methods.name}
                         </div>
