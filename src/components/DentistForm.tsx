@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,15 +26,42 @@ const DAYS_OF_WEEK = [
 export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) => {
   const { specializations, createDentist, updateDentist, isCreating, isUpdating } = useDentists();
   const [formData, setFormData] = useState({
-    name: dentist?.name || "",
-    email: dentist?.email || "",
-    phone: dentist?.phone || "",
-    cro: dentist?.cro || "",
-    birth_date: dentist?.birth_date || "",
-    address: dentist?.address || "",
-    specialization_ids: dentist?.dentist_specializations.map(ds => ds.specializations.id) || [],
-    availability_days: dentist?.dentist_availability.map(da => da.day_of_week) || [],
+    name: "",
+    email: "",
+    phone: "",
+    cro: "",
+    birth_date: "",
+    address: "",
+    specialization_ids: [] as string[],
+    availability_days: [] as number[],
   });
+
+  // Update form data when dentist changes
+  useEffect(() => {
+    if (dentist) {
+      setFormData({
+        name: dentist.name || "",
+        email: dentist.email || "",
+        phone: dentist.phone || "",
+        cro: dentist.cro || "",
+        birth_date: dentist.birth_date || "",
+        address: dentist.address || "",
+        specialization_ids: dentist.dentist_specializations.map(ds => ds.specializations.id) || [],
+        availability_days: dentist.dentist_availability.map(da => da.day_of_week) || [],
+      });
+    } else {
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        cro: "",
+        birth_date: "",
+        address: "",
+        specialization_ids: [],
+        availability_days: [],
+      });
+    }
+  }, [dentist, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

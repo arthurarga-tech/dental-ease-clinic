@@ -200,6 +200,18 @@ const Dentistas = () => {
                         )}
                       </div>
                     )}
+                    {dentist.dentist_availability.length > 0 && (
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        <span className="font-medium">Disponível:</span>{" "}
+                        {dentist.dentist_availability
+                          .sort((a, b) => a.day_of_week - b.day_of_week)
+                          .map((da) => {
+                            const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+                            return days[da.day_of_week];
+                          })
+                          .join(", ")}
+                      </div>
+                    )}
                   </div>
                   
                   <div className="flex gap-2">
