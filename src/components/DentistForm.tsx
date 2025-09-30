@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useDentists, type Dentist } from "@/hooks/useDentists";
+import { useToast } from "@/hooks/use-toast";
 
 interface DentistFormProps {
   open: boolean;
@@ -25,6 +26,7 @@ const DAYS_OF_WEEK = [
 
 export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) => {
   const { specializations, createDentist, updateDentist, isCreating, isUpdating } = useDentists();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -68,14 +70,39 @@ export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) =
     
     // Validation
     if (!formData.name.trim()) {
+      toast({
+        title: "Campo obrigatório",
+        description: "Por favor, preencha o nome do dentista.",
+        variant: "destructive",
+      });
       return;
     }
     
     if (!formData.cro.trim()) {
+      toast({
+        title: "Campo obrigatório",
+        description: "Por favor, preencha o CRO do dentista.",
+        variant: "destructive",
+      });
       return;
     }
     
     if (!formData.phone.trim()) {
+      toast({
+        title: "Campo obrigatório",
+        description: "Por favor, preencha o telefone do dentista.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Email validation if provided
+    if (formData.email && formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      toast({
+        title: "Email inválido",
+        description: "Por favor, insira um email válido.",
+        variant: "destructive",
+      });
       return;
     }
     
@@ -89,16 +116,6 @@ export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) =
     }
     
     onOpenChange(false);
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      cro: "",
-      birth_date: "",
-      address: "",
-      specialization_ids: [],
-      availability_days: [],
-    });
   };
 
   const handleSpecializationChange = (specializationId: string, checked: boolean) => {

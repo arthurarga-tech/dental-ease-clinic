@@ -125,16 +125,16 @@ export const useDentists = () => {
         throw new Error("CRO_DUPLICATE");
       }
 
-      // Insert dentist
+      // Insert dentist - convert empty strings to null
       const { data: dentist, error: dentistError } = await supabase
         .from("dentists")
         .insert([{
           name: newDentist.name,
-          email: newDentist.email,
+          email: newDentist.email?.trim() || null,
           phone: newDentist.phone,
           cro: newDentist.cro,
-          birth_date: newDentist.birth_date,
-          address: newDentist.address,
+          birth_date: newDentist.birth_date?.trim() || null,
+          address: newDentist.address?.trim() || null,
         }])
         .select()
         .single();
@@ -213,10 +213,18 @@ export const useDentists = () => {
   // Update dentist
   const updateDentist = useMutation({
     mutationFn: async ({ id, specialization_ids, availability_days, ...updateData }: Partial<NewDentist> & { id: string }) => {
+      // Convert empty strings to null for optional fields
+      const cleanedData = {
+        ...updateData,
+        email: updateData.email?.trim() || null,
+        birth_date: updateData.birth_date?.trim() || null,
+        address: updateData.address?.trim() || null,
+      };
+      
       // Update dentist data
       const { data: dentist, error: dentistError } = await supabase
         .from("dentists")
-        .update(updateData)
+        .update(cleanedData)
         .eq("id", id)
         .select()
         .single();
