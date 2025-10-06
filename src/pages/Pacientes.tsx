@@ -84,16 +84,16 @@ const Pacientes = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Pacientes</h1>
-          <p className="text-muted-foreground">Gerenciamento de pacientes do consultório</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Pacientes</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Gerenciamento de pacientes do consultório</p>
         </div>
         
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90">
+            <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               Novo Paciente
             </Button>
@@ -135,11 +135,11 @@ const Pacientes = () => {
             <div className="space-y-4">
               {filteredPatients.map((patient) => (
               <Card key={patient.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-foreground">{patient.name}</h3>
+                <CardContent className="p-3 md:p-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="flex-1 w-full">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <h3 className="text-base md:text-lg font-semibold text-foreground">{patient.name}</h3>
                         <Badge 
                           variant={patient.status === "Ativo" ? "default" : "secondary"}
                           className={patient.status === "Ativo" ? "bg-success text-success-foreground" : ""}
@@ -148,41 +148,42 @@ const Pacientes = () => {
                         </Badge>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs md:text-sm text-muted-foreground">
                         {patient.email && (
                           <div className="flex items-center gap-2">
-                            <Mail className="w-4 h-4" />
-                            {patient.email}
+                            <Mail className="w-3 h-3 md:w-4 md:h-4 shrink-0" />
+                            <span className="truncate">{patient.email}</span>
                           </div>
                         )}
                         <div className="flex items-center gap-2">
-                          <Phone className="w-4 h-4" />
+                          <Phone className="w-3 h-3 md:w-4 md:h-4 shrink-0" />
                           {patient.phone}
                         </div>
                         <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
-                          Cadastrado em: {new Date(patient.created_at).toLocaleDateString('pt-BR')}
+                          <Calendar className="w-3 h-3 md:w-4 md:h-4 shrink-0" />
+                          <span className="text-xs">Cadastrado em: {new Date(patient.created_at).toLocaleDateString('pt-BR')}</span>
                         </div>
                         {patient.address && (
                           <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4" />
-                            {patient.address}
+                            <MapPin className="w-3 h-3 md:w-4 md:h-4 shrink-0" />
+                            <span className="truncate">{patient.address}</span>
                           </div>
                         )}
                         {patient.medical_notes && (
                           <div className="flex items-center gap-2">
-                            <FileText className="w-4 h-4" />
+                            <FileText className="w-3 h-3 md:w-4 md:h-4 shrink-0" />
                             Observações médicas
                           </div>
                         )}
                       </div>
                     </div>
                     
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 w-full sm:w-auto">
                       <Button 
                         variant="outline" 
                         size="sm"
                         onClick={() => openViewDialog(patient)}
+                        className="flex-1 sm:flex-none"
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
@@ -190,6 +191,7 @@ const Pacientes = () => {
                         variant="outline" 
                         size="sm"
                         onClick={() => openEditDialog(patient)}
+                        className="flex-1 sm:flex-none"
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
@@ -197,7 +199,7 @@ const Pacientes = () => {
                         variant="outline" 
                         size="sm"
                         onClick={() => openDeleteDialog(patient)}
-                        className="text-destructive hover:text-destructive"
+                        className="text-destructive hover:text-destructive flex-1 sm:flex-none"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

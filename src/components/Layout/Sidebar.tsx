@@ -25,7 +25,7 @@ export const Sidebar = () => {
   const location = useLocation();
 
   return (
-    <div className="w-64 h-screen bg-card border-r border-border flex flex-col">
+    <div className="w-64 h-screen bg-card border-r border-border flex flex-col shrink-0">
       <div className="p-6 border-b border-border">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary rounded-lg">

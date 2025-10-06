@@ -168,13 +168,13 @@ const Financeiro = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Financeiro</h1>
-          <p className="text-muted-foreground">Controle financeiro do consultório</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Financeiro</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Controle financeiro do consultório</p>
         </div>
-        <Button onClick={() => setIsDialogOpen(true)} className="bg-primary hover:bg-primary/90">
+        <Button onClick={() => setIsDialogOpen(true)} className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
           <Plus className="w-4 h-4 mr-2" />
           Nova Transação
         </Button>
@@ -235,24 +235,24 @@ const Financeiro = () => {
               {filteredTransactions.map((transaction) => (
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between gap-4 p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex flex-col sm:flex-row items-start gap-3 p-3 md:p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
+                  <div className="flex-1 w-full min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
                       <Badge variant="outline" className={getTypeColor(transaction.type)}>
                         {transaction.type}
                       </Badge>
                       <Badge className={getStatusColor(transaction.status)}>
                         {transaction.status}
                       </Badge>
-                      <span className="text-sm font-medium text-foreground">
+                      <span className="text-xs md:text-sm font-medium text-foreground">
                         {transaction.financial_categories?.name || "Categoria não definida"}
                       </span>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm text-muted-foreground">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs md:text-sm text-muted-foreground">
                       {transaction.patients?.name && (
-                        <div>
+                        <div className="truncate">
                           <span className="font-medium">Paciente:</span> {transaction.patients.name}
                         </div>
                       )}
@@ -274,7 +274,7 @@ const Financeiro = () => {
                     </div>
                     
                     {transaction.description && (
-                      <p className="text-sm text-muted-foreground mt-2">
+                      <p className="text-xs md:text-sm text-muted-foreground mt-2 line-clamp-2">
                         {transaction.description}
                       </p>
                     )}
@@ -284,7 +284,7 @@ const Financeiro = () => {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleDeleteClick(transaction.id)}
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>

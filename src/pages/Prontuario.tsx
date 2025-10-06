@@ -91,14 +91,14 @@ const Prontuario = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Prontuário</h1>
-          <p className="text-muted-foreground">Histórico médico e tratamentos dos pacientes</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Prontuário</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Histórico médico e tratamentos dos pacientes</p>
         </div>
         
-        <Button className="bg-primary hover:bg-primary/90" onClick={handleCreateRecord}>
+        <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto" onClick={handleCreateRecord}>
           <Plus className="w-4 h-4 mr-2" />
           Novo Registro
         </Button>
@@ -140,77 +140,87 @@ const Prontuario = () => {
             <div className="space-y-4">
               {filteredRecords.map((record) => (
                 <Card key={record.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex flex-col gap-3">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <h3 className="text-lg font-semibold text-foreground">{record.patients.name}</h3>
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                          <h3 className="text-base md:text-lg font-semibold text-foreground">{record.patients.name}</h3>
                           <Badge className={getStatusColor(record.status)}>
                             {record.status}
                           </Badge>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
                           <div className="space-y-2">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Calendar className="w-4 h-4" />
+                            <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground">
+                              <Calendar className="w-4 h-4 shrink-0" />
                               {formatLocalDate(record.record_date)}
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Stethoscope className="w-4 h-4" />
+                            <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground">
+                              <Stethoscope className="w-4 h-4 shrink-0" />
                               {record.procedure_type}
                             </div>
                           </div>
                           
                           <div className="space-y-2">
-                            <div className="text-sm">
+                            <div className="text-xs md:text-sm">
                               <span className="font-medium text-foreground">Diagnóstico:</span>
-                              <p className="text-muted-foreground">{record.diagnosis}</p>
+                              <p className="text-muted-foreground line-clamp-2">{record.diagnosis}</p>
                             </div>
-                            <div className="text-sm">
+                            <div className="text-xs md:text-sm">
                               <span className="font-medium text-foreground">Tratamento:</span>
-                              <p className="text-muted-foreground">{record.treatment}</p>
+                              <p className="text-muted-foreground line-clamp-2">{record.treatment}</p>
                             </div>
                           </div>
                         </div>
                         
                         {record.observations && (
-                          <div className="mt-3 p-3 bg-secondary rounded-lg">
+                          <div className="mt-3 p-2 md:p-3 bg-secondary rounded-lg">
                             <div className="flex items-start gap-2">
-                              <FileText className="w-4 h-4 text-muted-foreground mt-0.5" />
-                              <div>
-                                <span className="text-sm font-medium text-foreground">Observações:</span>
-                                <p className="text-sm text-muted-foreground">{record.observations}</p>
+                              <FileText className="w-3 h-3 md:w-4 md:h-4 text-muted-foreground mt-0.5 shrink-0" />
+                              <div className="min-w-0">
+                                <span className="text-xs md:text-sm font-medium text-foreground">Observações:</span>
+                                <p className="text-xs md:text-sm text-muted-foreground line-clamp-3">{record.observations}</p>
                               </div>
                             </div>
                           </div>
                         )}
                       </div>
                       
-                      <div className="flex gap-2 ml-4">
-                        <Button variant="outline" size="sm" onClick={() => handleViewRecord(record)}>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleViewRecord(record)}
+                          className="flex-1"
+                        >
                           <Eye className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleEditRecord(record)}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEditRecord(record)}
+                          className="flex-1"
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={() => handleDeleteRecord(record)}
-                          className="text-destructive hover:text-destructive"
+                          className="flex-1 text-destructive hover:text-destructive"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
                   </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-          
-          {!isLoading && filteredRecords.length === 0 && (
+                 </Card>
+               ))}
+             </div>
+           )}
+           
+           {!isLoading && filteredRecords.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               {medicalRecords.length === 0 
                 ? "Nenhum registro médico encontrado. Clique em 'Novo Registro' para criar o primeiro."
