@@ -14,6 +14,11 @@ export interface PaymentMethod {
   name: string;
 }
 
+export interface Partner {
+  id: string;
+  name: string;
+}
+
 export interface FinancialTransaction {
   id: string;
   type: "Receita" | "Despesa";
@@ -34,6 +39,10 @@ export interface FinancialTransaction {
     id: string;
     name: string;
   };
+  transaction_partners?: {
+    partner_id: string;
+    partners: Partner;
+  }[];
 }
 
 export interface NewTransaction {
@@ -47,6 +56,7 @@ export interface NewTransaction {
   transaction_date: string;
   due_date?: string;
   status: "Pendente" | "Pago" | "Vencido" | "Cancelado";
+  partner_ids?: string[];
 }
 
 export const useFinancial = () => {
@@ -77,6 +87,13 @@ export const useFinancial = () => {
           patients (
             id,
             name
+          ),
+          transaction_partners (
+            partner_id,
+            partners (
+              id,
+              name
+            )
           )
         `)
         .order("transaction_date", { ascending: false });
@@ -132,18 +149,58 @@ export const useFinancial = () => {
     },
   });
 
+  // Fetch partners
+  const {
+    data: partners = [],
+    isLoading: isLoadingPartners,
+  } = useQuery({
+    queryKey: ["partners"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("partners")
+        .select("*")
+        .order("name");
+
+      if (error) {
+        console.error("Error fetching partners:", error);
+        throw error;
+      }
+
+      return data as Partner[];
+    },
+  });
+
   // Create transaction
   const createTransaction = useMutation({
     mutationFn: async (newTransaction: NewTransaction) => {
+      const { partner_ids, ...transactionData } = newTransaction;
+      
       const { data, error } = await supabase
         .from("financial_transactions")
-        .insert([newTransaction])
+        .insert([transactionData])
         .select()
         .single();
 
       if (error) {
         console.error("Error creating transaction:", error);
         throw error;
+      }
+
+      // Insert partner associations if provided
+      if (partner_ids && partner_ids.length > 0) {
+        const partnerAssociations = partner_ids.map(partner_id => ({
+          transaction_id: data.id,
+          partner_id,
+        }));
+
+        const { error: partnerError } = await supabase
+          .from("transaction_partners")
+          .insert(partnerAssociations);
+
+        if (partnerError) {
+          console.error("Error associating partners:", partnerError);
+          throw partnerError;
+        }
       }
 
       return data;
@@ -233,9 +290,11 @@ export const useFinancial = () => {
     transactions,
     categories,
     paymentMethods,
+    partners,
     isLoadingTransactions,
     isLoadingCategories,
     isLoadingPaymentMethods,
+    isLoadingPartners,
     createTransaction: createTransaction.mutate,
     updateTransaction: updateTransaction.mutate,
     deleteTransaction: deleteTransaction.mutate,

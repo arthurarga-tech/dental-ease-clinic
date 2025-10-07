@@ -16,7 +16,8 @@ import {
   Calendar as CalendarIcon,
   Receipt,
   Search,
-  Trash2
+  Trash2,
+  Users
 } from "lucide-react";
 import { useFinancial } from "@/hooks/useFinancial";
 import { usePatients } from "@/hooks/usePatients";
@@ -28,7 +29,8 @@ const Financeiro = () => {
   const { 
     transactions, 
     categories, 
-    paymentMethods, 
+    paymentMethods,
+    partners,
     isLoadingTransactions,
     createTransaction,
     deleteTransaction
@@ -50,6 +52,7 @@ const Financeiro = () => {
     transaction_date: new Date().toISOString().split("T")[0],
     due_date: "",
     status: "Pendente" as "Pendente" | "Pago" | "Vencido" | "Cancelado",
+    partner_ids: [] as string[],
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -61,6 +64,7 @@ const Financeiro = () => {
       patient_id: formData.patient_id || undefined,
       payment_method_id: formData.payment_method_id || undefined,
       due_date: formData.due_date || undefined,
+      partner_ids: formData.partner_ids.length > 0 ? formData.partner_ids : undefined,
     });
     
     setIsDialogOpen(false);
@@ -74,6 +78,7 @@ const Financeiro = () => {
       transaction_date: new Date().toISOString().split("T")[0],
       due_date: "",
       status: "Pendente",
+      partner_ids: [],
     });
   };
 
@@ -273,6 +278,14 @@ const Financeiro = () => {
                       </div>
                     </div>
                     
+                    {transaction.transaction_partners && transaction.transaction_partners.length > 0 && (
+                      <div className="flex items-center gap-2 mt-2 text-xs md:text-sm text-muted-foreground">
+                        <Users className="w-3 h-3" />
+                        <span className="font-medium">Responsáveis:</span>
+                        <span>{transaction.transaction_partners.map(tp => tp.partners.name).join(", ")}</span>
+                      </div>
+                    )}
+                    
                     {transaction.description && (
                       <p className="text-xs md:text-sm text-muted-foreground mt-2 line-clamp-2">
                         {transaction.description}
@@ -431,6 +444,38 @@ const Financeiro = () => {
                   value={formData.due_date}
                   onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
                 />
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label>Sócios Responsáveis</Label>
+                <div className="flex flex-wrap gap-2 p-3 border border-border rounded-lg bg-background">
+                  {partners.map((partner) => (
+                    <label
+                      key={partner.id}
+                      className="flex items-center gap-2 px-3 py-2 border border-border rounded-md cursor-pointer hover:bg-muted transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.partner_ids.includes(partner.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData({
+                              ...formData,
+                              partner_ids: [...formData.partner_ids, partner.id],
+                            });
+                          } else {
+                            setFormData({
+                              ...formData,
+                              partner_ids: formData.partner_ids.filter(id => id !== partner.id),
+                            });
+                          }
+                        }}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm">{partner.name}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
 
