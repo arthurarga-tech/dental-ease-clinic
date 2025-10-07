@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   Drawer,
   DrawerClose,
@@ -17,24 +18,31 @@ import {
   UserRoundPlus,
   Menu,
   X,
+  LogOut,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
-const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: Users, label: "Pacientes", path: "/pacientes" },
-  { icon: Calendar, label: "Agenda", path: "/agenda" },
-  { icon: FileText, label: "Prontuário", path: "/prontuario" },
-  { icon: UserRoundPlus, label: "Dentistas", path: "/dentistas" },
-  { icon: CreditCard, label: "Financeiro", path: "/financeiro" },
+const allMenuItems = [
+  { icon: LayoutDashboard, label: "Dashboard", path: "/", roles: ['admin', 'socio', 'dentista', 'secretaria'] },
+  { icon: Users, label: "Pacientes", path: "/pacientes", roles: ['admin', 'socio', 'secretaria'] },
+  { icon: Calendar, label: "Agenda", path: "/agenda", roles: ['admin', 'socio', 'dentista', 'secretaria'] },
+  { icon: FileText, label: "Prontuário", path: "/prontuario", roles: ['admin', 'socio', 'dentista'] },
+  { icon: UserRoundPlus, label: "Dentistas", path: "/dentistas", roles: ['admin', 'socio'] },
+  { icon: CreditCard, label: "Financeiro", path: "/financeiro", roles: ['admin', 'socio'] },
 ];
 
 export const MobileNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const { hasAnyRole, signOut, user } = useAuth();
+
+  const menuItems = allMenuItems.filter(item => 
+    hasAnyRole(item.roles as any)
+  );
 
   const handleNavigate = (path: string) => {
     navigate(path);
@@ -90,8 +98,25 @@ export const MobileNav = () => {
           })}
         </nav>
 
-        <div className="p-4 border-t">
-          <div className="text-xs text-muted-foreground text-center">
+        <div className="p-4 border-t space-y-3">
+          <Separator />
+          {user?.email && (
+            <div className="px-2 py-1 text-sm text-muted-foreground">
+              {user.email}
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3 h-12 text-base text-muted-foreground hover:text-foreground"
+            onClick={() => {
+              signOut();
+              setOpen(false);
+            }}
+          >
+            <LogOut className="w-5 h-5" />
+            Sair
+          </Button>
+          <div className="text-xs text-muted-foreground text-center pt-2">
             © 2024 DentalCare System
           </div>
         </div>
