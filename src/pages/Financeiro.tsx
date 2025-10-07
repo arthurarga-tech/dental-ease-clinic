@@ -16,8 +16,7 @@ import {
   Calendar as CalendarIcon,
   Receipt,
   Search,
-  Trash2,
-  Users
+  Trash2
 } from "lucide-react";
 import { useFinancial } from "@/hooks/useFinancial";
 import { usePatients } from "@/hooks/usePatients";
@@ -29,8 +28,7 @@ const Financeiro = () => {
   const { 
     transactions, 
     categories, 
-    paymentMethods,
-    partners,
+    paymentMethods, 
     isLoadingTransactions,
     createTransaction,
     deleteTransaction
@@ -52,7 +50,6 @@ const Financeiro = () => {
     transaction_date: new Date().toISOString().split("T")[0],
     due_date: "",
     status: "Pendente" as "Pendente" | "Pago" | "Vencido" | "Cancelado",
-    partner_ids: [] as string[],
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -64,7 +61,6 @@ const Financeiro = () => {
       patient_id: formData.patient_id || undefined,
       payment_method_id: formData.payment_method_id || undefined,
       due_date: formData.due_date || undefined,
-      partner_ids: formData.partner_ids.length > 0 ? formData.partner_ids : undefined,
     });
     
     setIsDialogOpen(false);
@@ -78,7 +74,6 @@ const Financeiro = () => {
       transaction_date: new Date().toISOString().split("T")[0],
       due_date: "",
       status: "Pendente",
-      partner_ids: [],
     });
   };
 
@@ -173,13 +168,13 @@ const Financeiro = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Financeiro</h1>
-          <p className="text-sm md:text-base text-muted-foreground">Controle financeiro do consultório</p>
+          <h1 className="text-3xl font-bold text-foreground">Financeiro</h1>
+          <p className="text-muted-foreground">Controle financeiro do consultório</p>
         </div>
-        <Button onClick={() => setIsDialogOpen(true)} className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
+        <Button onClick={() => setIsDialogOpen(true)} className="bg-primary hover:bg-primary/90">
           <Plus className="w-4 h-4 mr-2" />
           Nova Transação
         </Button>
@@ -240,24 +235,24 @@ const Financeiro = () => {
               {filteredTransactions.map((transaction) => (
                 <div
                   key={transaction.id}
-                  className="flex flex-col sm:flex-row items-start gap-3 p-3 md:p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center justify-between gap-4 p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex-1 w-full min-w-0">
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
                       <Badge variant="outline" className={getTypeColor(transaction.type)}>
                         {transaction.type}
                       </Badge>
                       <Badge className={getStatusColor(transaction.status)}>
                         {transaction.status}
                       </Badge>
-                      <span className="text-xs md:text-sm font-medium text-foreground">
+                      <span className="text-sm font-medium text-foreground">
                         {transaction.financial_categories?.name || "Categoria não definida"}
                       </span>
                     </div>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs md:text-sm text-muted-foreground">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm text-muted-foreground">
                       {transaction.patients?.name && (
-                        <div className="truncate">
+                        <div>
                           <span className="font-medium">Paciente:</span> {transaction.patients.name}
                         </div>
                       )}
@@ -278,16 +273,8 @@ const Financeiro = () => {
                       </div>
                     </div>
                     
-                    {transaction.transaction_partners && transaction.transaction_partners.length > 0 && (
-                      <div className="flex items-center gap-2 mt-2 text-xs md:text-sm text-muted-foreground">
-                        <Users className="w-3 h-3" />
-                        <span className="font-medium">Responsáveis:</span>
-                        <span>{transaction.transaction_partners.map(tp => tp.partners.name).join(", ")}</span>
-                      </div>
-                    )}
-                    
                     {transaction.description && (
-                      <p className="text-xs md:text-sm text-muted-foreground mt-2 line-clamp-2">
+                      <p className="text-sm text-muted-foreground mt-2">
                         {transaction.description}
                       </p>
                     )}
@@ -297,7 +284,7 @@ const Financeiro = () => {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleDeleteClick(transaction.id)}
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -444,38 +431,6 @@ const Financeiro = () => {
                   value={formData.due_date}
                   onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
                 />
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <Label>Sócios Responsáveis</Label>
-                <div className="flex flex-wrap gap-2 p-3 border border-border rounded-lg bg-background">
-                  {partners.map((partner) => (
-                    <label
-                      key={partner.id}
-                      className="flex items-center gap-2 px-3 py-2 border border-border rounded-md cursor-pointer hover:bg-muted transition-colors"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formData.partner_ids.includes(partner.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setFormData({
-                              ...formData,
-                              partner_ids: [...formData.partner_ids, partner.id],
-                            });
-                          } else {
-                            setFormData({
-                              ...formData,
-                              partner_ids: formData.partner_ids.filter(id => id !== partner.id),
-                            });
-                          }
-                        }}
-                        className="w-4 h-4"
-                      />
-                      <span className="text-sm">{partner.name}</span>
-                    </label>
-                  ))}
-                </div>
               </div>
             </div>
 

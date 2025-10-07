@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { 
   Calendar, 
   Users, 
@@ -8,32 +7,25 @@ import {
   CreditCard, 
   LayoutDashboard,
   Stethoscope,
-  UserRoundPlus,
-  LogOut
+  UserRoundPlus
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 
-const allMenuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/", roles: ['admin', 'socio', 'dentista', 'secretaria'] },
-  { icon: Users, label: "Pacientes", path: "/pacientes", roles: ['admin', 'socio', 'secretaria'] },
-  { icon: Calendar, label: "Agenda", path: "/agenda", roles: ['admin', 'socio', 'dentista', 'secretaria'] },
-  { icon: FileText, label: "Prontuário", path: "/prontuario", roles: ['admin', 'socio', 'dentista'] },
-  { icon: UserRoundPlus, label: "Dentistas", path: "/dentistas", roles: ['admin', 'socio'] },
-  { icon: CreditCard, label: "Financeiro", path: "/financeiro", roles: ['admin', 'socio'] },
+const menuItems = [
+  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+  { icon: Users, label: "Pacientes", path: "/pacientes" },
+  { icon: Calendar, label: "Agenda", path: "/agenda" },
+  { icon: FileText, label: "Prontuário", path: "/prontuario" },
+  { icon: UserRoundPlus, label: "Dentistas", path: "/dentistas" },
+  { icon: CreditCard, label: "Financeiro", path: "/financeiro" },
 ];
 
 export const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { hasAnyRole, signOut, user } = useAuth();
-
-  const menuItems = allMenuItems.filter(item => 
-    hasAnyRole(item.roles as any)
-  );
 
   return (
-    <div className="w-64 h-screen bg-card border-r border-border flex flex-col shrink-0">
+    <div className="w-64 h-screen bg-card border-r border-border flex flex-col">
       <div className="p-6 border-b border-border">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary rounded-lg">
@@ -68,22 +60,8 @@ export const Sidebar = () => {
         })}
       </nav>
 
-      <div className="p-4 border-t border-border space-y-3">
-        <Separator />
-        {user?.email && (
-          <div className="px-2 py-1 text-xs text-muted-foreground truncate">
-            {user.email}
-          </div>
-        )}
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
-          onClick={() => signOut()}
-        >
-          <LogOut className="w-5 h-5" />
-          Sair
-        </Button>
-        <div className="text-xs text-muted-foreground text-center pt-2">
+      <div className="p-4 border-t border-border">
+        <div className="text-xs text-muted-foreground text-center">
           © 2024 DentalCare System
         </div>
       </div>

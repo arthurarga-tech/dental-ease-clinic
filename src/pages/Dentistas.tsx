@@ -70,13 +70,13 @@ const Dentistas = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dentistas</h1>
-          <p className="text-sm md:text-base text-muted-foreground">Gerencie o cadastro dos dentistas</p>
+          <h1 className="text-3xl font-bold text-foreground">Dentistas</h1>
+          <p className="text-muted-foreground">Gerencie o cadastro dos dentistas</p>
         </div>
-        <Button onClick={handleNewDentist} className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
+        <Button onClick={handleNewDentist} className="bg-primary hover:bg-primary/90">
           <Plus className="w-4 h-4 mr-2" />
           Novo Dentista
         </Button>
@@ -160,16 +160,16 @@ const Dentistas = () => {
               {filteredDentists.map((dentist) => (
                 <div
                   key={dentist.id}
-                  className="flex flex-col gap-3 p-3 md:p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <h3 className="text-sm md:text-base font-semibold text-foreground">{dentist.name}</h3>
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="font-semibold text-foreground">{dentist.name}</h3>
                       <Badge variant={dentist.status === "Ativo" ? "default" : "secondary"}>
                         {dentist.status}
                       </Badge>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs md:text-sm text-muted-foreground">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
                       <div>
                         <span className="font-medium">CRO:</span> {dentist.cro}
                       </div>
@@ -177,7 +177,7 @@ const Dentistas = () => {
                         <span className="font-medium">Telefone:</span> {dentist.phone}
                       </div>
                       {dentist.email && (
-                        <div className="truncate">
+                        <div>
                           <span className="font-medium">Email:</span> {dentist.email}
                         </div>
                       )}
@@ -201,7 +201,7 @@ const Dentistas = () => {
                       </div>
                     )}
                     {dentist.dentist_availability.length > 0 && (
-                      <div className="mt-2 text-xs md:text-sm text-muted-foreground">
+                      <div className="mt-2 text-sm text-muted-foreground">
                         <span className="font-medium">Disponível:</span>{" "}
                         {dentist.dentist_availability
                           .sort((a, b) => a.day_of_week - b.day_of_week)
@@ -219,7 +219,6 @@ const Dentistas = () => {
                       size="sm"
                       variant="outline"
                       onClick={() => handleView(dentist)}
-                      className="flex-1"
                     >
                       <Eye className="w-4 h-4" />
                     </Button>
@@ -227,7 +226,6 @@ const Dentistas = () => {
                       size="sm"
                       variant="outline"
                       onClick={() => handleEdit(dentist)}
-                      className="flex-1"
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -235,7 +233,6 @@ const Dentistas = () => {
                       size="sm"
                       variant="outline"
                       onClick={() => handleDelete(dentist)}
-                      className="flex-1"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

@@ -59,15 +59,15 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-sm md:text-base text-muted-foreground">Visão geral do consultório</p>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground">Visão geral do consultório</p>
         </div>
         <Button 
           onClick={() => navigate("/agenda")}
-          className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
+          className="bg-primary hover:bg-primary/90"
         >
           <Calendar className="w-4 h-4 mr-2" />
           Nova Consulta
@@ -95,7 +95,7 @@ const Dashboard = () => {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Birthday reminder card */}
         {birthdayPatients.length > 0 && (
           <Card className="lg:col-span-3">
