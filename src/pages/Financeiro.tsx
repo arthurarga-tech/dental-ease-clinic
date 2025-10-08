@@ -16,7 +16,8 @@ import {
   Calendar as CalendarIcon,
   Receipt,
   Search,
-  Trash2
+  Trash2,
+  Pencil
 } from "lucide-react";
 import { useFinancial } from "@/hooks/useFinancial";
 import { usePatients } from "@/hooks/usePatients";
@@ -31,6 +32,7 @@ const Financeiro = () => {
     paymentMethods, 
     isLoadingTransactions,
     createTransaction,
+    updateTransaction,
     deleteTransaction
   } = useFinancial();
   
@@ -40,6 +42,7 @@ const Financeiro = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
+  const [editingTransaction, setEditingTransaction] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     type: "Receita" as "Receita" | "Despesa",
     patient_id: "",
@@ -55,15 +58,22 @@ const Financeiro = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    createTransaction({
+    const transactionData = {
       ...formData,
       amount: parseFloat(formData.amount),
       patient_id: formData.patient_id || undefined,
       payment_method_id: formData.payment_method_id || undefined,
       due_date: formData.due_date || undefined,
-    });
+    };
+
+    if (editingTransaction) {
+      updateTransaction({ id: editingTransaction, ...transactionData });
+    } else {
+      createTransaction(transactionData);
+    }
     
     setIsDialogOpen(false);
+    setEditingTransaction(null);
     setFormData({
       type: "Receita",
       patient_id: "",
@@ -75,6 +85,22 @@ const Financeiro = () => {
       due_date: "",
       status: "Pendente",
     });
+  };
+
+  const handleEditClick = (transaction: typeof transactions[0]) => {
+    setEditingTransaction(transaction.id);
+    setFormData({
+      type: transaction.type,
+      patient_id: transaction.patient_id || "",
+      category_id: transaction.category_id,
+      payment_method_id: transaction.payment_method_id || "",
+      amount: transaction.amount.toString(),
+      description: transaction.description || "",
+      transaction_date: transaction.transaction_date,
+      due_date: transaction.due_date || "",
+      status: transaction.status,
+    });
+    setIsDialogOpen(true);
   };
 
   const handleDeleteClick = (transactionId: string) => {
@@ -280,14 +306,24 @@ const Financeiro = () => {
                     )}
                   </div>
                   
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteClick(transaction.id)}
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEditClick(transaction)}
+                      className="text-primary hover:text-primary hover:bg-primary/10"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteClick(transaction.id)}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -295,11 +331,27 @@ const Financeiro = () => {
         </CardContent>
       </Card>
 
-      {/* New Transaction Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      {/* Transaction Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={(open) => {
+        setIsDialogOpen(open);
+        if (!open) {
+          setEditingTransaction(null);
+          setFormData({
+            type: "Receita",
+            patient_id: "",
+            category_id: "",
+            payment_method_id: "",
+            amount: "",
+            description: "",
+            transaction_date: new Date().toISOString().split("T")[0],
+            due_date: "",
+            status: "Pendente",
+          });
+        }
+      }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Nova Transação</DialogTitle>
+            <DialogTitle>{editingTransaction ? "Editar Transação" : "Nova Transação"}</DialogTitle>
           </DialogHeader>
           
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -455,7 +507,7 @@ const Financeiro = () => {
                 Cancelar
               </Button>
               <Button type="submit" className="flex-1">
-                Cadastrar
+                {editingTransaction ? "Atualizar" : "Cadastrar"}
               </Button>
             </div>
           </form>
