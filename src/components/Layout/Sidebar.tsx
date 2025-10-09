@@ -7,9 +7,11 @@ import {
   CreditCard, 
   LayoutDashboard,
   Stethoscope,
-  UserRoundPlus
+  UserRoundPlus,
+  LogOut
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
@@ -23,6 +25,7 @@ const menuItems = [
 export const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { signOut } = useAuth();
 
   return (
     <div className="w-64 h-screen bg-card border-r border-border flex flex-col">
@@ -60,8 +63,16 @@ export const Sidebar = () => {
         })}
       </nav>
 
-      <div className="p-4 border-t border-border">
-        <div className="text-xs text-muted-foreground text-center">
+      <div className="p-4 border-t border-border space-y-2">
+        <Button
+          variant="outline"
+          className="w-full justify-start gap-3 h-12"
+          onClick={() => signOut()}
+        >
+          <LogOut className="w-5 h-5" />
+          Sair
+        </Button>
+        <div className="text-xs text-muted-foreground text-center pt-2">
           © 2024 DentalCare System
         </div>
       </div>
