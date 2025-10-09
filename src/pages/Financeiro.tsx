@@ -24,6 +24,26 @@ import { usePatients } from "@/hooks/usePatients";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FinancialTransactionDeleteDialog } from "@/components/FinancialTransactionDeleteDialog";
+import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
+
+const transactionSchema = z.object({
+  type: z.enum(["Receita", "Despesa"]),
+  category_id: z.string().uuid({ message: "Categoria inválida" }),
+  patient_id: z.string().uuid().optional().or(z.literal("")),
+  payment_method_id: z.string().uuid().optional().or(z.literal("")),
+  amount: z.string()
+    .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+      message: "Valor deve ser maior que zero"
+    })
+    .refine((val) => parseFloat(val) <= 999999.99, {
+      message: "Valor muito alto (máx. R$ 999.999,99)"
+    }),
+  description: z.string().trim().max(500, { message: "Descrição muito longa (máx. 500 caracteres)" }).optional(),
+  transaction_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Data inválida" }),
+  due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Data inválida" }).optional().or(z.literal("")),
+  status: z.enum(["Pendente", "Pago", "Vencido", "Cancelado"])
+});
 
 const Financeiro = () => {
   const { 
@@ -37,12 +57,14 @@ const Financeiro = () => {
   } = useFinancial();
   
   const { patients } = usePatients();
+  const { toast } = useToast();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     type: "Receita" as "Receita" | "Despesa",
     patient_id: "",
@@ -57,34 +79,58 @@ const Financeiro = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
     
-    const transactionData = {
-      ...formData,
-      amount: parseFloat(formData.amount),
-      patient_id: formData.patient_id || undefined,
-      payment_method_id: formData.payment_method_id || undefined,
-      due_date: formData.due_date || undefined,
-    };
+    try {
+      const validated = transactionSchema.parse(formData);
+      
+      const transactionData = {
+        type: validated.type,
+        category_id: validated.category_id,
+        amount: parseFloat(validated.amount),
+        transaction_date: validated.transaction_date,
+        status: validated.status,
+        description: validated.description || undefined,
+        patient_id: validated.patient_id || undefined,
+        payment_method_id: validated.payment_method_id || undefined,
+        due_date: validated.due_date || undefined,
+      };
 
-    if (editingTransaction) {
-      updateTransaction({ id: editingTransaction, ...transactionData });
-    } else {
-      createTransaction(transactionData);
+      if (editingTransaction) {
+        updateTransaction({ id: editingTransaction, ...transactionData });
+      } else {
+        createTransaction(transactionData);
+      }
+      
+      setIsDialogOpen(false);
+      setEditingTransaction(null);
+      setFormData({
+        type: "Receita",
+        patient_id: "",
+        category_id: "",
+        payment_method_id: "",
+        amount: "",
+        description: "",
+        transaction_date: new Date().toISOString().split("T")[0],
+        due_date: "",
+        status: "Pendente",
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0].toString()] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+        toast({
+          title: "Erro de validação",
+          description: "Por favor, corrija os campos destacados.",
+          variant: "destructive",
+        });
+      }
     }
-    
-    setIsDialogOpen(false);
-    setEditingTransaction(null);
-    setFormData({
-      type: "Receita",
-      patient_id: "",
-      category_id: "",
-      payment_method_id: "",
-      amount: "",
-      description: "",
-      transaction_date: new Date().toISOString().split("T")[0],
-      due_date: "",
-      status: "Pendente",
-    });
   };
 
   const handleEditClick = (transaction: typeof transactions[0]) => {
@@ -420,11 +466,16 @@ const Financeiro = () => {
                   type="number"
                   step="0.01"
                   min="0"
+                  max="999999.99"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                   placeholder="0,00"
                   required
+                  className={errors.amount ? "border-destructive" : ""}
                 />
+                {errors.amount && (
+                  <p className="text-sm text-destructive">{errors.amount}</p>
+                )}
               </div>
 
               <div className="space-y-2">

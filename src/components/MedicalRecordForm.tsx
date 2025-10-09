@@ -7,6 +7,18 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePatients } from "@/hooks/usePatients";
 import { useMedicalRecords, MedicalRecord, NewMedicalRecord } from "@/hooks/useMedicalRecords";
+import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
+
+const medicalRecordSchema = z.object({
+  patient_id: z.string().uuid({ message: "Paciente inválido" }),
+  record_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Data inválida" }),
+  procedure_type: z.string().trim().min(1, { message: "Tipo de procedimento obrigatório" }).max(100),
+  diagnosis: z.string().trim().min(1, { message: "Diagnóstico obrigatório" }).max(500, { message: "Diagnóstico muito longo (máx. 500 caracteres)" }),
+  treatment: z.string().trim().min(1, { message: "Tratamento obrigatório" }).max(2000, { message: "Tratamento muito longo (máx. 2000 caracteres)" }),
+  observations: z.string().trim().max(2000, { message: "Observações muito longas (máx. 2000 caracteres)" }).optional(),
+  status: z.enum(["Agendado", "Em andamento", "Concluído"])
+});
 
 interface MedicalRecordFormProps {
   open: boolean;
@@ -23,6 +35,8 @@ export const MedicalRecordForm = ({
 }: MedicalRecordFormProps) => {
   const { patients } = usePatients();
   const { createMedicalRecord, updateMedicalRecord, isCreating, isUpdating } = useMedicalRecords();
+  const { toast } = useToast();
+  const [errors, setErrors] = useState<Record<string, string>>({});
   
   const [formData, setFormData] = useState({
     patient_id: '',
@@ -63,17 +77,37 @@ export const MedicalRecordForm = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
     
-    if (mode === 'edit' && record) {
-      updateMedicalRecord({
-        id: record.id,
-        ...formData
-      });
-    } else {
-      createMedicalRecord(formData as NewMedicalRecord);
+    try {
+      const validated = medicalRecordSchema.parse(formData);
+      
+      if (mode === 'edit' && record) {
+        updateMedicalRecord({
+          id: record.id,
+          ...validated
+        });
+      } else {
+        createMedicalRecord(validated as NewMedicalRecord);
+      }
+      
+      onOpenChange(false);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0].toString()] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+        toast({
+          title: "Erro de validação",
+          description: "Por favor, corrija os campos destacados.",
+          variant: "destructive",
+        });
+      }
     }
-    
-    onOpenChange(false);
   };
 
   const handleChange = (field: string, value: string) => {
@@ -155,37 +189,58 @@ export const MedicalRecordForm = ({
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="diagnosis">Diagnóstico</Label>
-            <Input 
-              id="diagnosis" 
-              placeholder="Diagnóstico clínico" 
-              value={formData.diagnosis}
-              onChange={(e) => handleChange('diagnosis', e.target.value)}
-              required
-            />
-          </div>
+            <div>
+              <Label htmlFor="diagnosis">Diagnóstico</Label>
+              <Input 
+                id="diagnosis" 
+                placeholder="Diagnóstico clínico" 
+                value={formData.diagnosis}
+                onChange={(e) => handleChange('diagnosis', e.target.value)}
+                required
+                maxLength={500}
+                className={errors.diagnosis ? "border-destructive" : ""}
+              />
+              {errors.diagnosis && (
+                <p className="text-sm text-destructive mt-1">{errors.diagnosis}</p>
+              )}
+            </div>
 
-          <div>
-            <Label htmlFor="treatment">Tratamento</Label>
-            <Textarea 
-              id="treatment" 
-              placeholder="Descreva o tratamento realizado/proposto" 
-              value={formData.treatment}
-              onChange={(e) => handleChange('treatment', e.target.value)}
-              required
-            />
-          </div>
+            <div>
+              <Label htmlFor="treatment">Tratamento</Label>
+              <Textarea 
+                id="treatment" 
+                placeholder="Descreva o tratamento realizado/proposto" 
+                value={formData.treatment}
+                onChange={(e) => handleChange('treatment', e.target.value)}
+                required
+                maxLength={2000}
+                className={errors.treatment ? "border-destructive" : ""}
+              />
+              {errors.treatment && (
+                <p className="text-sm text-destructive mt-1">{errors.treatment}</p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">
+                {formData.treatment.length}/2000 caracteres
+              </p>
+            </div>
 
-          <div>
-            <Label htmlFor="observations">Observações</Label>
-            <Textarea 
-              id="observations" 
-              placeholder="Observações adicionais, orientações ao paciente, etc." 
-              value={formData.observations}
-              onChange={(e) => handleChange('observations', e.target.value)}
-            />
-          </div>
+            <div>
+              <Label htmlFor="observations">Observações</Label>
+              <Textarea 
+                id="observations" 
+                placeholder="Observações adicionais, orientações ao paciente, etc." 
+                value={formData.observations}
+                onChange={(e) => handleChange('observations', e.target.value)}
+                maxLength={2000}
+                className={errors.observations ? "border-destructive" : ""}
+              />
+              {errors.observations && (
+                <p className="text-sm text-destructive mt-1">{errors.observations}</p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">
+                {formData.observations.length}/2000 caracteres
+              </p>
+            </div>
 
           <div className="flex gap-2 pt-4">
             <Button 
