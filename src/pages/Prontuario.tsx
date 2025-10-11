@@ -91,14 +91,14 @@ const Prontuario = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 md:p-6 space-y-6">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Prontuário</h1>
-          <p className="text-muted-foreground">Histórico médico e tratamentos dos pacientes</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Prontuário</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Histórico médico e tratamentos dos pacientes</p>
         </div>
         
-        <Button className="bg-primary hover:bg-primary/90" onClick={handleCreateRecord}>
+        <Button className="bg-primary hover:bg-primary/90 w-full md:w-auto" onClick={handleCreateRecord}>
           <Plus className="w-4 h-4 mr-2" />
           Novo Registro
         </Button>
@@ -140,17 +140,17 @@ const Prontuario = () => {
             <div className="space-y-4">
               {filteredRecords.map((record) => (
                 <Card key={record.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <h3 className="text-lg font-semibold text-foreground">{record.patients.name}</h3>
-                          <Badge className={getStatusColor(record.status)}>
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
+                          <h3 className="text-base md:text-lg font-semibold text-foreground truncate">{record.patients.name}</h3>
+                          <Badge className={`${getStatusColor(record.status)} text-xs`}>
                             {record.status}
                           </Badge>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                           <div className="space-y-2">
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <Calendar className="w-4 h-4" />
@@ -187,12 +187,12 @@ const Prontuario = () => {
                         )}
                       </div>
                       
-                      <div className="flex gap-2 ml-4">
+                      <div className="flex gap-1 md:gap-2 justify-end">
                         <Button variant="outline" size="sm" onClick={() => handleViewRecord(record)}>
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-3 h-3 md:w-4 md:h-4" />
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => handleEditRecord(record)}>
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-3 h-3 md:w-4 md:h-4" />
                         </Button>
                         <Button 
                           variant="outline" 
@@ -200,7 +200,7 @@ const Prontuario = () => {
                           onClick={() => handleDeleteRecord(record)}
                           className="text-destructive hover:text-destructive"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
                         </Button>
                       </div>
                     </div>

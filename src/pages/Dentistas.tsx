@@ -70,13 +70,13 @@ const Dentistas = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 md:p-6 space-y-6">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Dentistas</h1>
-          <p className="text-muted-foreground">Gerencie o cadastro dos dentistas</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dentistas</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Gerencie o cadastro dos dentistas</p>
         </div>
-        <Button onClick={handleNewDentist} className="bg-primary hover:bg-primary/90">
+        <Button onClick={handleNewDentist} className="bg-primary hover:bg-primary/90 w-full md:w-auto">
           <Plus className="w-4 h-4 mr-2" />
           Novo Dentista
         </Button>
@@ -160,16 +160,16 @@ const Dentistas = () => {
               {filteredDentists.map((dentist) => (
                 <div
                   key={dentist.id}
-                  className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-3 md:p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-foreground">{dentist.name}</h3>
-                      <Badge variant={dentist.status === "Ativo" ? "default" : "secondary"}>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                      <h3 className="font-semibold text-foreground text-sm md:text-base truncate">{dentist.name}</h3>
+                      <Badge variant={dentist.status === "Ativo" ? "default" : "secondary"} className="text-xs w-fit">
                         {dentist.status}
                       </Badge>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
+                    <div className="grid grid-cols-1 gap-2 text-xs md:text-sm text-muted-foreground">
                       <div>
                         <span className="font-medium">CRO:</span> {dentist.cro}
                       </div>
@@ -214,27 +214,27 @@ const Dentistas = () => {
                     )}
                   </div>
                   
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 md:gap-2 justify-end">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleView(dentist)}
                     >
-                      <Eye className="w-4 h-4" />
+                      <Eye className="w-3 h-3 md:w-4 md:h-4" />
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleEdit(dentist)}
                     >
-                      <Edit className="w-4 h-4" />
+                      <Edit className="w-3 h-3 md:w-4 md:h-4" />
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleDelete(dentist)}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
                     </Button>
                   </div>
                 </div>

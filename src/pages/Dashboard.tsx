@@ -59,15 +59,15 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 md:p-6 space-y-6">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Visão geral do consultório</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Visão geral do consultório</p>
         </div>
         <Button 
           onClick={() => navigate("/agenda")}
-          className="bg-primary hover:bg-primary/90"
+          className="bg-primary hover:bg-primary/90 w-full md:w-auto"
         >
           <Calendar className="w-4 h-4 mr-2" />
           Nova Consulta

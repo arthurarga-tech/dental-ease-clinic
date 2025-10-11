@@ -22,13 +22,27 @@ const menuItems = [
   { icon: CreditCard, label: "Financeiro", path: "/financeiro" },
 ];
 
-export const Sidebar = () => {
+interface SidebarProps {
+  onNavigate?: () => void;
+}
+
+export const Sidebar = ({ onNavigate }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = useAuth();
 
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    onNavigate?.();
+  };
+
+  const handleSignOut = () => {
+    signOut();
+    onNavigate?.();
+  };
+
   return (
-    <div className="w-64 h-screen bg-card border-r border-border flex flex-col">
+    <div className="w-full h-full bg-card border-r border-border flex flex-col md:w-64 md:h-screen">
       <div className="p-6 border-b border-border">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary rounded-lg">
@@ -54,7 +68,7 @@ export const Sidebar = () => {
                 "w-full justify-start gap-3 h-12",
                 isActive && "bg-accent text-accent-foreground"
               )}
-              onClick={() => navigate(item.path)}
+              onClick={() => handleNavigation(item.path)}
             >
               <Icon className="w-5 h-5" />
               {item.label}
@@ -67,7 +81,7 @@ export const Sidebar = () => {
         <Button
           variant="outline"
           className="w-full justify-start gap-3 h-12"
-          onClick={() => signOut()}
+          onClick={handleSignOut}
         >
           <LogOut className="w-5 h-5" />
           Sair
