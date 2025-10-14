@@ -71,6 +71,69 @@ export type Database = {
           },
         ]
       }
+      budgets: {
+        Row: {
+          budget_date: string
+          created_at: string
+          dentist_id: string | null
+          discount: number | null
+          final_amount: number
+          id: string
+          notes: string | null
+          patient_id: string
+          procedures: string
+          status: string
+          total_amount: number
+          updated_at: string
+          valid_until: string
+        }
+        Insert: {
+          budget_date?: string
+          created_at?: string
+          dentist_id?: string | null
+          discount?: number | null
+          final_amount: number
+          id?: string
+          notes?: string | null
+          patient_id: string
+          procedures: string
+          status?: string
+          total_amount: number
+          updated_at?: string
+          valid_until: string
+        }
+        Update: {
+          budget_date?: string
+          created_at?: string
+          dentist_id?: string | null
+          discount?: number | null
+          final_amount?: number
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          procedures?: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          valid_until?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budgets_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budgets_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dentist_availability: {
         Row: {
           created_at: string

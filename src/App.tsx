@@ -8,6 +8,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Pacientes from "./pages/Pacientes";
 import Agenda from "./pages/Agenda";
+import Orcamento from "./pages/Orcamento";
 import Prontuario from "./pages/Prontuario";
 import Dentistas from "./pages/Dentistas";
 import Financeiro from "./pages/Financeiro";
@@ -42,6 +43,13 @@ const App = () => (
             <ProtectedRoute>
               <MainLayout>
                 <Agenda />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/orcamento" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Orcamento />
               </MainLayout>
             </ProtectedRoute>
           } />

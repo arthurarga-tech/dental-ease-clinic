@@ -8,7 +8,8 @@ import {
   LayoutDashboard,
   Stethoscope,
   UserRoundPlus,
-  LogOut
+  LogOut,
+  FileSpreadsheet
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,6 +18,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: Users, label: "Pacientes", path: "/pacientes" },
   { icon: Calendar, label: "Agenda", path: "/agenda" },
+  { icon: FileSpreadsheet, label: "Orçamento", path: "/orcamento" },
   { icon: FileText, label: "Prontuário", path: "/prontuario" },
   { icon: UserRoundPlus, label: "Dentistas", path: "/dentistas" },
   { icon: CreditCard, label: "Financeiro", path: "/financeiro" },
