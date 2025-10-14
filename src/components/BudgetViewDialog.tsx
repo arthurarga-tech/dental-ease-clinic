@@ -99,9 +99,25 @@ export const BudgetViewDialog = ({
             <p className="text-sm font-medium text-muted-foreground mb-2">
               Procedimentos
             </p>
-            <p className="text-sm whitespace-pre-wrap bg-muted p-3 rounded-md">
-              {budget.procedures}
-            </p>
+            <div className="space-y-2">
+              {(() => {
+                try {
+                  const procedures = JSON.parse(budget.procedures);
+                  return procedures.map((proc: any, index: number) => (
+                    <div key={index} className="flex justify-between items-center bg-muted p-3 rounded-md">
+                      <span className="text-sm font-medium">{proc.name}</span>
+                      <span className="text-sm font-semibold">R$ {proc.value.toFixed(2)}</span>
+                    </div>
+                  ));
+                } catch {
+                  return (
+                    <p className="text-sm whitespace-pre-wrap bg-muted p-3 rounded-md">
+                      {budget.procedures}
+                    </p>
+                  );
+                }
+              })()}
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4 bg-muted p-4 rounded-md">

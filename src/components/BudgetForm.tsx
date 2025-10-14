@@ -2,10 +2,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useState, useEffect } from "react";
 import {
   Form,
   FormControl,
@@ -32,12 +33,15 @@ import { usePatients } from "@/hooks/usePatients";
 import { useDentists } from "@/hooks/useDentists";
 import { Budget } from "@/hooks/useBudgets";
 
+interface Procedure {
+  name: string;
+  value: number;
+}
+
 const budgetSchema = z.object({
   patient_id: z.string().min(1, "Paciente é obrigatório"),
   dentist_id: z.string().optional(),
   budget_date: z.date(),
-  procedures: z.string().min(1, "Procedimentos são obrigatórios"),
-  total_amount: z.string().min(1, "Valor total é obrigatório"),
   discount: z.string().optional(),
   status: z.string().min(1, "Status é obrigatório"),
   valid_until: z.date(),
@@ -60,6 +64,17 @@ export const BudgetForm = ({
   const { patients } = usePatients();
   const { dentists } = useDentists();
 
+  const [procedures, setProcedures] = useState<Procedure[]>(() => {
+    if (initialData?.procedures) {
+      try {
+        return JSON.parse(initialData.procedures);
+      } catch {
+        return [{ name: "", value: 0 }];
+      }
+    }
+    return [{ name: "", value: 0 }];
+  });
+
   const form = useForm<BudgetFormValues>({
     resolver: zodResolver(budgetSchema),
     defaultValues: initialData
@@ -67,8 +82,6 @@ export const BudgetForm = ({
           patient_id: initialData.patient_id,
           dentist_id: initialData.dentist_id || undefined,
           budget_date: new Date(initialData.budget_date),
-          procedures: initialData.procedures,
-          total_amount: initialData.total_amount.toString(),
           discount: initialData.discount.toString(),
           status: initialData.status,
           valid_until: new Date(initialData.valid_until),
@@ -82,15 +95,42 @@ export const BudgetForm = ({
         },
   });
 
+  const totalAmount = procedures.reduce((sum, proc) => sum + (proc.value || 0), 0);
+  const discount = parseFloat(form.watch("discount") || "0");
+  const finalAmount = totalAmount - discount;
+
+  const addProcedure = () => {
+    setProcedures([...procedures, { name: "", value: 0 }]);
+  };
+
+  const removeProcedure = (index: number) => {
+    if (procedures.length > 1) {
+      setProcedures(procedures.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateProcedure = (index: number, field: keyof Procedure, value: string | number) => {
+    const newProcedures = [...procedures];
+    if (field === "value") {
+      newProcedures[index][field] = typeof value === "string" ? parseFloat(value) || 0 : value;
+    } else {
+      newProcedures[index][field] = value as string;
+    }
+    setProcedures(newProcedures);
+  };
+
   const handleSubmit = (data: BudgetFormValues) => {
-    const totalAmount = parseFloat(data.total_amount);
-    const discount = parseFloat(data.discount || "0");
-    const finalAmount = totalAmount - discount;
+    const validProcedures = procedures.filter(p => p.name.trim() !== "" && p.value > 0);
+    
+    if (validProcedures.length === 0) {
+      return;
+    }
 
     onSubmit({
       ...data,
       budget_date: format(data.budget_date, "yyyy-MM-dd"),
       valid_until: format(data.valid_until, "yyyy-MM-dd"),
+      procedures: JSON.stringify(validProcedures),
       total_amount: totalAmount,
       discount: discount,
       final_amount: finalAmount,
@@ -230,76 +270,108 @@ export const BudgetForm = ({
           />
         </div>
 
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <FormLabel>Procedimentos</FormLabel>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addProcedure}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar Procedimento
+            </Button>
+          </div>
+
+          {procedures.map((procedure, index) => (
+            <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border rounded-lg">
+              <div className="md:col-span-7">
+                <Input
+                  placeholder="Nome do procedimento"
+                  value={procedure.name}
+                  onChange={(e) => updateProcedure(index, "name", e.target.value)}
+                />
+              </div>
+              <div className="md:col-span-4">
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="Valor (R$)"
+                  value={procedure.value || ""}
+                  onChange={(e) => updateProcedure(index, "value", e.target.value)}
+                />
+              </div>
+              <div className="md:col-span-1 flex items-center">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeProcedure(index)}
+                  disabled={procedures.length === 1}
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-muted p-4 rounded-lg">
+          <div>
+            <FormLabel className="text-muted-foreground">Subtotal</FormLabel>
+            <p className="text-xl font-semibold mt-1">
+              R$ {totalAmount.toFixed(2)}
+            </p>
+          </div>
+
+          <div>
+            <FormField
+              control={form.control}
+              name="discount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Desconto (R$)</FormLabel>
+                  <FormControl>
+                    <Input type="number" step="0.01" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div>
+            <FormLabel className="text-muted-foreground">Valor Final</FormLabel>
+            <p className="text-2xl font-bold text-green-600 mt-1">
+              R$ {finalAmount.toFixed(2)}
+            </p>
+          </div>
+        </div>
+
         <FormField
           control={form.control}
-          name="procedures"
+          name="status"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Procedimentos</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Descreva os procedimentos do orçamento"
-                  {...field}
-                />
-              </FormControl>
+              <FormLabel>Status</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Pendente">Pendente</SelectItem>
+                  <SelectItem value="Aprovado">Aprovado</SelectItem>
+                  <SelectItem value="Recusado">Recusado</SelectItem>
+                  <SelectItem value="Expirado">Expirado</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
         />
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <FormField
-            control={form.control}
-            name="total_amount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Valor Total (R$)</FormLabel>
-                <FormControl>
-                  <Input type="number" step="0.01" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="discount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Desconto (R$)</FormLabel>
-                <FormControl>
-                  <Input type="number" step="0.01" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Pendente">Pendente</SelectItem>
-                    <SelectItem value="Aprovado">Aprovado</SelectItem>
-                    <SelectItem value="Recusado">Recusado</SelectItem>
-                    <SelectItem value="Expirado">Expirado</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
 
         <FormField
           control={form.control}
