@@ -44,7 +44,12 @@ const transactionSchema = z.object({
   due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Data inválida" }).optional().or(z.literal("")),
   status: z.enum(["Pendente", "Pago", "Vencido", "Cancelado"])
 });
-
+  // Função segura para exibir a data sem mudar o dia real (evita erro de fuso horário)
+function formataData(dateString: string) {
+  if (!dateString) return "";
+  const [ano, mes, dia] = dateString.split("-");
+  return `${dia}/${mes}/${ano}`;
+}
 const Financeiro = () => {
   const { 
     transactions, 
@@ -328,9 +333,10 @@ const Financeiro = () => {
                           <span className="font-medium">Paciente:</span> {transaction.patients.name}
                         </div>
                       )}
-                      <div>
+                      <div>                        
                         <span className="font-medium">Data:</span>{" "}
-                        {format(new Date(transaction.transaction_date), "dd/MM/yyyy", { locale: ptBR })}
+                        {formataData(transaction.transaction_date)}
+
                       </div>
                       {transaction.payment_methods?.name && (
                         <div>
