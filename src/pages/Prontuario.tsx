@@ -12,13 +12,16 @@ import {
   Stethoscope,
   Eye,
   Edit,
-  Trash2
+  Trash2,
+  Pill
 } from "lucide-react";
 import { useMedicalRecords, MedicalRecord } from "@/hooks/useMedicalRecords";
 import { usePatients } from "@/hooks/usePatients";
 import { MedicalRecordForm } from "@/components/MedicalRecordForm";
 import { MedicalRecordViewDialog } from "@/components/MedicalRecordViewDialog";
 import { MedicalRecordDeleteDialog } from "@/components/MedicalRecordDeleteDialog";
+import { MedicalCertificateForm } from "@/components/MedicalCertificateForm";
+import { PrescriptionForm } from "@/components/PrescriptionForm";
 
 
 const Prontuario = () => {
@@ -27,6 +30,8 @@ const Prontuario = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isCertificateOpen, setIsCertificateOpen] = useState(false);
+  const [isPrescriptionOpen, setIsPrescriptionOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
 
@@ -92,16 +97,37 @@ const Prontuario = () => {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Prontuário</h1>
-          <p className="text-sm md:text-base text-muted-foreground">Histórico médico e tratamentos dos pacientes</p>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Prontuário</h1>
+            <p className="text-sm md:text-base text-muted-foreground">Histórico médico e tratamentos dos pacientes</p>
+          </div>
+          
+          <Button className="bg-primary hover:bg-primary/90 w-full md:w-auto" onClick={handleCreateRecord}>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Registro
+          </Button>
         </div>
         
-        <Button className="bg-primary hover:bg-primary/90 w-full md:w-auto" onClick={handleCreateRecord}>
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Registro
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setIsCertificateOpen(true)} 
+            className="w-full sm:w-auto gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            Gerar Atestado
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setIsPrescriptionOpen(true)} 
+            className="w-full sm:w-auto gap-2"
+          >
+            <Pill className="h-4 w-4" />
+            Gerar Receita
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -249,6 +275,16 @@ const Prontuario = () => {
         onOpenChange={setIsDeleteOpen}
         onConfirm={handleConfirmDelete}
         isDeleting={isDeleting}
+      />
+
+      <MedicalCertificateForm
+        open={isCertificateOpen}
+        onOpenChange={setIsCertificateOpen}
+      />
+
+      <PrescriptionForm
+        open={isPrescriptionOpen}
+        onOpenChange={setIsPrescriptionOpen}
       />
     </div>
   );
