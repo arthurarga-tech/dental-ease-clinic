@@ -58,6 +58,37 @@ export const useMedicalRecords = () => {
   // Create medical record mutation
   const createMedicalRecord = useMutation({
     mutationFn: async (newRecord: NewMedicalRecord) => {
+      // Check if patient already has a medical record
+      const { data: existingRecords } = await supabase
+        .from('medical_records')
+        .select('*')
+        .eq('patient_id', newRecord.patient_id);
+
+      // If exists, move it to medical_record_entries
+      if (existingRecords && existingRecords.length > 0) {
+        const oldRecord = existingRecords[0];
+        
+        // Create entry from old record
+        await supabase
+          .from('medical_record_entries')
+          .insert({
+            medical_record_id: oldRecord.id,
+            record_date: oldRecord.record_date,
+            procedure_type: oldRecord.procedure_type,
+            diagnosis: oldRecord.diagnosis,
+            treatment: oldRecord.treatment,
+            observations: oldRecord.observations,
+            status: oldRecord.status
+          });
+
+        // Delete old record
+        await supabase
+          .from('medical_records')
+          .delete()
+          .eq('id', oldRecord.id);
+      }
+
+      // Create new record
       const { data, error } = await supabase
         .from('medical_records')
         .insert([newRecord])
