@@ -11,6 +11,7 @@ export interface MedicalRecord {
   treatment: string;
   observations: string | null;
   status: string;
+  odontogram: Record<string, any>;
   created_at: string;
   updated_at: string;
   patients: {
@@ -27,6 +28,7 @@ export interface NewMedicalRecord {
   treatment: string;
   observations?: string;
   status: string;
+  odontogram?: Record<string, any>;
 }
 
 export const useMedicalRecords = () => {

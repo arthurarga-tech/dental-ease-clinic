@@ -345,12 +345,52 @@ export type Database = {
           },
         ]
       }
+      medical_record_entries: {
+        Row: {
+          created_at: string
+          diagnosis: string
+          id: string
+          medical_record_id: string
+          observations: string | null
+          procedure_type: string
+          record_date: string
+          status: string
+          treatment: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          diagnosis: string
+          id?: string
+          medical_record_id: string
+          observations?: string | null
+          procedure_type: string
+          record_date?: string
+          status?: string
+          treatment: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          diagnosis?: string
+          id?: string
+          medical_record_id?: string
+          observations?: string | null
+          procedure_type?: string
+          record_date?: string
+          status?: string
+          treatment?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       medical_records: {
         Row: {
           created_at: string
           diagnosis: string
           id: string
           observations: string | null
+          odontogram: Json | null
           patient_id: string
           procedure_type: string
           record_date: string
@@ -363,6 +403,7 @@ export type Database = {
           diagnosis: string
           id?: string
           observations?: string | null
+          odontogram?: Json | null
           patient_id: string
           procedure_type: string
           record_date?: string
@@ -375,6 +416,7 @@ export type Database = {
           diagnosis?: string
           id?: string
           observations?: string | null
+          odontogram?: Json | null
           patient_id?: string
           procedure_type?: string
           record_date?: string
@@ -386,7 +428,7 @@ export type Database = {
           {
             foreignKeyName: "fk_medical_records_patient"
             columns: ["patient_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "patients"
             referencedColumns: ["id"]
           },

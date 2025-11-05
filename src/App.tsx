@@ -10,6 +10,7 @@ import Pacientes from "./pages/Pacientes";
 import Agenda from "./pages/Agenda";
 import Orcamento from "./pages/Orcamento";
 import Prontuario from "./pages/Prontuario";
+import ProntuarioNovo from "./pages/ProntuarioNovo";
 import Dentistas from "./pages/Dentistas";
 import Financeiro from "./pages/Financeiro";
 import Auth from "./pages/Auth";
@@ -53,10 +54,17 @@ const App = () => (
               </MainLayout>
             </ProtectedRoute>
           } />
-          <Route path="/prontuario" element={
+          <Route path="/prontuario-antigo" element={
             <ProtectedRoute>
               <MainLayout>
                 <Prontuario />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/prontuario" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ProntuarioNovo />
               </MainLayout>
             </ProtectedRoute>
           } />
