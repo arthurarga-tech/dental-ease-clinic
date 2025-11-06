@@ -24,6 +24,33 @@ import { MedicalRecordForm } from "@/components/MedicalRecordForm";
 import { ConsultationEntryForm } from "@/components/ConsultationEntryForm";
 import { MedicalCertificateForm } from "@/components/MedicalCertificateForm";
 import { PrescriptionForm } from "@/components/PrescriptionForm";
+import { MedicalRecordDeleteDialog } from "@/components/MedicalRecordDeleteDialog";
+import { ConsultationEntryDeleteDialog } from "@/components/ConsultationEntryDeleteDialog";
+
+// Wrapper component to use the hook properly
+const DeleteEntryWrapper = ({ entry, open, onOpenChange, medicalRecordId }: {
+  entry: any;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  medicalRecordId: string;
+}) => {
+  const { deleteEntry, isDeleting } = useMedicalRecordEntries(medicalRecordId);
+
+  return (
+    <ConsultationEntryDeleteDialog
+      entry={entry}
+      open={open}
+      onOpenChange={onOpenChange}
+      onConfirm={() => {
+        if (entry) {
+          deleteEntry(entry.id);
+          onOpenChange(false);
+        }
+      }}
+      isDeleting={isDeleting}
+    />
+  );
+};
 
 const ProntuarioNovo = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,9 +60,14 @@ const ProntuarioNovo = () => {
   const [isCertificateOpen, setIsCertificateOpen] = useState(false);
   const [isPrescriptionOpen, setIsPrescriptionOpen] = useState(false);
   const [selectedMedicalRecordId, setSelectedMedicalRecordId] = useState<string | null>(null);
-  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
+  const [selectedRecord, setSelectedRecord] = useState<any>(null);
+  const [selectedEntry, setSelectedEntry] = useState<any>(null);
+  const [recordFormMode, setRecordFormMode] = useState<'create' | 'edit'>('create');
+  const [entryFormMode, setEntryFormMode] = useState<'create' | 'edit'>('create');
+  const [isDeleteRecordOpen, setIsDeleteRecordOpen] = useState(false);
+  const [isDeleteEntryOpen, setIsDeleteEntryOpen] = useState(false);
 
-  const { medicalRecords = [], isLoading } = useMedicalRecords();
+  const { medicalRecords = [], isLoading, deleteMedicalRecord, isDeleting: isDeletingRecord } = useMedicalRecords();
   const { patients = [] } = usePatients();
 
   const filteredRecords = medicalRecords.filter(record => {
@@ -45,14 +77,39 @@ const ProntuarioNovo = () => {
   });
 
   const handleCreateRecord = () => {
-    setFormMode('create');
+    setSelectedRecord(null);
+    setRecordFormMode('create');
     setIsRecordFormOpen(true);
+  };
+
+  const handleEditRecord = (record: any) => {
+    setSelectedRecord(record);
+    setRecordFormMode('edit');
+    setIsRecordFormOpen(true);
+  };
+
+  const handleDeleteRecord = (record: any) => {
+    setSelectedRecord(record);
+    setIsDeleteRecordOpen(true);
   };
 
   const handleAddConsultation = (medicalRecordId: string) => {
     setSelectedMedicalRecordId(medicalRecordId);
-    setFormMode('create');
+    setSelectedEntry(null);
+    setEntryFormMode('create');
     setIsEntryFormOpen(true);
+  };
+
+  const handleEditEntry = (medicalRecordId: string, entry: any) => {
+    setSelectedMedicalRecordId(medicalRecordId);
+    setSelectedEntry(entry);
+    setEntryFormMode('edit');
+    setIsEntryFormOpen(true);
+  };
+
+  const handleDeleteEntry = (entry: any) => {
+    setSelectedEntry(entry);
+    setIsDeleteEntryOpen(true);
   };
 
   const formatLocalDate = (dateStr: string) => {
@@ -74,7 +131,13 @@ const ProntuarioNovo = () => {
   };
 
   const PatientRecordCard = ({ record }: { record: any }) => {
-    const { entries = [] } = useMedicalRecordEntries(record.id);
+    const { entries = [], deleteEntry, isDeleting } = useMedicalRecordEntries(record.id);
+
+    const handleDeleteEntryInCard = (entry: any) => {
+      setSelectedEntry(entry);
+      setSelectedMedicalRecordId(record.id);
+      setIsDeleteEntryOpen(true);
+    };
 
     return (
       <Card className="hover:shadow-md transition-shadow">
@@ -84,14 +147,32 @@ const ProntuarioNovo = () => {
               <h3 className="text-lg font-semibold">{record.patients.name}</h3>
               <p className="text-sm text-muted-foreground">Prontuário criado em {formatLocalDate(record.created_at.split('T')[0])}</p>
             </div>
-            <Button 
-              size="sm"
-              onClick={() => handleAddConsultation(record.id)}
-              className="gap-2"
-            >
-              <ClipboardPlus className="w-4 h-4" />
-              Nova Consulta
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                size="sm"
+                variant="outline"
+                onClick={() => handleEditRecord(record)}
+                className="gap-2"
+              >
+                <Edit className="w-4 h-4" />
+              </Button>
+              <Button 
+                size="sm"
+                variant="outline"
+                onClick={() => handleDeleteRecord(record)}
+                className="gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+              <Button 
+                size="sm"
+                onClick={() => handleAddConsultation(record.id)}
+                className="gap-2"
+              >
+                <ClipboardPlus className="w-4 h-4" />
+                Nova Consulta
+              </Button>
+            </div>
           </div>
 
           {record.observations && (
@@ -123,6 +204,24 @@ const ProntuarioNovo = () => {
                               <Badge className={`${getStatusColor(entry.status)} text-xs`}>
                                 {entry.status}
                               </Badge>
+                            </div>
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleEditEntry(record.id, entry)}
+                                className="h-7 w-7 p-0"
+                              >
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDeleteEntryInCard(entry)}
+                                className="h-7 w-7 p-0"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
                             </div>
                           </div>
                           <div className="space-y-1">
@@ -235,7 +334,8 @@ const ProntuarioNovo = () => {
       <MedicalRecordForm
         open={isRecordFormOpen}
         onOpenChange={setIsRecordFormOpen}
-        mode={formMode}
+        record={selectedRecord}
+        mode={recordFormMode}
       />
 
       {selectedMedicalRecordId && (
@@ -243,7 +343,8 @@ const ProntuarioNovo = () => {
           open={isEntryFormOpen}
           onOpenChange={setIsEntryFormOpen}
           medicalRecordId={selectedMedicalRecordId}
-          mode={formMode}
+          entry={selectedEntry}
+          mode={entryFormMode}
         />
       )}
 
@@ -256,6 +357,28 @@ const ProntuarioNovo = () => {
         open={isPrescriptionOpen}
         onOpenChange={setIsPrescriptionOpen}
       />
+
+      <MedicalRecordDeleteDialog
+        record={selectedRecord}
+        open={isDeleteRecordOpen}
+        onOpenChange={setIsDeleteRecordOpen}
+        onConfirm={() => {
+          if (selectedRecord) {
+            deleteMedicalRecord(selectedRecord.id);
+            setIsDeleteRecordOpen(false);
+          }
+        }}
+        isDeleting={isDeletingRecord}
+      />
+
+      {selectedMedicalRecordId && (
+        <DeleteEntryWrapper 
+          entry={selectedEntry}
+          open={isDeleteEntryOpen}
+          onOpenChange={setIsDeleteEntryOpen}
+          medicalRecordId={selectedMedicalRecordId}
+        />
+      )}
     </div>
   );
 };

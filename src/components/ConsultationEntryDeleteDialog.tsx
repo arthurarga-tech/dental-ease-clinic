@@ -8,24 +8,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MedicalRecord } from "@/hooks/useMedicalRecords";
+import { MedicalRecordEntry } from "@/hooks/useMedicalRecordEntries";
 
-interface MedicalRecordDeleteDialogProps {
-  record: MedicalRecord | null;
+interface ConsultationEntryDeleteDialogProps {
+  entry: MedicalRecordEntry | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
   isDeleting?: boolean;
 }
 
-export const MedicalRecordDeleteDialog = ({
-  record,
+export const ConsultationEntryDeleteDialog = ({
+  entry,
   open,
   onOpenChange,
   onConfirm,
   isDeleting = false,
-}: MedicalRecordDeleteDialogProps) => {
-  if (!record) return null;
+}: ConsultationEntryDeleteDialogProps) => {
+  if (!entry) return null;
 
   const formatLocalDate = (dateStr: string) => {
     const [y, m, d] = dateStr.split('-').map(Number);
@@ -38,9 +38,9 @@ export const MedicalRecordDeleteDialog = ({
         <AlertDialogHeader>
           <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
           <AlertDialogDescription>
-            Tem certeza que deseja excluir o prontuário de <strong>{record.patients.name}</strong> criado em {formatLocalDate(record.record_date)}?
+            Tem certeza que deseja excluir a consulta de <strong>{formatLocalDate(entry.record_date)}</strong> - <strong>{entry.procedure_type}</strong>?
             <br /><br />
-            Esta ação não pode ser desfeita e todos os dados associados, incluindo o histórico de consultas, serão permanentemente removidos.
+            Esta ação não pode ser desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -15,11 +15,7 @@ import { z } from "zod";
 const medicalRecordSchema = z.object({
   patient_id: z.string().uuid({ message: "Paciente inválido" }),
   record_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Data inválida" }),
-  procedure_type: z.string().trim().min(1, { message: "Tipo de procedimento obrigatório" }).max(100),
-  diagnosis: z.string().trim().min(1, { message: "Diagnóstico obrigatório" }).max(500, { message: "Diagnóstico muito longo (máx. 500 caracteres)" }),
-  treatment: z.string().trim().min(1, { message: "Tratamento obrigatório" }).max(2000, { message: "Tratamento muito longo (máx. 2000 caracteres)" }),
   observations: z.string().trim().max(2000, { message: "Observações muito longas (máx. 2000 caracteres)" }).optional(),
-  status: z.enum(["Agendado", "Em andamento", "Concluído"])
 });
 
 interface MedicalRecordFormProps {
@@ -43,11 +39,7 @@ export const MedicalRecordForm = ({
   const [formData, setFormData] = useState({
     patient_id: '',
     record_date: '',
-    procedure_type: '',
-    diagnosis: '',
-    treatment: '',
     observations: '',
-    status: 'Concluído'
   });
 
   const [odontogram, setOdontogram] = useState<Record<string, any>>({});
@@ -58,11 +50,7 @@ export const MedicalRecordForm = ({
       setFormData({
         patient_id: record.patient_id,
         record_date: record.record_date,
-        procedure_type: record.procedure_type,
-        diagnosis: record.diagnosis,
-        treatment: record.treatment,
         observations: record.observations || '',
-        status: record.status
       });
       setOdontogram(record.odontogram || {});
     } else if (mode === 'create') {
@@ -71,11 +59,7 @@ export const MedicalRecordForm = ({
       setFormData({
         patient_id: '',
         record_date: today,
-        procedure_type: 'Prontuário Geral',
-        diagnosis: 'Prontuário principal do paciente',
-        treatment: 'Histórico médico completo',
         observations: '',
-        status: 'Concluído'
       });
       setOdontogram({});
     }

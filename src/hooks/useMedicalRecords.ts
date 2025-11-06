@@ -23,11 +23,7 @@ export interface MedicalRecord {
 export interface NewMedicalRecord {
   patient_id: string;
   record_date: string;
-  procedure_type: string;
-  diagnosis: string;
-  treatment: string;
   observations?: string;
-  status: string;
   odontogram?: Record<string, any>;
 }
 
@@ -64,34 +60,36 @@ export const useMedicalRecords = () => {
         .select('*')
         .eq('patient_id', newRecord.patient_id);
 
-      // If exists, move it to medical_record_entries
+      // If exists, update it instead of creating new
       if (existingRecords && existingRecords.length > 0) {
-        const oldRecord = existingRecords[0];
+        const existingRecord = existingRecords[0];
         
-        // Create entry from old record
-        await supabase
-          .from('medical_record_entries')
-          .insert({
-            medical_record_id: oldRecord.id,
-            record_date: oldRecord.record_date,
-            procedure_type: oldRecord.procedure_type,
-            diagnosis: oldRecord.diagnosis,
-            treatment: oldRecord.treatment,
-            observations: oldRecord.observations,
-            status: oldRecord.status
-          });
-
-        // Delete old record
-        await supabase
+        // Update the existing record with new data
+        const { data, error } = await supabase
           .from('medical_records')
-          .delete()
-          .eq('id', oldRecord.id);
+          .update({
+            observations: newRecord.observations,
+            odontogram: newRecord.odontogram,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingRecord.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
       }
 
-      // Create new record
+      // Create new record if doesn't exist
       const { data, error } = await supabase
         .from('medical_records')
-        .insert([newRecord])
+        .insert([{
+          ...newRecord,
+          procedure_type: 'Prontuário Geral',
+          diagnosis: 'Prontuário principal do paciente',
+          treatment: 'Histórico médico completo',
+          status: 'Concluído'
+        }])
         .select()
         .single();
 
