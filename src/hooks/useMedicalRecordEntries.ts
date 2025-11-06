@@ -49,18 +49,30 @@ export const useMedicalRecordEntries = (medicalRecordId?: string) => {
 
   // Create entry mutation
   const createEntry = useMutation({
-    mutationFn: async (newEntry: NewMedicalRecordEntry) => {
+    mutationFn: async ({ entry, odontogram }: { entry: NewMedicalRecordEntry; odontogram: Record<string, any> }) => {
       const { data, error } = await supabase
         .from('medical_record_entries')
-        .insert([newEntry])
+        .insert([entry])
         .select()
         .single();
 
       if (error) throw error;
+
+      // Update medical record odontogram
+      if (medicalRecordId) {
+        const { error: updateError } = await supabase
+          .from('medical_records')
+          .update({ odontogram })
+          .eq('id', medicalRecordId);
+
+        if (updateError) throw updateError;
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['medicalRecordEntries'] });
+      queryClient.invalidateQueries({ queryKey: ['medical-records'] });
       toast({
         title: "Consulta registrada",
         description: "A consulta foi adicionada ao prontuário.",
@@ -78,19 +90,32 @@ export const useMedicalRecordEntries = (medicalRecordId?: string) => {
 
   // Update entry mutation
   const updateEntry = useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<MedicalRecordEntry> & { id: string }) => {
+    mutationFn: async ({ updates, odontogram }: { updates: Partial<MedicalRecordEntry> & { id: string }; odontogram: Record<string, any> }) => {
+      const { id, ...entryUpdates } = updates;
       const { data, error } = await supabase
         .from('medical_record_entries')
-        .update(updates)
+        .update(entryUpdates)
         .eq('id', id)
         .select()
         .single();
 
       if (error) throw error;
+
+      // Update medical record odontogram
+      if (medicalRecordId) {
+        const { error: updateError } = await supabase
+          .from('medical_records')
+          .update({ odontogram })
+          .eq('id', medicalRecordId);
+
+        if (updateError) throw updateError;
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['medicalRecordEntries'] });
+      queryClient.invalidateQueries({ queryKey: ['medical-records'] });
       toast({
         title: "Consulta atualizada",
         description: "As alterações foram salvas.",
@@ -137,8 +162,10 @@ export const useMedicalRecordEntries = (medicalRecordId?: string) => {
     entries,
     isLoading,
     error,
-    createEntry: createEntry.mutate,
-    updateEntry: updateEntry.mutate,
+    createEntry: (entry: NewMedicalRecordEntry, odontogram: Record<string, any> = {}) => 
+      createEntry.mutate({ entry, odontogram }),
+    updateEntry: (updates: Partial<MedicalRecordEntry> & { id: string }, odontogram: Record<string, any> = {}) => 
+      updateEntry.mutate({ updates, odontogram }),
     deleteEntry: deleteEntry.mutate,
     isCreating: createEntry.isPending,
     isUpdating: updateEntry.isPending,

@@ -15,7 +15,9 @@ import {
   Edit,
   Trash2,
   Pill,
-  ClipboardPlus
+  ClipboardPlus,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { useMedicalRecords } from "@/hooks/useMedicalRecords";
 import { useMedicalRecordEntries } from "@/hooks/useMedicalRecordEntries";
@@ -26,6 +28,7 @@ import { MedicalCertificateForm } from "@/components/MedicalCertificateForm";
 import { PrescriptionForm } from "@/components/PrescriptionForm";
 import { MedicalRecordDeleteDialog } from "@/components/MedicalRecordDeleteDialog";
 import { ConsultationEntryDeleteDialog } from "@/components/ConsultationEntryDeleteDialog";
+import { Odontogram } from "@/components/Odontogram";
 
 // Wrapper component to use the hook properly
 const DeleteEntryWrapper = ({ entry, open, onOpenChange, medicalRecordId }: {
@@ -132,6 +135,7 @@ const ProntuarioNovo = () => {
 
   const PatientRecordCard = ({ record }: { record: any }) => {
     const { entries = [], deleteEntry, isDeleting } = useMedicalRecordEntries(record.id);
+    const [showOdontogram, setShowOdontogram] = useState(false);
 
     const handleDeleteEntryInCard = (entry: any) => {
       setSelectedEntry(entry);
@@ -183,6 +187,23 @@ const ProntuarioNovo = () => {
           )}
 
           <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="odontogram">
+              <AccordionTrigger className="text-sm">
+                <div className="flex items-center gap-2">
+                  Odontograma
+                  {showOdontogram ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="mt-2">
+                  <Odontogram 
+                    value={record.odontogram || {}} 
+                    onChange={() => {}} 
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+            
             <AccordionItem value="consultations">
               <AccordionTrigger className="text-sm">
                 Histórico de Consultas ({entries.length})
@@ -345,6 +366,9 @@ const ProntuarioNovo = () => {
           medicalRecordId={selectedMedicalRecordId}
           entry={selectedEntry}
           mode={entryFormMode}
+          currentOdontogram={
+            medicalRecords.find(r => r.id === selectedMedicalRecordId)?.odontogram || {}
+          }
         />
       )}
 
