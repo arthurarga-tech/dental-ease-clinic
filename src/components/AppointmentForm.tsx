@@ -92,9 +92,9 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
   ];
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-3 md:space-y-4">
       <div>
-        <Label htmlFor="patient_id">Paciente *</Label>
+        <Label htmlFor="patient_id" className="text-sm">Paciente *</Label>
         {loadingPatients ? (
           <div className="flex items-center justify-center py-2">
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -102,12 +102,12 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
           </div>
         ) : (
           <Select onValueChange={(value) => setValue("patient_id", value)} value={watchedPatientId}>
-            <SelectTrigger>
+            <SelectTrigger className="text-base">
               <SelectValue placeholder="Selecione o paciente" />
             </SelectTrigger>
             <SelectContent>
               {patients.map((patient) => (
-                <SelectItem key={patient.id} value={patient.id}>
+                <SelectItem key={patient.id} value={patient.id} className="text-sm">
                   {patient.name} - {patient.phone}
                 </SelectItem>
               ))}
@@ -119,12 +119,13 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
         <div>
-          <Label htmlFor="appointment_date">Data *</Label>
+          <Label htmlFor="appointment_date" className="text-sm">Data *</Label>
           <Input
             id="appointment_date"
             type="date"
+            className="text-base"
             {...register("appointment_date")}
           />
           {errors.appointment_date && (
@@ -133,11 +134,12 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
         </div>
 
         <div>
-          <Label htmlFor="appointment_time">Horário *</Label>
+          <Label htmlFor="appointment_time" className="text-sm">Horário *</Label>
           <Input
             id="appointment_time"
             type="time"
             step="300"
+            className="text-base"
             {...register("appointment_time")}
           />
           {errors.appointment_time && (
@@ -147,14 +149,14 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
       </div>
 
       <div>
-        <Label htmlFor="type">Tipo de Consulta *</Label>
+        <Label htmlFor="type" className="text-sm">Tipo de Consulta *</Label>
         <Select onValueChange={(value) => setValue("type", value)} value={watchedType}>
-          <SelectTrigger>
+          <SelectTrigger className="text-base">
             <SelectValue placeholder="Selecione o tipo" />
           </SelectTrigger>
           <SelectContent>
             {appointmentTypes.map((type) => (
-              <SelectItem key={type} value={type}>
+              <SelectItem key={type} value={type} className="text-sm">
                 {type}
               </SelectItem>
             ))}
@@ -166,13 +168,14 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
       </div>
 
       <div>
-        <Label htmlFor="duration">Duração (minutos) *</Label>
+        <Label htmlFor="duration" className="text-sm">Duração (minutos) *</Label>
         <Input
           id="duration"
           type="number"
           min="15"
           max="240"
           step="15"
+          className="text-base"
           {...register("duration", { valueAsNumber: true })}
         />
         {errors.duration && (
@@ -181,21 +184,22 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
       </div>
 
       <div>
-        <Label htmlFor="notes">Observações</Label>
+        <Label htmlFor="notes" className="text-sm">Observações</Label>
         <Textarea
           id="notes"
           placeholder="Observações adicionais sobre a consulta..."
+          className="min-h-[60px] md:min-h-[80px] text-base"
           {...register("notes")}
         />
       </div>
 
-      <div className="flex gap-2 pt-4">
+      <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2 md:pt-4">
+        <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">
+          Cancelar
+        </Button>
         <Button type="submit" className="flex-1" disabled={isLoading}>
           {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
           {appointment ? "Atualizar Consulta" : "Agendar Consulta"}
-        </Button>
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancelar
         </Button>
       </div>
     </form>

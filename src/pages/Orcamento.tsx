@@ -109,12 +109,12 @@ const Orcamento = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Paciente</TableHead>
-                <TableHead className="hidden md:table-cell">Dentista</TableHead>
-                <TableHead className="hidden lg:table-cell">Data</TableHead>
-                <TableHead>Valor Final</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                <TableHead className="min-w-[120px]">Paciente</TableHead>
+                <TableHead className="hidden md:table-cell min-w-[100px]">Dentista</TableHead>
+                <TableHead className="hidden lg:table-cell min-w-[90px]">Data</TableHead>
+                <TableHead className="min-w-[100px]">Valor Final</TableHead>
+                <TableHead className="min-w-[80px]">Status</TableHead>
+                <TableHead className="text-right min-w-[120px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -133,47 +133,50 @@ const Orcamento = () => {
               ) : (
                 budgets?.map((budget) => (
                   <TableRow key={budget.id}>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium text-xs md:text-sm">
                       {budget.patients?.name}
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">
+                    <TableCell className="hidden md:table-cell text-xs md:text-sm">
                       {budget.dentists?.name || "-"}
                     </TableCell>
-                    <TableCell className="hidden lg:table-cell">
+                    <TableCell className="hidden lg:table-cell text-xs md:text-sm">
                       {format(new Date(budget.budget_date), "dd/MM/yyyy", {
                         locale: ptBR,
                       })}
                     </TableCell>
-                    <TableCell className="font-semibold">
+                    <TableCell className="font-semibold text-xs md:text-sm">
                       R$ {budget.final_amount.toFixed(2)}
                     </TableCell>
                     <TableCell>
-                      <Badge className={getStatusColor(budget.status)}>
+                      <Badge className={`${getStatusColor(budget.status)} text-xs`}>
                         {budget.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
+                          className="h-8 w-8"
                           onClick={() => openViewDialog(budget)}
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-3 w-3 md:h-4 md:w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
+                          className="h-8 w-8"
                           onClick={() => openEditDialog(budget)}
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Pencil className="h-3 w-3 md:h-4 md:w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
+                          className="h-8 w-8"
                           onClick={() => openDeleteDialog(budget)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
                         </Button>
                       </div>
                     </TableCell>

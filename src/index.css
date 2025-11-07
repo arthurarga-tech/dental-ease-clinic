@@ -112,5 +112,42 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    /* Prevent text size adjustment on orientation change in iOS */
+    -webkit-text-size-adjust: 100%;
+    /* Smooth scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Better touch targets for mobile */
+  @media (max-width: 768px) {
+    button,
+    a,
+    [role="button"] {
+      min-height: 44px;
+    }
+  }
+
+  /* Support for dynamic viewport height on mobile */
+  @supports (height: 100dvh) {
+    .h-screen {
+      height: 100dvh;
+    }
+  }
+
+  /* Prevent zoom on input focus in iOS */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
+  /* Improve tap highlight */
+  * {
+    -webkit-tap-highlight-color: transparent;
   }
 }

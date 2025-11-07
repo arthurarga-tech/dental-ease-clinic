@@ -81,28 +81,28 @@ export const Odontogram = ({ value, onChange }: OdontogramProps) => {
               setSelectedTooth(toothNumber);
               setNotes(toothData.notes || "");
             }}
-            className={`w-10 h-12 border-2 rounded-md flex flex-col items-center justify-center text-xs font-medium hover:scale-110 transition-transform ${
-              statusInfo ? statusInfo.color + " text-white" : "bg-white hover:bg-gray-50"
+            className={`w-8 h-10 md:w-10 md:h-12 border-2 rounded-md flex flex-col items-center justify-center text-[10px] md:text-xs font-medium active:scale-95 md:hover:scale-110 transition-transform ${
+              statusInfo ? statusInfo.color + " text-white border-white/50" : "bg-white hover:bg-gray-50 border-border"
             }`}
           >
             <span>{toothNumber}</span>
             {toothData.notes && <span className="text-[8px]">📝</span>}
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-64">
+        <PopoverContent className="w-72 md:w-80" side="top" align="center">
           <div className="space-y-3">
-            <h4 className="font-semibold">Dente {toothNumber}</h4>
+            <h4 className="font-semibold text-sm md:text-base">Dente {toothNumber}</h4>
             
             <div className="space-y-2">
-              <p className="text-sm font-medium">Status:</p>
-              <div className="grid grid-cols-2 gap-2">
+              <p className="text-xs md:text-sm font-medium">Status:</p>
+              <div className="grid grid-cols-2 gap-1.5 md:gap-2">
                 {TOOTH_STATUSES.map((status) => (
                   <Button
                     key={status.value}
                     size="sm"
                     variant={toothData.status === status.value ? "default" : "outline"}
                     onClick={() => updateTooth(toothNumber, status.value)}
-                    className="text-xs h-8"
+                    className="text-[10px] md:text-xs h-7 md:h-8"
                   >
                     {status.label}
                   </Button>
@@ -111,12 +111,12 @@ export const Odontogram = ({ value, onChange }: OdontogramProps) => {
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm font-medium">Observações:</p>
+              <p className="text-xs md:text-sm font-medium">Observações:</p>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Adicione observações sobre este dente..."
-                className="text-xs"
+                className="text-xs md:text-sm"
                 rows={2}
               />
             </div>
@@ -126,7 +126,7 @@ export const Odontogram = ({ value, onChange }: OdontogramProps) => {
                 size="sm"
                 variant="destructive"
                 onClick={() => clearTooth(toothNumber)}
-                className="w-full"
+                className="w-full text-xs"
               >
                 Limpar
               </Button>
@@ -138,48 +138,54 @@ export const Odontogram = ({ value, onChange }: OdontogramProps) => {
   };
 
   return (
-    <div className="space-y-4 p-4 border rounded-lg bg-card">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Odontograma</h3>
-        <div className="flex gap-2 flex-wrap">
+    <div className="space-y-4 p-3 md:p-4 border rounded-lg bg-card">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <h3 className="text-base md:text-lg font-semibold">Odontograma</h3>
+        <div className="flex gap-1 md:gap-2 flex-wrap">
           {TOOTH_STATUSES.map((status) => (
-            <Badge key={status.value} className={`${status.color} text-white text-xs`}>
+            <Badge key={status.value} className={`${status.color} text-white text-[10px] md:text-xs px-1.5 py-0.5`}>
               {status.label}
             </Badge>
           ))}
         </div>
       </div>
 
-      <div className="space-y-6">
-        {/* Arcada Superior */}
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-center">Arcada Superior</p>
-          <div className="flex justify-center gap-6">
-            <div className="flex gap-1">
-              {UPPER_RIGHT.map(renderTooth)}
+      <div className="overflow-x-auto -mx-3 px-3 md:mx-0 md:px-0">
+        <div className="space-y-4 md:space-y-6 min-w-[600px] md:min-w-0">
+          {/* Arcada Superior */}
+          <div className="space-y-2">
+            <p className="text-xs md:text-sm font-medium text-center">Arcada Superior</p>
+            <div className="flex justify-center gap-3 md:gap-6">
+              <div className="flex gap-0.5 md:gap-1">
+                {UPPER_RIGHT.map(renderTooth)}
+              </div>
+              <div className="w-px bg-border" />
+              <div className="flex gap-0.5 md:gap-1">
+                {UPPER_LEFT.map(renderTooth)}
+              </div>
             </div>
-            <div className="w-px bg-border" />
-            <div className="flex gap-1">
-              {UPPER_LEFT.map(renderTooth)}
+          </div>
+
+          <div className="border-t" />
+
+          {/* Arcada Inferior */}
+          <div className="space-y-2">
+            <p className="text-xs md:text-sm font-medium text-center">Arcada Inferior</p>
+            <div className="flex justify-center gap-3 md:gap-6">
+              <div className="flex gap-0.5 md:gap-1">
+                {LOWER_RIGHT.map(renderTooth)}
+              </div>
+              <div className="w-px bg-border" />
+              <div className="flex gap-0.5 md:gap-1">
+                {LOWER_LEFT.map(renderTooth)}
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="border-t" />
-
-        {/* Arcada Inferior */}
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-center">Arcada Inferior</p>
-          <div className="flex justify-center gap-6">
-            <div className="flex gap-1">
-              {LOWER_RIGHT.map(renderTooth)}
-            </div>
-            <div className="w-px bg-border" />
-            <div className="flex gap-1">
-              {LOWER_LEFT.map(renderTooth)}
-            </div>
-          </div>
-        </div>
+      <div className="text-xs text-muted-foreground text-center md:hidden">
+        Deslize horizontalmente para ver todos os dentes
       </div>
     </div>
   );

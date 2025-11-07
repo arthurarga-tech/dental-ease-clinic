@@ -61,15 +61,15 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-3 md:space-y-4">
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nome Completo *</FormLabel>
+              <FormLabel className="text-sm">Nome Completo *</FormLabel>
               <FormControl>
-                <Input placeholder="Digite o nome completo" {...field} />
+                <Input placeholder="Digite o nome completo" className="text-base" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -81,9 +81,9 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>E-mail</FormLabel>
+              <FormLabel className="text-sm">E-mail</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="email@exemplo.com" {...field} />
+                <Input type="email" placeholder="email@exemplo.com" className="text-base" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -95,9 +95,9 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
           name="phone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Telefone *</FormLabel>
+              <FormLabel className="text-sm">Telefone *</FormLabel>
               <FormControl>
-                <Input placeholder="(11) 99999-9999" {...field} />
+                <Input placeholder="(11) 99999-9999" className="text-base" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -109,9 +109,9 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
           name="birth_date"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Data de Nascimento</FormLabel>
+              <FormLabel className="text-sm">Data de Nascimento</FormLabel>
               <FormControl>
-                <Input type="date" {...field} />
+                <Input type="date" className="text-base" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -123,9 +123,9 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
           name="address"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Endereço</FormLabel>
+              <FormLabel className="text-sm">Endereço</FormLabel>
               <FormControl>
-                <Input placeholder="Endereço completo" {...field} />
+                <Input placeholder="Endereço completo" className="text-base" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -137,11 +137,11 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
           name="medical_notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Observações Médicas</FormLabel>
+              <FormLabel className="text-sm">Observações Médicas</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Alergias, condições médicas, histórico relevante..."
-                  className="min-h-[100px]"
+                  className="min-h-[80px] md:min-h-[100px] text-base"
                   {...field}
                 />
               </FormControl>
@@ -150,12 +150,12 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
           )}
         />
 
-        <div className="flex gap-2 pt-4">
+        <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2 md:pt-4">
+          <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">
+            Cancelar
+          </Button>
           <Button type="submit" className="flex-1" disabled={isLoading}>
             {isLoading ? (initialData ? "Atualizando..." : "Cadastrando...") : (initialData ? "Atualizar" : "Cadastrar")}
-          </Button>
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
           </Button>
         </div>
       </form>
