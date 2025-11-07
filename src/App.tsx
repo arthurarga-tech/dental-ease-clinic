@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { MainLayout } from "./components/Layout/MainLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
+import DentistDashboard from "./pages/DentistDashboard";
 import Pacientes from "./pages/Pacientes";
 import Agenda from "./pages/Agenda";
 import Orcamento from "./pages/Orcamento";
@@ -27,9 +28,16 @@ const App = () => (
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRole="admin">
               <MainLayout>
                 <Dashboard />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/dentist-dashboard" element={
+            <ProtectedRoute requiredRole="dentist">
+              <MainLayout>
+                <DentistDashboard />
               </MainLayout>
             </ProtectedRoute>
           } />
@@ -48,7 +56,7 @@ const App = () => (
             </ProtectedRoute>
           } />
           <Route path="/orcamento" element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRole="admin">
               <MainLayout>
                 <Orcamento />
               </MainLayout>
@@ -69,14 +77,14 @@ const App = () => (
             </ProtectedRoute>
           } />
           <Route path="/dentistas" element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRole="admin">
               <MainLayout>
                 <Dentistas />
               </MainLayout>
             </ProtectedRoute>
           } />
           <Route path="/financeiro" element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRole="admin">
               <MainLayout>
                 <Financeiro />
               </MainLayout>

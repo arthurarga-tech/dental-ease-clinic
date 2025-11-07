@@ -14,7 +14,7 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
-const menuItems = [
+const adminMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: Users, label: "Pacientes", path: "/pacientes" },
   { icon: Calendar, label: "Agenda", path: "/agenda" },
@@ -24,6 +24,13 @@ const menuItems = [
   { icon: CreditCard, label: "Financeiro", path: "/financeiro" },
 ];
 
+const dentistMenuItems = [
+  { icon: LayoutDashboard, label: "Dashboard", path: "/dentist-dashboard" },
+  { icon: Users, label: "Pacientes", path: "/pacientes" },
+  { icon: Calendar, label: "Agenda", path: "/agenda" },
+  { icon: FileText, label: "Prontuário", path: "/prontuario" },
+];
+
 interface SidebarProps {
   onNavigate?: () => void;
 }
@@ -31,7 +38,10 @@ interface SidebarProps {
 export const Sidebar = ({ onNavigate }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { signOut, userRole } = useAuth();
+
+  // Select menu items based on user role
+  const menuItems = userRole === 'dentist' ? dentistMenuItems : adminMenuItems;
 
   const handleNavigation = (path: string) => {
     navigate(path);
