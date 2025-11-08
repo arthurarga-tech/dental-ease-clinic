@@ -12,12 +12,18 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useDentists } from "@/hooks/useDentists";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { stats, todayAppointments, birthdayPatients, isLoading } = useDashboardStats();
+  const { dentists, isLoading: isLoadingDentists } = useDentists();
+
+  const activeDentists = dentists.filter(d => d.status === "Ativo");
+
+  const daysOfWeek = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
   const statsCards = [
     {
@@ -95,10 +101,60 @@ const Dashboard = () => {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Dentists availability */}
+      {activeDentists.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-primary" />
+              Dentistas Disponíveis
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {activeDentists.map((dentist) => (
+              <div key={dentist.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
+                <p className="font-medium text-foreground mb-2">{dentist.name}</p>
+                <div className="space-y-1">
+                  {dentist.dentist_availability.length > 0 ? (
+                    Object.entries(
+                      dentist.dentist_availability.reduce((acc, slot) => {
+                        if (!acc[slot.day_of_week]) {
+                          acc[slot.day_of_week] = [];
+                        }
+                        acc[slot.day_of_week].push(slot);
+                        return acc;
+                      }, {} as Record<number, typeof dentist.dentist_availability>)
+                    )
+                    .sort(([a], [b]) => Number(a) - Number(b))
+                    .map(([day, slots]) => (
+                      <div key={day} className="text-sm flex items-start gap-2">
+                        <span className="text-muted-foreground font-medium min-w-[35px]">
+                          {daysOfWeek[Number(day)]}:
+                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {slots.map((slot, idx) => (
+                            <span key={idx} className="text-foreground">
+                              {slot.start_time.slice(0, 5)}-{slot.end_time.slice(0, 5)}
+                              {idx < slots.length - 1 && ","}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Sem horários definidos</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Birthday reminder card */}
         {birthdayPatients.length > 0 && (
-          <Card className="lg:col-span-3">
+          <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Gift className="w-5 h-5 text-primary" />
@@ -132,6 +188,52 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" />
+              Ações Rápidas
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => navigate("/pacientes")}
+            >
+              <Users className="w-4 h-4 mr-2" />
+              Cadastrar Paciente
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => navigate("/agenda")}
+            >
+              <Calendar className="w-4 h-4 mr-2" />
+              Agendar Consulta
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => navigate("/prontuario")}
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Novo Prontuário
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => navigate("/financeiro")}
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              Registrar Pagamento
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         <Card>
           <CardHeader>
@@ -175,49 +277,6 @@ const Dashboard = () => {
                 <p>Nenhuma consulta agendada para hoje</p>
               </div>
             )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-primary" />
-              Ações Rápidas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => navigate("/pacientes")}
-            >
-              <Users className="w-4 h-4 mr-2" />
-              Cadastrar Paciente
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => navigate("/agenda")}
-            >
-              <Calendar className="w-4 h-4 mr-2" />
-              Agendar Consulta
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => navigate("/prontuario")}
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Novo Prontuário
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => navigate("/financeiro")}
-            >
-              <CreditCard className="w-4 h-4 mr-2" />
-              Registrar Pagamento
-            </Button>
           </CardContent>
         </Card>
       </div>
