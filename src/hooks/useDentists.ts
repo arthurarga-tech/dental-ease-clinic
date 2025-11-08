@@ -37,6 +37,12 @@ export interface Specialization {
   description?: string;
 }
 
+export interface AvailabilitySlot {
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+}
+
 export interface NewDentist {
   name: string;
   email?: string;
@@ -45,7 +51,7 @@ export interface NewDentist {
   birth_date?: string;
   address?: string;
   specialization_ids: string[];
-  availability_days: number[];
+  availability_slots: AvailabilitySlot[];
 }
 
 export const useDentists = () => {
@@ -162,10 +168,12 @@ export const useDentists = () => {
       }
 
       // Insert availability
-      if (newDentist.availability_days.length > 0) {
-        const availabilityData = newDentist.availability_days.map(day => ({
+      if (newDentist.availability_slots.length > 0) {
+        const availabilityData = newDentist.availability_slots.map(slot => ({
           dentist_id: dentist.id,
-          day_of_week: day,
+          day_of_week: slot.day_of_week,
+          start_time: slot.start_time,
+          end_time: slot.end_time,
         }));
 
         const { error: availabilityError } = await supabase
@@ -212,7 +220,7 @@ export const useDentists = () => {
 
   // Update dentist
   const updateDentist = useMutation({
-    mutationFn: async ({ id, specialization_ids, availability_days, ...updateData }: Partial<NewDentist> & { id: string }) => {
+    mutationFn: async ({ id, specialization_ids, availability_slots, ...updateData }: Partial<NewDentist> & { id: string }) => {
       // Convert empty strings to null for optional fields
       const cleanedData = {
         ...updateData,
@@ -261,7 +269,7 @@ export const useDentists = () => {
       }
 
       // Update availability if provided
-      if (availability_days !== undefined) {
+      if (availability_slots !== undefined) {
         // Delete existing availability
         await supabase
           .from("dentist_availability")
@@ -269,10 +277,12 @@ export const useDentists = () => {
           .eq("dentist_id", id);
 
         // Insert new availability
-        if (availability_days.length > 0) {
-          const availabilityData = availability_days.map(day => ({
+        if (availability_slots.length > 0) {
+          const availabilityData = availability_slots.map(slot => ({
             dentist_id: id,
-            day_of_week: day,
+            day_of_week: slot.day_of_week,
+            start_time: slot.start_time,
+            end_time: slot.end_time,
           }));
 
           const { error: availabilityError } = await supabase

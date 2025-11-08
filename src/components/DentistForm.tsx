@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useDentists, type Dentist } from "@/hooks/useDentists";
+import { useDentists, type Dentist, type AvailabilitySlot } from "@/hooks/useDentists";
 import { useToast } from "@/hooks/use-toast";
+import { Plus, Trash2 } from "lucide-react";
 
 interface DentistFormProps {
   open: boolean;
@@ -35,7 +36,7 @@ export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) =
     birth_date: "",
     address: "",
     specialization_ids: [] as string[],
-    availability_days: [] as number[],
+    availability_slots: [] as AvailabilitySlot[],
   });
 
   // Update form data when dentist changes
@@ -49,7 +50,11 @@ export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) =
         birth_date: dentist.birth_date || "",
         address: dentist.address || "",
         specialization_ids: dentist.dentist_specializations.map(ds => ds.specializations.id) || [],
-        availability_days: dentist.dentist_availability.map(da => da.day_of_week) || [],
+        availability_slots: dentist.dentist_availability.map(da => ({
+          day_of_week: da.day_of_week,
+          start_time: da.start_time,
+          end_time: da.end_time,
+        })) || [],
       });
     } else {
       setFormData({
@@ -60,7 +65,7 @@ export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) =
         birth_date: "",
         address: "",
         specialization_ids: [],
-        availability_days: [],
+        availability_slots: [],
       });
     }
   }, [dentist, open]);
@@ -127,12 +132,29 @@ export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) =
     }));
   };
 
-  const handleAvailabilityChange = (dayValue: number, checked: boolean) => {
+  const handleAddAvailabilitySlot = (dayValue: number) => {
     setFormData(prev => ({
       ...prev,
-      availability_days: checked
-        ? [...prev.availability_days, dayValue]
-        : prev.availability_days.filter(day => day !== dayValue)
+      availability_slots: [
+        ...prev.availability_slots,
+        { day_of_week: dayValue, start_time: "08:00", end_time: "18:00" }
+      ]
+    }));
+  };
+
+  const handleRemoveAvailabilitySlot = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      availability_slots: prev.availability_slots.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleUpdateAvailabilitySlot = (index: number, field: 'start_time' | 'end_time', value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      availability_slots: prev.availability_slots.map((slot, i) => 
+        i === index ? { ...slot, [field]: value } : slot
+      )
     }));
   };
 
@@ -236,25 +258,59 @@ export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) =
           </div>
 
           <div className="space-y-3">
-            <Label>Dias Disponíveis</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {DAYS_OF_WEEK.map((day) => (
-                <div key={day.value} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`day-${day.value}`}
-                    checked={formData.availability_days.includes(day.value)}
-                    onCheckedChange={(checked) => 
-                      handleAvailabilityChange(day.value, checked as boolean)
-                    }
-                  />
-                  <Label 
-                    htmlFor={`day-${day.value}`}
-                    className="text-sm font-normal cursor-pointer"
-                  >
-                    {day.label}
-                  </Label>
-                </div>
-              ))}
+            <Label>Horários Disponíveis</Label>
+            <div className="space-y-4">
+              {DAYS_OF_WEEK.map((day) => {
+                const daySlots = formData.availability_slots.filter(slot => slot.day_of_week === day.value);
+                return (
+                  <div key={day.value} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">{day.label}</Label>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleAddAvailabilitySlot(day.value)}
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Adicionar Horário
+                      </Button>
+                    </div>
+                    {daySlots.length > 0 && (
+                      <div className="space-y-2 pl-4">
+                        {formData.availability_slots.map((slot, index) => {
+                          if (slot.day_of_week !== day.value) return null;
+                          return (
+                            <div key={index} className="flex items-center gap-2">
+                              <Input
+                                type="time"
+                                value={slot.start_time}
+                                onChange={(e) => handleUpdateAvailabilitySlot(index, 'start_time', e.target.value)}
+                                className="flex-1"
+                              />
+                              <span className="text-muted-foreground">até</span>
+                              <Input
+                                type="time"
+                                value={slot.end_time}
+                                onChange={(e) => handleUpdateAvailabilitySlot(index, 'end_time', e.target.value)}
+                                className="flex-1"
+                              />
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => handleRemoveAvailabilitySlot(index)}
+                              >
+                                <Trash2 className="w-4 h-4 text-destructive" />
+                              </Button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
           

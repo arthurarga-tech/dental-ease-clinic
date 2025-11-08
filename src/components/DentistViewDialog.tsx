@@ -143,19 +143,20 @@ export const DentistViewDialog = ({ dentist, open, onOpenChange, onEdit }: Denti
             <h3 className="text-lg font-semibold text-foreground">Disponibilidade</h3>
             
             {dentist.dentist_availability.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
+              <div className="space-y-2">
                 {dentist.dentist_availability
                   .sort((a, b) => a.day_of_week - b.day_of_week)
                   .map((availability) => {
                     const days = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
                     return (
-                      <Badge 
-                        key={availability.id} 
-                        variant="outline"
-                        className="text-sm"
-                      >
-                        {days[availability.day_of_week]}
-                      </Badge>
+                      <div key={availability.id} className="flex items-center gap-2">
+                        <Badge variant="outline" className="min-w-[140px]">
+                          {days[availability.day_of_week]}
+                        </Badge>
+                        <span className="text-sm text-muted-foreground">
+                          {availability.start_time} - {availability.end_time}
+                        </span>
+                      </div>
                     );
                   })}
               </div>
