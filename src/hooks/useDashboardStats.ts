@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePatients } from "./usePatients";
+import { useDentists } from "./useDentists";
 import { useMedicalRecords } from "./useMedicalRecords";
 
 export const useDashboardStats = () => {
   const { patients } = usePatients();
+  const { dentists } = useDentists();
 
   // Get today's appointments
   const todayString = new Date().toISOString().split('T')[0];
@@ -86,6 +88,13 @@ export const useDashboardStats = () => {
     return birthMD === todayMD;
   });
 
+  const birthdayDentists = dentists.filter(dentist => {
+    if (!dentist.birth_date) return false;
+    const birthDate = new Date(dentist.birth_date);
+    const birthMD = `${String(birthDate.getMonth() + 1).padStart(2, '0')}-${String(birthDate.getDate()).padStart(2, '0')}`;
+    return birthMD === todayMD;
+  });
+
   return {
     stats: {
       activePatients,
@@ -100,6 +109,7 @@ export const useDashboardStats = () => {
     },
     todayAppointments,
     birthdayPatients,
+    birthdayDentists,
     isLoading: isLoadingAppointments || isLoadingTransactions,
   };
 };

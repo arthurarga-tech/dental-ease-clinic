@@ -18,7 +18,7 @@ import { ptBR } from "date-fns/locale";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { stats, todayAppointments, birthdayPatients, isLoading } = useDashboardStats();
+  const { stats, todayAppointments, birthdayPatients, birthdayDentists, isLoading } = useDashboardStats();
   const { dentists, isLoading: isLoadingDentists } = useDentists();
 
   const activeDentists = dentists.filter(d => d.status === "Ativo");
@@ -153,7 +153,7 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Birthday reminder card */}
-        {birthdayPatients.length > 0 && (
+        {(birthdayPatients.length > 0 || birthdayDentists.length > 0) && (
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -162,28 +162,59 @@ const Dashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {birthdayPatients.map((patient) => (
-                  <div 
-                    key={patient.id}
-                    className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/20"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                        <Gift className="w-4 h-4 text-primary" />
+              <div className="space-y-3">
+                {birthdayPatients.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">Pacientes</p>
+                    {birthdayPatients.map((patient) => (
+                      <div 
+                        key={patient.id}
+                        className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/20"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                            <Gift className="w-4 h-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-foreground">{patient.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {patient.phone}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-sm text-primary font-medium">
+                          🎉 Parabéns!
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-foreground">{patient.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {patient.phone}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-sm text-primary font-medium">
-                      🎉 Parabéns!
-                    </div>
+                    ))}
                   </div>
-                ))}
+                )}
+                {birthdayDentists.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">Dentistas</p>
+                    {birthdayDentists.map((dentist) => (
+                      <div 
+                        key={dentist.id}
+                        className="flex items-center justify-between p-3 bg-success/5 rounded-lg border border-success/20"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-success/10 rounded-full flex items-center justify-center">
+                            <Gift className="w-4 h-4 text-success" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-foreground">{dentist.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {dentist.phone}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-sm text-success font-medium">
+                          🎉 Parabéns!
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
