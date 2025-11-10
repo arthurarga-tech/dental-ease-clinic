@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Patient } from "@/hooks/usePatients";
+import { calculatePatientStatus } from "@/lib/utils";
 import { 
   Mail, 
   Phone, 
@@ -9,6 +10,12 @@ import {
   FileText, 
   User 
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface PatientViewDialogProps {
   patient: Patient | null;
@@ -18,6 +25,8 @@ interface PatientViewDialogProps {
 
 export const PatientViewDialog = ({ patient, open, onOpenChange }: PatientViewDialogProps) => {
   if (!patient) return null;
+
+  const statusInfo = calculatePatientStatus(patient.created_at, patient.last_appointment_date);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -32,9 +41,23 @@ export const PatientViewDialog = ({ patient, open, onOpenChange }: PatientViewDi
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-foreground">{patient.name}</h2>
-            <Badge variant={patient.status === "Ativo" ? "default" : "secondary"}>
-              {patient.status}
-            </Badge>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant={statusInfo.variant}>
+                    {statusInfo.icon} {statusInfo.status}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Última atividade: {statusInfo.daysSinceLastActivity} dias atrás</p>
+                  {patient.last_appointment_date && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Última consulta: {new Date(patient.last_appointment_date).toLocaleDateString('pt-BR')}
+                    </p>
+                  )}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

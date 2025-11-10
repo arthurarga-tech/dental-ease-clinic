@@ -14,6 +14,7 @@ export interface Patient {
   status: "Ativo" | "Inativo";
   created_at: string;
   updated_at: string;
+  last_appointment_date?: string;
 }
 
 export interface NewPatient {
@@ -39,7 +40,10 @@ export const usePatients = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("patients")
-        .select("*")
+        .select(`
+          *,
+          appointments(appointment_date)
+        `)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -47,7 +51,25 @@ export const usePatients = () => {
         throw error;
       }
 
-      return data as Patient[];
+      // Process data to extract last appointment date
+      const patientsWithLastAppointment = data.map((patient: any) => {
+        const appointments = patient.appointments || [];
+        const lastAppointment = appointments.length > 0
+          ? appointments.reduce((latest: any, current: any) => {
+              return new Date(current.appointment_date) > new Date(latest.appointment_date)
+                ? current
+                : latest;
+            })
+          : null;
+
+        return {
+          ...patient,
+          last_appointment_date: lastAppointment?.appointment_date,
+          appointments: undefined, // Remove appointments array
+        };
+      });
+
+      return patientsWithLastAppointment as Patient[];
     },
   });
 

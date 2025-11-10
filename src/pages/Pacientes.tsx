@@ -8,6 +8,7 @@ import { PatientForm } from "@/components/PatientForm";
 import { PatientViewDialog } from "@/components/PatientViewDialog";
 import { PatientDeleteDialog } from "@/components/PatientDeleteDialog";
 import { usePatients, Patient } from "@/hooks/usePatients";
+import { calculatePatientStatus } from "@/lib/utils";
 import { 
   Plus, 
   Search, 
@@ -21,9 +22,16 @@ import {
   Loader2,
   Trash2
 } from "lucide-react";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const Pacientes = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"Todos" | "Ativo" | "Em Alerta" | "Inativo">("Todos");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
@@ -41,10 +49,26 @@ const Pacientes = () => {
     isDeleting
   } = usePatients();
 
-  const filteredPatients = patients.filter(patient =>
-    patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (patient.email && patient.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    patient.phone.includes(searchTerm)
+  const filteredPatients = patients.filter(patient => {
+    const matchesSearch = 
+      patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (patient.email && patient.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      patient.phone.includes(searchTerm);
+    
+    if (statusFilter === "Todos") return matchesSearch;
+    
+    const statusInfo = calculatePatientStatus(patient.created_at, patient.last_appointment_date);
+    return matchesSearch && statusInfo.status === statusFilter;
+  });
+
+  // Calculate status counts
+  const statusCounts = patients.reduce(
+    (acc, patient) => {
+      const statusInfo = calculatePatientStatus(patient.created_at, patient.last_appointment_date);
+      acc[statusInfo.status] = (acc[statusInfo.status] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
   );
 
   const handleCreatePatient = (data: any) => {
@@ -113,7 +137,7 @@ const Pacientes = () => {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-4">
+          <div className="space-y-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
@@ -122,6 +146,41 @@ const Pacientes = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
+            </div>
+            
+            {/* Status Filters */}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={statusFilter === "Todos" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("Todos")}
+              >
+                Todos ({patients.length})
+              </Button>
+              <Button
+                variant={statusFilter === "Ativo" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("Ativo")}
+                className={statusFilter === "Ativo" ? "" : "hover:bg-primary/10"}
+              >
+                ✓ Ativos ({statusCounts["Ativo"] || 0})
+              </Button>
+              <Button
+                variant={statusFilter === "Em Alerta" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("Em Alerta")}
+                className={statusFilter === "Em Alerta" ? "" : "hover:bg-warning/10"}
+              >
+                ⚠ Em Alerta ({statusCounts["Em Alerta"] || 0})
+              </Button>
+              <Button
+                variant={statusFilter === "Inativo" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("Inativo")}
+                className={statusFilter === "Inativo" ? "" : "hover:bg-destructive/10"}
+              >
+                ✗ Inativos ({statusCounts["Inativo"] || 0})
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -133,20 +192,34 @@ const Pacientes = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredPatients.map((patient) => (
-              <Card key={patient.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                        <h3 className="text-base md:text-lg font-semibold text-foreground truncate">{patient.name}</h3>
-                        <Badge 
-                          variant={patient.status === "Ativo" ? "default" : "secondary"}
-                          className={patient.status === "Ativo" ? "bg-success text-success-foreground" : ""}
-                        >
-                          {patient.status}
-                        </Badge>
-                      </div>
+              {filteredPatients.map((patient) => {
+                const statusInfo = calculatePatientStatus(patient.created_at, patient.last_appointment_date);
+                
+                return (
+                  <Card key={patient.id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                            <h3 className="text-base md:text-lg font-semibold text-foreground truncate">{patient.name}</h3>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge variant={statusInfo.variant}>
+                                    {statusInfo.icon} {statusInfo.status}
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Última atividade: {statusInfo.daysSinceLastActivity} dias atrás</p>
+                                  {patient.last_appointment_date && (
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      Última consulta: {new Date(patient.last_appointment_date).toLocaleDateString('pt-BR')}
+                                    </p>
+                                  )}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
                       
                       <div className="grid grid-cols-1 gap-2 text-xs md:text-sm text-muted-foreground">
                         {patient.email && (
@@ -201,11 +274,12 @@ const Pacientes = () => {
                       >
                         <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
                       </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
           
