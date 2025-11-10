@@ -101,125 +101,54 @@ const Dashboard = () => {
         })}
       </div>
 
-      {/* Dentists availability */}
-      {activeDentists.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-primary" />
-              Dentistas Disponíveis
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {activeDentists.map((dentist) => (
-              <div key={dentist.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
-                <p className="font-medium text-foreground mb-2">{dentist.name}</p>
-                <div className="space-y-1">
-                  {dentist.dentist_availability.length > 0 ? (
-                    Object.entries(
-                      dentist.dentist_availability.reduce((acc, slot) => {
-                        if (!acc[slot.day_of_week]) {
-                          acc[slot.day_of_week] = [];
-                        }
-                        acc[slot.day_of_week].push(slot);
-                        return acc;
-                      }, {} as Record<number, typeof dentist.dentist_availability>)
-                    )
-                    .sort(([a], [b]) => Number(a) - Number(b))
-                    .map(([day, slots]) => (
-                      <div key={day} className="text-sm flex items-start gap-2">
-                        <span className="text-muted-foreground font-medium min-w-[35px]">
-                          {daysOfWeek[Number(day)]}:
-                        </span>
-                        <div className="flex flex-wrap gap-1">
-                          {slots.map((slot, idx) => (
-                            <span key={idx} className="text-foreground">
-                              {slot.start_time.slice(0, 5)}-{slot.end_time.slice(0, 5)}
-                              {idx < slots.length - 1 && ","}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Sem horários definidos</p>
-                  )}
+      {/* Consultas de Hoje - Destaque Principal */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="w-5 h-5 text-primary" />
+            Consultas de Hoje
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {todayAppointments.length > 0 ? (
+            todayAppointments.map((appointment) => (
+              <div 
+                key={appointment.id}
+                className="flex items-center justify-between p-3 bg-secondary rounded-lg"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="text-sm font-medium text-primary">
+                    {appointment.appointment_time.slice(0, 5)}
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">{appointment.patients.name}</p>
+                    <p className="text-sm text-muted-foreground">{appointment.type}</p>
+                  </div>
+                </div>
+                <div className={`px-2 py-1 rounded-md text-xs font-medium ${
+                  appointment.status === "Confirmado" 
+                    ? "bg-success/10 text-success"
+                    : appointment.status === "Em andamento"
+                    ? "bg-warning/10 text-warning"
+                    : appointment.status === "Concluído"
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted text-muted-foreground"
+                }`}>
+                  {appointment.status}
                 </div>
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+            ))
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p>Nenhuma consulta agendada para hoje</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Birthday reminder card */}
-        {(birthdayPatients.length > 0 || birthdayDentists.length > 0) && (
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Gift className="w-5 h-5 text-primary" />
-                Aniversariantes de Hoje
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {birthdayPatients.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Pacientes</p>
-                    {birthdayPatients.map((patient) => (
-                      <div 
-                        key={patient.id}
-                        className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/20"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                            <Gift className="w-4 h-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-foreground">{patient.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {patient.phone}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-sm text-primary font-medium">
-                          🎉 Parabéns!
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {birthdayDentists.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Dentistas</p>
-                    {birthdayDentists.map((dentist) => (
-                      <div 
-                        key={dentist.id}
-                        className="flex items-center justify-between p-3 bg-success/5 rounded-lg border border-success/20"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-success/10 rounded-full flex items-center justify-center">
-                            <Gift className="w-4 h-4 text-success" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-foreground">{dentist.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {dentist.phone}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-sm text-success font-medium">
-                          🎉 Parabéns!
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
+        {/* Ações Rápidas */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -262,55 +191,125 @@ const Dashboard = () => {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Dentists availability */}
+        {activeDentists.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary" />
+                Dentistas Disponíveis
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {activeDentists.map((dentist) => (
+                <div key={dentist.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
+                  <p className="font-medium text-foreground mb-2">{dentist.name}</p>
+                  <div className="space-y-1">
+                    {dentist.dentist_availability.length > 0 ? (
+                      Object.entries(
+                        dentist.dentist_availability.reduce((acc, slot) => {
+                          if (!acc[slot.day_of_week]) {
+                            acc[slot.day_of_week] = [];
+                          }
+                          acc[slot.day_of_week].push(slot);
+                          return acc;
+                        }, {} as Record<number, typeof dentist.dentist_availability>)
+                      )
+                      .sort(([a], [b]) => Number(a) - Number(b))
+                      .map(([day, slots]) => (
+                        <div key={day} className="text-sm flex items-start gap-2">
+                          <span className="text-muted-foreground font-medium min-w-[35px]">
+                            {daysOfWeek[Number(day)]}:
+                          </span>
+                          <div className="flex flex-wrap gap-1">
+                            {slots.map((slot, idx) => (
+                              <span key={idx} className="text-foreground">
+                                {slot.start_time.slice(0, 5)}-{slot.end_time.slice(0, 5)}
+                                {idx < slots.length - 1 && ","}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Sem horários definidos</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
+      {/* Birthday reminder card */}
+      {(birthdayPatients.length > 0 || birthdayDentists.length > 0) && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-primary" />
-              Consultas de Hoje
+              <Gift className="w-5 h-5 text-primary" />
+              Aniversariantes de Hoje
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {todayAppointments.length > 0 ? (
-              todayAppointments.map((appointment) => (
-                <div 
-                  key={appointment.id}
-                  className="flex items-center justify-between p-3 bg-secondary rounded-lg"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="text-sm font-medium text-primary">
-                      {appointment.appointment_time.slice(0, 5)}
+          <CardContent>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {birthdayPatients.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Pacientes</p>
+                  {birthdayPatients.map((patient) => (
+                    <div 
+                      key={patient.id}
+                      className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/20"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                          <Gift className="w-4 h-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">{patient.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {patient.phone}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-sm text-primary font-medium">
+                        🎉 Parabéns!
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-foreground">{appointment.patients.name}</p>
-                      <p className="text-sm text-muted-foreground">{appointment.type}</p>
-                    </div>
-                  </div>
-                  <div className={`px-2 py-1 rounded-md text-xs font-medium ${
-                    appointment.status === "Confirmado" 
-                      ? "bg-success/10 text-success"
-                      : appointment.status === "Em andamento"
-                      ? "bg-warning/10 text-warning"
-                      : appointment.status === "Concluído"
-                      ? "bg-primary/10 text-primary"
-                      : "bg-muted text-muted-foreground"
-                  }`}>
-                    {appointment.status}
-                  </div>
+                  ))}
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p>Nenhuma consulta agendada para hoje</p>
-              </div>
-            )}
+              )}
+              {birthdayDentists.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Dentistas</p>
+                  {birthdayDentists.map((dentist) => (
+                    <div 
+                      key={dentist.id}
+                      className="flex items-center justify-between p-3 bg-success/5 rounded-lg border border-success/20"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-success/10 rounded-full flex items-center justify-center">
+                          <Gift className="w-4 h-4 text-success" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">{dentist.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {dentist.phone}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-sm text-success font-medium">
+                        🎉 Parabéns!
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
-      </div>
+      )}
     </div>
   );
 };
