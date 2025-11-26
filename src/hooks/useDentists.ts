@@ -19,6 +19,7 @@ export interface Dentist {
   birth_date?: string;
   address?: string;
   status: "Ativo" | "Inativo";
+  commission_percentage?: number;
   created_at: string;
   updated_at: string;
   dentist_specializations: {
@@ -50,6 +51,7 @@ export interface NewDentist {
   cro: string;
   birth_date?: string;
   address?: string;
+  commission_percentage?: number;
   specialization_ids: string[];
   availability_slots: AvailabilitySlot[];
 }
@@ -141,6 +143,7 @@ export const useDentists = () => {
           cro: newDentist.cro,
           birth_date: newDentist.birth_date?.trim() || null,
           address: newDentist.address?.trim() || null,
+          commission_percentage: newDentist.commission_percentage || 50,
         }])
         .select()
         .single();

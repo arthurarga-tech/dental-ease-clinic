@@ -9,7 +9,8 @@ import {
   Stethoscope,
   UserRoundPlus,
   LogOut,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Calculator
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,6 +23,7 @@ const adminMenuItems = [
   { icon: FileText, label: "Prontuário", path: "/prontuario" },
   { icon: UserRoundPlus, label: "Dentistas", path: "/dentistas" },
   { icon: CreditCard, label: "Financeiro", path: "/financeiro" },
+  { icon: Calculator, label: "Fechamento", path: "/fechamento" },
 ];
 
 const dentistMenuItems = [

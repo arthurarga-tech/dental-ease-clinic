@@ -134,6 +134,41 @@ export type Database = {
           },
         ]
       }
+      card_fees: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          fee_percentage: number
+          id: string
+          payment_method_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          fee_percentage?: number
+          id?: string
+          payment_method_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          fee_percentage?: number
+          id?: string
+          payment_method_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_fees_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: true
+            referencedRelation: "payment_methods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dentist_availability: {
         Row: {
           created_at: string
@@ -162,6 +197,62 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "fk_dentist_availability_dentist"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dentist_settlements: {
+        Row: {
+          card_fees_deducted: number | null
+          commission_percentage: number
+          created_at: string | null
+          dentist_id: string
+          gross_amount: number
+          id: string
+          net_amount: number
+          notes: string | null
+          payment_date: string | null
+          period_end: string
+          period_start: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          card_fees_deducted?: number | null
+          commission_percentage: number
+          created_at?: string | null
+          dentist_id: string
+          gross_amount: number
+          id?: string
+          net_amount: number
+          notes?: string | null
+          payment_date?: string | null
+          period_end: string
+          period_start: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          card_fees_deducted?: number | null
+          commission_percentage?: number
+          created_at?: string | null
+          dentist_id?: string
+          gross_amount?: number
+          id?: string
+          net_amount?: number
+          notes?: string | null
+          payment_date?: string | null
+          period_end?: string
+          period_start?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dentist_settlements_dentist_id_fkey"
             columns: ["dentist_id"]
             isOneToOne: false
             referencedRelation: "dentists"
@@ -209,6 +300,7 @@ export type Database = {
         Row: {
           address: string | null
           birth_date: string | null
+          commission_percentage: number | null
           created_at: string
           cro: string
           email: string | null
@@ -221,6 +313,7 @@ export type Database = {
         Insert: {
           address?: string | null
           birth_date?: string | null
+          commission_percentage?: number | null
           created_at?: string
           cro: string
           email?: string | null
@@ -233,6 +326,7 @@ export type Database = {
         Update: {
           address?: string | null
           birth_date?: string | null
+          commission_percentage?: number | null
           created_at?: string
           cro?: string
           email?: string | null
@@ -274,6 +368,7 @@ export type Database = {
           appointment_id: string | null
           category_id: string
           created_at: string
+          dentist_id: string | null
           description: string | null
           due_date: string | null
           id: string
@@ -289,6 +384,7 @@ export type Database = {
           appointment_id?: string | null
           category_id: string
           created_at?: string
+          dentist_id?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -304,6 +400,7 @@ export type Database = {
           appointment_id?: string | null
           category_id?: string
           created_at?: string
+          dentist_id?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -315,6 +412,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "financial_transactions_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fk_financial_transactions_appointment"
             columns: ["appointment_id"]

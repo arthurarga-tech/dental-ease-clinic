@@ -35,6 +35,7 @@ export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) =
     cro: "",
     birth_date: "",
     address: "",
+    commission_percentage: 50,
     specialization_ids: [] as string[],
     availability_slots: [] as AvailabilitySlot[],
   });
@@ -49,6 +50,7 @@ export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) =
         cro: dentist.cro || "",
         birth_date: dentist.birth_date || "",
         address: dentist.address || "",
+        commission_percentage: dentist.commission_percentage || 50,
         specialization_ids: dentist.dentist_specializations.map(ds => ds.specializations.id) || [],
         availability_slots: dentist.dentist_availability.map(da => ({
           day_of_week: da.day_of_week,
@@ -64,6 +66,7 @@ export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) =
         cro: "",
         birth_date: "",
         address: "",
+        commission_percentage: 50,
         specialization_ids: [],
         availability_slots: [],
       });
@@ -219,6 +222,20 @@ export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) =
                 type="date"
                 value={formData.birth_date}
                 onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="commission_percentage">Comissão (%)</Label>
+              <Input
+                id="commission_percentage"
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                value={formData.commission_percentage}
+                onChange={(e) => setFormData({ ...formData, commission_percentage: Number(e.target.value) })}
+                placeholder="50.00"
               />
             </div>
           </div>
