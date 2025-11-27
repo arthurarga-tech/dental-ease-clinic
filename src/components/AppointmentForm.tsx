@@ -64,7 +64,7 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
       appointment_date: appointment ? formatDateForInput(appointment.appointment_date) : (initialDate || getCurrentDate()),
       appointment_time: appointment?.appointment_time || "",
       type: appointment?.type || "",
-      duration: appointment?.duration || 60,
+      duration: appointment?.duration || 30,
       notes: appointment?.notes || "",
     },
   });
