@@ -1,13 +1,14 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { usePatients } from "@/hooks/usePatients";
-import { useDentists } from "@/hooks/useDentists";
+import { useDentists, Dentist } from "@/hooks/useDentists";
 import { Loader2 } from "lucide-react";
 import { NewAppointment, Appointment } from "@/hooks/useAppointments";
 
@@ -71,6 +72,47 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
   const watchedPatientId = watch("patient_id");
   const watchedDentistId = watch("dentist_id");
   const watchedType = watch("type");
+  const watchedDate = watch("appointment_date");
+  const watchedTime = watch("appointment_time");
+
+  // Filter available dentists based on date and time
+  const availableDentists = useMemo(() => {
+    if (!watchedDate || !watchedTime || !dentists.length) {
+      return dentists.filter(d => d.status === "Ativo");
+    }
+
+    const selectedDate = new Date(watchedDate + 'T00:00:00');
+    const dayOfWeek = selectedDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    
+    // Convert time "HH:MM" to minutes for comparison
+    const [hours, minutes] = watchedTime.split(':').map(Number);
+    const selectedTimeInMinutes = hours * 60 + minutes;
+
+    return dentists.filter(dentist => {
+      if (dentist.status !== "Ativo") return false;
+      
+      // Check if dentist has availability for this day and time
+      return dentist.dentist_availability.some(availability => {
+        if (availability.day_of_week !== dayOfWeek) return false;
+        
+        // Convert start and end times to minutes
+        const [startH, startM] = availability.start_time.split(':').map(Number);
+        const [endH, endM] = availability.end_time.split(':').map(Number);
+        const startTimeInMinutes = startH * 60 + startM;
+        const endTimeInMinutes = endH * 60 + endM;
+        
+        // Check if selected time falls within availability range
+        return selectedTimeInMinutes >= startTimeInMinutes && selectedTimeInMinutes < endTimeInMinutes;
+      });
+    });
+  }, [watchedDate, watchedTime, dentists]);
+
+  // Auto-select dentist if only one is available
+  useEffect(() => {
+    if (!appointment && availableDentists.length === 1 && watchedDate && watchedTime) {
+      setValue("dentist_id", availableDentists[0].id);
+    }
+  }, [availableDentists, watchedDate, watchedTime, setValue, appointment]);
 
   const handleFormSubmit = (data: AppointmentFormData) => {
     // Ensure all required fields are present
@@ -125,32 +167,6 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
         )}
       </div>
 
-      <div>
-        <Label htmlFor="dentist_id" className="text-sm">Dentista *</Label>
-        {loadingDentists ? (
-          <div className="flex items-center justify-center py-2">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span className="ml-2 text-sm text-muted-foreground">Carregando dentistas...</span>
-          </div>
-        ) : (
-          <Select onValueChange={(value) => setValue("dentist_id", value)} value={watchedDentistId}>
-            <SelectTrigger className="text-base">
-              <SelectValue placeholder="Selecione o dentista" />
-            </SelectTrigger>
-            <SelectContent>
-              {dentists.filter(d => d.status === "Ativo").map((dentist) => (
-                <SelectItem key={dentist.id} value={dentist.id} className="text-sm">
-                  {dentist.name} - CRO {dentist.cro}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-        {errors.dentist_id && (
-          <p className="text-sm text-destructive mt-1">{errors.dentist_id.message}</p>
-        )}
-      </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
         <div>
           <Label htmlFor="appointment_date" className="text-sm">Data *</Label>
@@ -178,6 +194,44 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
             <p className="text-sm text-destructive mt-1">{errors.appointment_time.message}</p>
           )}
         </div>
+      </div>
+
+      <div>
+        <Label htmlFor="dentist_id" className="text-sm">
+          Dentista * 
+          {availableDentists.length === 0 && watchedDate && watchedTime && (
+            <span className="text-xs text-muted-foreground ml-2">(Nenhum disponível neste horário)</span>
+          )}
+          {availableDentists.length === 1 && watchedDate && watchedTime && (
+            <span className="text-xs text-muted-foreground ml-2">(Selecionado automaticamente)</span>
+          )}
+        </Label>
+        {loadingDentists ? (
+          <div className="flex items-center justify-center py-2">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="ml-2 text-sm text-muted-foreground">Carregando dentistas...</span>
+          </div>
+        ) : (
+          <Select 
+            onValueChange={(value) => setValue("dentist_id", value)} 
+            value={watchedDentistId}
+            disabled={availableDentists.length === 0}
+          >
+            <SelectTrigger className="text-base">
+              <SelectValue placeholder={availableDentists.length === 0 ? "Nenhum dentista disponível" : "Selecione o dentista"} />
+            </SelectTrigger>
+            <SelectContent>
+              {availableDentists.map((dentist) => (
+                <SelectItem key={dentist.id} value={dentist.id} className="text-sm">
+                  {dentist.name} - CRO {dentist.cro}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        {errors.dentist_id && (
+          <p className="text-sm text-destructive mt-1">{errors.dentist_id.message}</p>
+        )}
       </div>
 
       <div>
