@@ -73,9 +73,58 @@ export const useAppointments = (selectedDate?: string) => {
     enabled: !!selectedDate,
   });
 
+  // Check for appointment conflicts
+  const checkConflict = async (
+    dentistId: string,
+    date: string,
+    time: string,
+    duration: number,
+    excludeAppointmentId?: string
+  ) => {
+    const { data: existingAppointments } = await supabase
+      .from("appointments")
+      .select("id, appointment_time, duration")
+      .eq("dentist_id", dentistId)
+      .eq("appointment_date", date)
+      .neq("status", "Cancelado");
+
+    if (!existingAppointments) return false;
+
+    const [hours, minutes] = time.split(":").map(Number);
+    const newStartMinutes = hours * 60 + minutes;
+    const newEndMinutes = newStartMinutes + duration;
+
+    for (const apt of existingAppointments) {
+      if (excludeAppointmentId && apt.id === excludeAppointmentId) continue;
+
+      const [aptHours, aptMinutes] = apt.appointment_time.split(":").map(Number);
+      const aptStartMinutes = aptHours * 60 + aptMinutes;
+      const aptEndMinutes = aptStartMinutes + apt.duration;
+
+      // Check overlap: start1 < end2 AND start2 < end1
+      if (newStartMinutes < aptEndMinutes && aptStartMinutes < newEndMinutes) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
   // Create new appointment
   const createAppointment = useMutation({
     mutationFn: async (newAppointment: NewAppointment) => {
+      // Check for conflicts
+      const hasConflict = await checkConflict(
+        newAppointment.dentist_id,
+        newAppointment.appointment_date,
+        newAppointment.appointment_time,
+        newAppointment.duration
+      );
+
+      if (hasConflict) {
+        throw new Error("CONFLICT");
+      }
+
       const { data, error } = await supabase
         .from("appointments")
         .insert([newAppointment])
@@ -95,19 +144,42 @@ export const useAppointments = (selectedDate?: string) => {
         description: "A consulta foi agendada com sucesso.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Error creating appointment:", error);
-      toast({
-        title: "Erro ao agendar consulta",
-        description: "Ocorreu um erro ao agendar a consulta. Tente novamente.",
-        variant: "destructive",
-      });
+      if (error.message === "CONFLICT") {
+        toast({
+          title: "Conflito de horário",
+          description: "Já existe uma consulta agendada neste horário para este dentista.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erro ao agendar consulta",
+          description: "Ocorreu um erro ao agendar a consulta. Tente novamente.",
+          variant: "destructive",
+        });
+      }
     },
   });
 
   // Update appointment
   const updateAppointment = useMutation({
     mutationFn: async ({ id, ...updateData }: Partial<Appointment> & { id: string }) => {
+      // Check for conflicts if time-related fields are being updated
+      if (updateData.dentist_id && updateData.appointment_date && updateData.appointment_time && updateData.duration) {
+        const hasConflict = await checkConflict(
+          updateData.dentist_id,
+          updateData.appointment_date,
+          updateData.appointment_time,
+          updateData.duration,
+          id // Exclude current appointment from conflict check
+        );
+
+        if (hasConflict) {
+          throw new Error("CONFLICT");
+        }
+      }
+
       const { data, error } = await supabase
         .from("appointments")
         .update(updateData)
@@ -128,13 +200,21 @@ export const useAppointments = (selectedDate?: string) => {
         description: "A consulta foi atualizada com sucesso.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Error updating appointment:", error);
-      toast({
-        title: "Erro ao atualizar consulta",
-        description: "Ocorreu um erro ao atualizar a consulta. Tente novamente.",
-        variant: "destructive",
-      });
+      if (error.message === "CONFLICT") {
+        toast({
+          title: "Conflito de horário",
+          description: "Já existe uma consulta agendada neste horário para este dentista.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erro ao atualizar consulta",
+          description: "Ocorreu um erro ao atualizar a consulta. Tente novamente.",
+          variant: "destructive",
+        });
+      }
     },
   });
 
