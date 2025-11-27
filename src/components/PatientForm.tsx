@@ -28,7 +28,6 @@ const calculateAge = (birthDate: string): number => {
 
 const patientSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  email: z.string().email("E-mail inválido").optional().or(z.literal("")),
   phone: z.string().min(10, "Telefone deve ter pelo menos 10 caracteres"),
   birth_date: z.string().optional(),
   address: z.string().optional(),
@@ -62,7 +61,6 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
     resolver: zodResolver(patientSchema),
     defaultValues: {
       name: initialData?.name || "",
-      email: initialData?.email || "",
       phone: initialData?.phone || "",
       birth_date: initialData?.birth_date || "",
       address: initialData?.address || "",
@@ -79,7 +77,6 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
     const cleanData: NewPatient = {
       name: data.name,
       phone: data.phone,
-      email: data.email || undefined,
       birth_date: data.birth_date || undefined,
       address: data.address || undefined,
       medical_notes: data.medical_notes || undefined,
@@ -99,20 +96,6 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
               <FormLabel className="text-sm">Nome Completo *</FormLabel>
               <FormControl>
                 <Input placeholder="Digite o nome completo" className="text-base" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-sm">E-mail</FormLabel>
-              <FormControl>
-                <Input type="email" placeholder="email@exemplo.com" className="text-base" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
