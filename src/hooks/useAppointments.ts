@@ -128,7 +128,19 @@ export const useAppointments = (selectedDate?: string) => {
       const { data, error } = await supabase
         .from("appointments")
         .insert([newAppointment])
-        .select()
+        .select(`
+          id,
+          patient_id,
+          dentist_id,
+          appointment_date,
+          appointment_time,
+          type,
+          duration,
+          status,
+          notes,
+          created_at,
+          updated_at
+        `)
         .single();
 
       if (error) {
@@ -184,7 +196,19 @@ export const useAppointments = (selectedDate?: string) => {
         .from("appointments")
         .update(updateData)
         .eq("id", id)
-        .select()
+        .select(`
+          id,
+          patient_id,
+          dentist_id,
+          appointment_date,
+          appointment_time,
+          type,
+          duration,
+          status,
+          notes,
+          created_at,
+          updated_at
+        `)
         .single();
 
       if (error) {
