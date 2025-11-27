@@ -15,6 +15,17 @@ import {
 } from "@/components/ui/form";
 import { NewPatient } from "@/hooks/usePatients";
 
+const calculateAge = (birthDate: string): number => {
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+};
+
 const patientSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   email: z.string().email("E-mail inválido").optional().or(z.literal("")),
@@ -22,6 +33,19 @@ const patientSchema = z.object({
   birth_date: z.string().optional(),
   address: z.string().optional(),
   medical_notes: z.string().optional(),
+  guardian_name: z.string().optional(),
+}).refine((data) => {
+  // Se tem data de nascimento e é menor de 18, guardian_name é obrigatório
+  if (data.birth_date) {
+    const age = calculateAge(data.birth_date);
+    if (age < 18 && (!data.guardian_name || data.guardian_name.trim() === "")) {
+      return false;
+    }
+  }
+  return true;
+}, {
+  message: "Nome do responsável é obrigatório para menores de idade",
+  path: ["guardian_name"],
 });
 
 type PatientFormData = z.infer<typeof patientSchema>;
@@ -43,8 +67,12 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
       birth_date: initialData?.birth_date || "",
       address: initialData?.address || "",
       medical_notes: initialData?.medical_notes || "",
+      guardian_name: initialData?.guardian_name || "",
     },
   });
+
+  const birthDate = form.watch("birth_date");
+  const isMinor = birthDate ? calculateAge(birthDate) < 18 : false;
 
   const handleSubmit = (data: PatientFormData) => {
     // Convert empty strings to undefined for optional fields
@@ -55,6 +83,7 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
       birth_date: data.birth_date || undefined,
       address: data.address || undefined,
       medical_notes: data.medical_notes || undefined,
+      guardian_name: data.guardian_name || undefined,
     };
     onSubmit(cleanData);
   };
@@ -117,6 +146,22 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
             </FormItem>
           )}
         />
+
+        {isMinor && (
+          <FormField
+            control={form.control}
+            name="guardian_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm">Nome do Responsável *</FormLabel>
+                <FormControl>
+                  <Input placeholder="Nome completo do responsável legal" className="text-base" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}
