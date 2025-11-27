@@ -33,17 +33,23 @@ const patientSchema = z.object({
   address: z.string().optional(),
   medical_notes: z.string().optional(),
   guardian_name: z.string().optional(),
+  guardian_relationship: z.string().optional(),
 }).refine((data) => {
-  // Se tem data de nascimento e é menor de 18, guardian_name é obrigatório
+  // Se tem data de nascimento e é menor de 18, guardian_name e guardian_relationship são obrigatórios
   if (data.birth_date) {
     const age = calculateAge(data.birth_date);
-    if (age < 18 && (!data.guardian_name || data.guardian_name.trim() === "")) {
-      return false;
+    if (age < 18) {
+      if (!data.guardian_name || data.guardian_name.trim() === "") {
+        return false;
+      }
+      if (!data.guardian_relationship || data.guardian_relationship.trim() === "") {
+        return false;
+      }
     }
   }
   return true;
 }, {
-  message: "Nome do responsável é obrigatório para menores de idade",
+  message: "Nome e parentesco do responsável são obrigatórios para menores de idade",
   path: ["guardian_name"],
 });
 
@@ -66,6 +72,7 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
       address: initialData?.address || "",
       medical_notes: initialData?.medical_notes || "",
       guardian_name: initialData?.guardian_name || "",
+      guardian_relationship: initialData?.guardian_relationship || "",
     },
   });
 
@@ -81,6 +88,7 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
       address: data.address || undefined,
       medical_notes: data.medical_notes || undefined,
       guardian_name: data.guardian_name || undefined,
+      guardian_relationship: data.guardian_relationship || undefined,
     };
     onSubmit(cleanData);
   };
@@ -131,19 +139,35 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
         />
 
         {isMinor && (
-          <FormField
-            control={form.control}
-            name="guardian_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm">Nome do Responsável *</FormLabel>
-                <FormControl>
-                  <Input placeholder="Nome completo do responsável legal" className="text-base" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <>
+            <FormField
+              control={form.control}
+              name="guardian_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm">Nome do Responsável *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nome completo do responsável legal" className="text-base" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="guardian_relationship"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm">Parentesco do Responsável *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: Pai, Mãe, Avó, Tio..." className="text-base" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
         )}
 
         <FormField
