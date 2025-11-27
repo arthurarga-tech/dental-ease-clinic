@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 export interface Appointment {
   id: string;
   patient_id: string;
+  dentist_id: string | null;
   appointment_date: string;
   appointment_time: string;
   type: string;
@@ -23,6 +24,7 @@ export interface Appointment {
 
 export interface NewAppointment {
   patient_id: string;
+  dentist_id: string;
   appointment_date: string;
   appointment_time: string;
   type: string;

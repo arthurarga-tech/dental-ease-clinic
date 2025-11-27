@@ -7,11 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { usePatients } from "@/hooks/usePatients";
+import { useDentists } from "@/hooks/useDentists";
 import { Loader2 } from "lucide-react";
 import { NewAppointment, Appointment } from "@/hooks/useAppointments";
 
 const appointmentSchema = z.object({
   patient_id: z.string().min(1, "Selecione um paciente"),
+  dentist_id: z.string().min(1, "Selecione um dentista"),
   appointment_date: z.string().min(1, "Data é obrigatória"),
   appointment_time: z.string().min(1, "Horário é obrigatório"),
   type: z.string().min(1, "Tipo de consulta é obrigatório"),
@@ -31,6 +33,7 @@ interface AppointmentFormProps {
 
 export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, appointment }: AppointmentFormProps) => {
   const { patients, isLoading: loadingPatients } = usePatients();
+  const { dentists, isLoading: loadingDentists } = useDentists();
 
   // Helper function to format date correctly for date input
   const formatDateForInput = (date: string) => {
@@ -56,6 +59,7 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
       patient_id: appointment?.patient_id || "",
+      dentist_id: appointment?.dentist_id || "",
       appointment_date: appointment ? formatDateForInput(appointment.appointment_date) : (initialDate || getCurrentDate()),
       appointment_time: appointment?.appointment_time || "",
       type: appointment?.type || "",
@@ -65,12 +69,14 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
   });
 
   const watchedPatientId = watch("patient_id");
+  const watchedDentistId = watch("dentist_id");
   const watchedType = watch("type");
 
   const handleFormSubmit = (data: AppointmentFormData) => {
     // Ensure all required fields are present
     const appointmentData: NewAppointment = {
       patient_id: data.patient_id,
+      dentist_id: data.dentist_id,
       appointment_date: data.appointment_date,
       appointment_time: data.appointment_time,
       type: data.type,
@@ -116,6 +122,32 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
         )}
         {errors.patient_id && (
           <p className="text-sm text-destructive mt-1">{errors.patient_id.message}</p>
+        )}
+      </div>
+
+      <div>
+        <Label htmlFor="dentist_id" className="text-sm">Dentista *</Label>
+        {loadingDentists ? (
+          <div className="flex items-center justify-center py-2">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="ml-2 text-sm text-muted-foreground">Carregando dentistas...</span>
+          </div>
+        ) : (
+          <Select onValueChange={(value) => setValue("dentist_id", value)} value={watchedDentistId}>
+            <SelectTrigger className="text-base">
+              <SelectValue placeholder="Selecione o dentista" />
+            </SelectTrigger>
+            <SelectContent>
+              {dentists.filter(d => d.status === "Ativo").map((dentist) => (
+                <SelectItem key={dentist.id} value={dentist.id} className="text-sm">
+                  {dentist.name} - CRO {dentist.cro}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        {errors.dentist_id && (
+          <p className="text-sm text-destructive mt-1">{errors.dentist_id.message}</p>
         )}
       </div>
 
