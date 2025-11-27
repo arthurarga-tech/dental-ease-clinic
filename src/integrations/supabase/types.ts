@@ -562,6 +562,7 @@ export type Database = {
           birth_date: string | null
           created_at: string
           email: string | null
+          guardian_name: string | null
           id: string
           medical_notes: string | null
           name: string
@@ -574,6 +575,7 @@ export type Database = {
           birth_date?: string | null
           created_at?: string
           email?: string | null
+          guardian_name?: string | null
           id?: string
           medical_notes?: string | null
           name: string
@@ -586,6 +588,7 @@ export type Database = {
           birth_date?: string | null
           created_at?: string
           email?: string | null
+          guardian_name?: string | null
           id?: string
           medical_notes?: string | null
           name?: string

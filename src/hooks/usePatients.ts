@@ -11,6 +11,7 @@ export interface Patient {
   birth_date?: string;
   address?: string;
   medical_notes?: string;
+  guardian_name?: string;
   status: "Ativo" | "Inativo";
   created_at: string;
   updated_at: string;
@@ -24,6 +25,7 @@ export interface NewPatient {
   birth_date?: string;
   address?: string;
   medical_notes?: string;
+  guardian_name?: string;
 }
 
 export const usePatients = () => {
