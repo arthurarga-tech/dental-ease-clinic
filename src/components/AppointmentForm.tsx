@@ -1,15 +1,17 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { usePatients } from "@/hooks/usePatients";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { usePatients, NewPatient } from "@/hooks/usePatients";
 import { useDentists, Dentist } from "@/hooks/useDentists";
-import { Loader2 } from "lucide-react";
+import { PatientForm } from "@/components/PatientForm";
+import { Loader2, UserPlus } from "lucide-react";
 import { NewAppointment, Appointment } from "@/hooks/useAppointments";
 
 const appointmentSchema = z.object({
@@ -33,8 +35,9 @@ interface AppointmentFormProps {
 }
 
 export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, appointment }: AppointmentFormProps) => {
-  const { patients, isLoading: loadingPatients } = usePatients();
+  const { patients, isLoading: loadingPatients, createPatient, isCreating } = usePatients();
   const { dentists, isLoading: loadingDentists } = useDentists();
+  const [isNewPatientDialogOpen, setIsNewPatientDialogOpen] = useState(false);
 
   // Helper function to format date correctly for date input
   const formatDateForInput = (date: string) => {
@@ -128,6 +131,15 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
     onSubmit(appointmentData);
   };
 
+  const handleCreatePatient = (data: NewPatient) => {
+    createPatient(data, {
+      onSuccess: (newPatient) => {
+        setValue("patient_id", newPatient.id);
+        setIsNewPatientDialogOpen(false);
+      }
+    });
+  };
+
   const appointmentTypes = [
     "Consulta de rotina",
     "Limpeza dental",
@@ -140,32 +152,46 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
   ];
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-3 md:space-y-4">
-      <div>
-        <Label htmlFor="patient_id" className="text-sm">Paciente *</Label>
-        {loadingPatients ? (
-          <div className="flex items-center justify-center py-2">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span className="ml-2 text-sm text-muted-foreground">Carregando pacientes...</span>
+    <>
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-3 md:space-y-4">
+        <div>
+          <Label htmlFor="patient_id" className="text-sm">Paciente *</Label>
+          <div className="flex gap-2">
+            <div className="flex-1">
+              {loadingPatients ? (
+                <div className="flex items-center justify-center py-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="ml-2 text-sm text-muted-foreground">Carregando pacientes...</span>
+                </div>
+              ) : (
+                <Select onValueChange={(value) => setValue("patient_id", value)} value={watchedPatientId}>
+                  <SelectTrigger className="text-base">
+                    <SelectValue placeholder="Selecione o paciente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {patients.map((patient) => (
+                      <SelectItem key={patient.id} value={patient.id} className="text-sm">
+                        {patient.name} - {patient.phone}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="icon"
+              onClick={() => setIsNewPatientDialogOpen(true)}
+              title="Novo Paciente"
+            >
+              <UserPlus className="w-4 h-4" />
+            </Button>
           </div>
-        ) : (
-          <Select onValueChange={(value) => setValue("patient_id", value)} value={watchedPatientId}>
-            <SelectTrigger className="text-base">
-              <SelectValue placeholder="Selecione o paciente" />
-            </SelectTrigger>
-            <SelectContent>
-              {patients.map((patient) => (
-                <SelectItem key={patient.id} value={patient.id} className="text-sm">
-                  {patient.name} - {patient.phone}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-        {errors.patient_id && (
-          <p className="text-sm text-destructive mt-1">{errors.patient_id.message}</p>
-        )}
-      </div>
+          {errors.patient_id && (
+            <p className="text-sm text-destructive mt-1">{errors.patient_id.message}</p>
+          )}
+        </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
         <div>
@@ -279,15 +305,29 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
         />
       </div>
 
-      <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2 md:pt-4">
-        <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">
-          Cancelar
-        </Button>
-        <Button type="submit" className="flex-1" disabled={isLoading}>
-          {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-          {appointment ? "Atualizar Consulta" : "Agendar Consulta"}
-        </Button>
-      </div>
-    </form>
+        <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2 md:pt-4">
+          <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">
+            Cancelar
+          </Button>
+          <Button type="submit" className="flex-1" disabled={isLoading}>
+            {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {appointment ? "Atualizar Consulta" : "Agendar Consulta"}
+          </Button>
+        </div>
+      </form>
+
+      <Dialog open={isNewPatientDialogOpen} onOpenChange={setIsNewPatientDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Cadastrar Novo Paciente</DialogTitle>
+          </DialogHeader>
+          <PatientForm 
+            onSubmit={handleCreatePatient}
+            onCancel={() => setIsNewPatientDialogOpen(false)}
+            isLoading={isCreating}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
