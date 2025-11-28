@@ -18,6 +18,8 @@ import Fechamento from "./pages/Fechamento";
 import Users from "./pages/Users";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import SecretaryDashboard from "./pages/SecretaryDashboard";
+import FinanceiroLancamento from "./pages/FinanceiroLancamento";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +45,13 @@ const App = () => (
               </MainLayout>
             </ProtectedRoute>
           } />
+          <Route path="/secretary-dashboard" element={
+            <ProtectedRoute requiredRole="secretaria">
+              <MainLayout>
+                <SecretaryDashboard />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
           <Route path="/pacientes" element={
             <ProtectedRoute>
               <MainLayout>
@@ -58,9 +67,16 @@ const App = () => (
             </ProtectedRoute>
           } />
           <Route path="/orcamento" element={
-            <ProtectedRoute requiredRole="admin">
+            <ProtectedRoute>
               <MainLayout>
                 <Orcamento />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/financeiro-lancamento" element={
+            <ProtectedRoute requiredRole="secretaria">
+              <MainLayout>
+                <FinanceiroLancamento />
               </MainLayout>
             </ProtectedRoute>
           } />
