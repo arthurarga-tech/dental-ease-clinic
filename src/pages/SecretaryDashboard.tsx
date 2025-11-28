@@ -21,12 +21,12 @@ const SecretaryDashboard = () => {
   const { budgets } = useBudgets();
 
   // Filter today's appointments
-  const todayAppointments = appointments.filter(apt => 
+  const todayAppointments = (appointments || []).filter(apt => 
     isToday(new Date(apt.appointment_date))
   ).sort((a, b) => a.appointment_time.localeCompare(b.appointment_time));
 
   // Filter pending budgets
-  const pendingBudgets = budgets.filter(b => b.status === "Pendente");
+  const pendingBudgets = (budgets || []).filter(b => b.status === "Pendente");
 
   // Filter waiting appointments (scheduled for today)
   const waitingPatients = todayAppointments.filter(apt => 
