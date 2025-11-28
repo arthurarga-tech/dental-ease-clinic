@@ -15,6 +15,7 @@ import ProntuarioNovo from "./pages/ProntuarioNovo";
 import Dentistas from "./pages/Dentistas";
 import Financeiro from "./pages/Financeiro";
 import Fechamento from "./pages/Fechamento";
+import Users from "./pages/Users";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -95,6 +96,13 @@ const App = () => (
             <ProtectedRoute requiredRole="admin">
               <MainLayout>
                 <Fechamento />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/usuarios" element={
+            <ProtectedRoute requiredRole="admin">
+              <MainLayout>
+                <Users />
               </MainLayout>
             </ProtectedRoute>
           } />
