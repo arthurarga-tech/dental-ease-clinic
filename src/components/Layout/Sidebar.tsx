@@ -32,7 +32,16 @@ const dentistMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dentist-dashboard" },
   { icon: Users, label: "Pacientes", path: "/pacientes" },
   { icon: Calendar, label: "Agenda", path: "/agenda" },
+  { icon: FileSpreadsheet, label: "Orçamento", path: "/orcamento" },
   { icon: FileText, label: "Prontuário", path: "/prontuario" },
+];
+
+const secretaryMenuItems = [
+  { icon: LayoutDashboard, label: "Dashboard", path: "/secretary-dashboard" },
+  { icon: Users, label: "Pacientes", path: "/pacientes" },
+  { icon: Calendar, label: "Agenda", path: "/agenda" },
+  { icon: FileSpreadsheet, label: "Orçamento", path: "/orcamento" },
+  { icon: CreditCard, label: "Lançamentos", path: "/financeiro-lancamento" },
 ];
 
 interface SidebarProps {
@@ -45,7 +54,12 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
   const { signOut, userRole } = useAuth();
 
   // Select menu items based on user role
-  const menuItems = userRole === 'dentist' ? dentistMenuItems : adminMenuItems;
+  const menuItems = 
+    userRole === 'dentist' || userRole === 'dentista' 
+      ? dentistMenuItems 
+      : userRole === 'secretaria' 
+      ? secretaryMenuItems 
+      : adminMenuItems;
 
   const handleNavigation = (path: string) => {
     navigate(path);

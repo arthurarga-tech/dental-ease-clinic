@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  requiredRole?: 'admin' | 'dentist';
+  requiredRole?: 'admin' | 'dentist' | 'dentista' | 'secretaria';
 }
 
 export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
@@ -26,8 +26,13 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
   if (requiredRole) {
     // If a specific role is required and user doesn't have it
     if (userRole !== requiredRole) {
-      // Redirect admin to admin dashboard, dentist to dentist dashboard
-      const redirectPath = userRole === 'dentist' ? '/dentist-dashboard' : '/';
+      // Redirect to appropriate dashboard based on user role
+      let redirectPath = '/';
+      if (userRole === 'dentist' || userRole === 'dentista') {
+        redirectPath = '/dentist-dashboard';
+      } else if (userRole === 'secretaria') {
+        redirectPath = '/secretary-dashboard';
+      }
       return <Navigate to={redirectPath} replace />;
     }
   }

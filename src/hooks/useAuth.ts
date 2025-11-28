@@ -3,7 +3,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-type UserRole = 'admin' | 'dentist' | 'user';
+type UserRole = 'admin' | 'dentist' | 'dentista' | 'secretaria' | 'user';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
