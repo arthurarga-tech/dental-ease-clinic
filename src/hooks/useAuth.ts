@@ -71,13 +71,10 @@ export const useAuth = () => {
   };
 
   const signUp = async (email: string, password: string, fullName: string, role: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
           role: role,
@@ -96,7 +93,7 @@ export const useAuth = () => {
 
     toast({
       title: "Cadastro realizado!",
-      description: "Verifique seu email para confirmar o cadastro.",
+      description: "Você já pode fazer login no sistema.",
     });
 
     return { data };
