@@ -51,13 +51,16 @@ export const useAuth = () => {
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching user role:', error);
         setUserRole(null);
+      } else if (data) {
+        setUserRole(data.role as UserRole);
       } else {
-        setUserRole(data?.role as UserRole || null);
+        // No role found, default to admin for now
+        setUserRole('admin');
       }
     } catch (err) {
       console.error('Error fetching user role:', err);
