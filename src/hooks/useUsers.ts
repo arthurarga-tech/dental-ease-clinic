@@ -9,6 +9,7 @@ export interface UserProfile {
   created_at: string;
   updated_at: string;
   role?: string;
+  status: string;
 }
 
 export const useUsers = () => {
@@ -87,10 +88,37 @@ export const useUsers = () => {
     },
   });
 
+  const toggleUserStatus = useMutation({
+    mutationFn: async ({ userId, newStatus }: { userId: string; newStatus: string }) => {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ status: newStatus })
+        .eq("id", userId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast({
+        title: "Status atualizado",
+        description: "O status do usuário foi atualizado com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error updating user status:", error);
+      toast({
+        title: "Erro ao atualizar status",
+        description: "Ocorreu um erro ao atualizar o status do usuário.",
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     users,
     isLoading,
     error,
     updateUserRole,
+    toggleUserStatus,
   };
 };

@@ -15,7 +15,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const Users = () => {
-  const { users, isLoading, updateUserRole } = useUsers();
+  const { users, isLoading, updateUserRole, toggleUserStatus } = useUsers();
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<string>("");
 
@@ -64,6 +64,11 @@ const Users = () => {
     setSelectedRole("");
   };
 
+  const handleToggleStatus = (userId: string, currentStatus: string) => {
+    const newStatus = currentStatus === "Ativo" ? "Inativo" : "Ativo";
+    toggleUserStatus.mutate({ userId, newStatus });
+  };
+
   return (
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
@@ -100,14 +105,22 @@ const Users = () => {
                   <CardContent className="p-4">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="space-y-2 flex-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-semibold text-foreground">
                             {user.full_name || "Nome não informado"}
                           </h3>
                           {editingUserId !== user.id && (
-                            <Badge className={getRoleBadgeColor(user.role || "")}>
-                              {getRoleLabel(user.role)}
-                            </Badge>
+                            <>
+                              <Badge className={getRoleBadgeColor(user.role || "")}>
+                                {getRoleLabel(user.role)}
+                              </Badge>
+                              <Badge 
+                                variant={user.status === "Ativo" ? "default" : "secondary"}
+                                className={user.status === "Ativo" ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}
+                              >
+                                {user.status}
+                              </Badge>
+                            </>
                           )}
                         </div>
 
@@ -124,7 +137,7 @@ const Users = () => {
                         </div>
                       </div>
 
-                      <div className="flex gap-2 items-center">
+                      <div className="flex gap-2 items-center flex-wrap">
                         {editingUserId === user.id ? (
                           <>
                             <Select value={selectedRole} onValueChange={setSelectedRole}>
@@ -153,9 +166,25 @@ const Users = () => {
                             </Button>
                           </>
                         ) : (
-                          <Button size="sm" variant="outline" onClick={() => handleEditRole(user)}>
-                            Alterar Role
-                          </Button>
+                          <>
+                            <Button size="sm" variant="outline" onClick={() => handleEditRole(user)}>
+                              Alterar Role
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={user.status === "Ativo" ? "destructive" : "default"}
+                              onClick={() => handleToggleStatus(user.id, user.status)}
+                              disabled={toggleUserStatus.isPending}
+                            >
+                              {toggleUserStatus.isPending ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : user.status === "Ativo" ? (
+                                "Desativar"
+                              ) : (
+                                "Reativar"
+                              )}
+                            </Button>
+                          </>
                         )}
                       </div>
                     </div>
