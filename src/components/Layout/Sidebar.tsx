@@ -11,7 +11,8 @@ import {
   LogOut,
   FileSpreadsheet,
   Calculator,
-  UserCog
+  UserCog,
+  Database
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,6 +26,7 @@ const adminMenuItems = [
   { icon: UserRoundPlus, label: "Dentistas", path: "/dentistas" },
   { icon: CreditCard, label: "Financeiro", path: "/financeiro" },
   { icon: Calculator, label: "Fechamento", path: "/fechamento" },
+  { icon: Database, label: "Backups", path: "/backups" },
   { icon: UserCog, label: "Usuários", path: "/usuarios" },
 ];
 
