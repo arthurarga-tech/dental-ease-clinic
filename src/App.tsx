@@ -21,6 +21,7 @@ import NotFound from "./pages/NotFound";
 import SecretaryDashboard from "./pages/SecretaryDashboard";
 import FinanceiroLancamento from "./pages/FinanceiroLancamento";
 import Backups from "./pages/Backups";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -127,6 +128,13 @@ const App = () => (
             <ProtectedRoute requiredRole="admin">
               <MainLayout>
                 <Users />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/perfil" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Profile />
               </MainLayout>
             </ProtectedRoute>
           } />
