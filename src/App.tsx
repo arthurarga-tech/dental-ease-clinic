@@ -20,6 +20,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import SecretaryDashboard from "./pages/SecretaryDashboard";
 import FinanceiroLancamento from "./pages/FinanceiroLancamento";
+import Backups from "./pages/Backups";
 
 const queryClient = new QueryClient();
 
@@ -112,6 +113,13 @@ const App = () => (
             <ProtectedRoute requiredRole="admin">
               <MainLayout>
                 <Fechamento />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/backups" element={
+            <ProtectedRoute requiredRole="admin">
+              <MainLayout>
+                <Backups />
               </MainLayout>
             </ProtectedRoute>
           } />
