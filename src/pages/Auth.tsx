@@ -53,11 +53,14 @@ const Auth = () => {
     },
   });
 
+  // Redirect based on user (handled by ProtectedRoute after login)
+  // Don't redirect immediately after signup to avoid conflicts
   useEffect(() => {
-    if (user) {
+    if (user && !isLoading) {
+      // Let the auth system determine the correct dashboard
       navigate("/");
     }
-  }, [user, navigate]);
+  }, [user, navigate, isLoading]);
 
   const handleLogin = async (data: LoginForm) => {
     setIsLoading(true);
@@ -67,8 +70,13 @@ const Auth = () => {
 
   const handleSignup = async (data: SignupForm) => {
     setIsLoading(true);
-    await signUp(data.email, data.password, data.fullName, data.role);
+    const result = await signUp(data.email, data.password, data.fullName, data.role);
     setIsLoading(false);
+    
+    // Reset form after successful signup
+    if (!result.error) {
+      signupForm.reset();
+    }
   };
 
   return (

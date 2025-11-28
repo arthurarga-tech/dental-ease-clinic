@@ -22,6 +22,15 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
     return <Navigate to="/auth" replace />;
   }
 
+  // Wait for role to be loaded
+  if (!userRole) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Carregando informações do usuário...</p>
+      </div>
+    );
+  }
+
   // Redirect based on user role
   if (requiredRole) {
     // If a specific role is required and user doesn't have it
