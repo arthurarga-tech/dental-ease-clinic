@@ -17,6 +17,9 @@ const loginSchema = z.object({
 
 const signupSchema = loginSchema.extend({
   fullName: z.string().trim().min(2, { message: "Nome deve ter no mínimo 2 caracteres" }).max(100),
+  role: z.enum(["admin", "dentista", "secretaria"], {
+    required_error: "Selecione o tipo de usuário",
+  }),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
@@ -46,6 +49,7 @@ const Auth = () => {
       password: "",
       confirmPassword: "",
       fullName: "",
+      role: "" as any,
     },
   });
 
@@ -63,7 +67,7 @@ const Auth = () => {
 
   const handleSignup = async (data: SignupForm) => {
     setIsLoading(true);
-    await signUp(data.email, data.password, data.fullName);
+    await signUp(data.email, data.password, data.fullName, data.role);
     setIsLoading(false);
   };
 
@@ -126,6 +130,23 @@ const Auth = () => {
                   />
                   {signupForm.formState.errors.fullName && (
                     <p className="text-sm text-destructive">{signupForm.formState.errors.fullName.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="signup-role">Tipo de Usuário</Label>
+                  <select
+                    id="signup-role"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    {...signupForm.register("role")}
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="admin">Administrador</option>
+                    <option value="dentista">Dentista</option>
+                    <option value="secretaria">Secretário(a)</option>
+                  </select>
+                  {signupForm.formState.errors.role && (
+                    <p className="text-sm text-destructive">{signupForm.formState.errors.role.message}</p>
                   )}
                 </div>
 
