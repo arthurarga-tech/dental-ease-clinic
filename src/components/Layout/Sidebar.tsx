@@ -12,7 +12,8 @@ import {
   FileSpreadsheet,
   Calculator,
   UserCog,
-  Database
+  Database,
+  User
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,6 +29,7 @@ const adminMenuItems = [
   { icon: Calculator, label: "Fechamento", path: "/fechamento" },
   { icon: Database, label: "Backups", path: "/backups" },
   { icon: UserCog, label: "Usuários", path: "/usuarios" },
+  { icon: User, label: "Perfil", path: "/perfil" },
 ];
 
 const dentistMenuItems = [
@@ -36,6 +38,7 @@ const dentistMenuItems = [
   { icon: Calendar, label: "Agenda", path: "/agenda" },
   { icon: FileSpreadsheet, label: "Orçamento", path: "/orcamento" },
   { icon: FileText, label: "Prontuário", path: "/prontuario" },
+  { icon: User, label: "Perfil", path: "/perfil" },
 ];
 
 const secretaryMenuItems = [
@@ -44,6 +47,7 @@ const secretaryMenuItems = [
   { icon: Calendar, label: "Agenda", path: "/agenda" },
   { icon: FileSpreadsheet, label: "Orçamento", path: "/orcamento" },
   { icon: CreditCard, label: "Lançamentos", path: "/financeiro-lancamento" },
+  { icon: User, label: "Perfil", path: "/perfil" },
 ];
 
 interface SidebarProps {
