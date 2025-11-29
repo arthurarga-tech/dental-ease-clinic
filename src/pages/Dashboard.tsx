@@ -8,16 +8,19 @@ import {
   TrendingUp,
   Clock,
   AlertCircle,
-  Gift
+  Gift,
+  LogOut
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useDentists } from "@/hooks/useDentists";
+import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const { stats, todayAppointments, birthdayPatients, birthdayDentists, isLoading } = useDashboardStats();
   const { dentists, isLoading: isLoadingDentists } = useDentists();
 
@@ -71,13 +74,23 @@ const Dashboard = () => {
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>
           <p className="text-sm md:text-base text-muted-foreground">Visão geral do consultório</p>
         </div>
-        <Button 
-          onClick={() => navigate("/agenda")}
-          className="bg-primary hover:bg-primary/90 w-full md:w-auto"
-        >
-          <Calendar className="w-4 h-4 mr-2" />
-          Nova Consulta
-        </Button>
+        <div className="flex gap-2 w-full md:w-auto">
+          <Button 
+            onClick={() => navigate("/agenda")}
+            className="bg-primary hover:bg-primary/90 flex-1 md:flex-none"
+          >
+            <Calendar className="w-4 h-4 mr-2" />
+            Nova Consulta
+          </Button>
+          <Button 
+            onClick={signOut}
+            variant="outline"
+            className="flex-1 md:flex-none"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sair
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
