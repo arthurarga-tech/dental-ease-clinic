@@ -8,12 +8,14 @@ import {
   Clock,
   ClipboardList,
   CreditCard,
-  LogOut
+  LogOut,
+  Gift
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppointments } from "@/hooks/useAppointments";
 import { useBudgets } from "@/hooks/useBudgets";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { format, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -22,6 +24,7 @@ const SecretaryDashboard = () => {
   const { signOut, user } = useAuth();
   const { appointments } = useAppointments();
   const { budgets } = useBudgets();
+  const { birthdayPatients, birthdayDentists } = useDashboardStats();
 
   // Filter today's appointments
   const todayAppointments = (appointments || []).filter(apt => 
@@ -197,6 +200,74 @@ const SecretaryDashboard = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Birthday reminder card */}
+      {(birthdayPatients.length > 0 || birthdayDentists.length > 0) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Gift className="w-5 h-5 text-primary" />
+              Aniversariantes de Hoje
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {birthdayPatients.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Pacientes</p>
+                  {birthdayPatients.map((patient) => (
+                    <div 
+                      key={patient.id}
+                      className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/20"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                          <Gift className="w-4 h-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">{patient.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {patient.phone}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-sm text-primary font-medium">
+                        🎉 Parabéns!
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {birthdayDentists.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Dentistas</p>
+                  {birthdayDentists.map((dentist) => (
+                    <div 
+                      key={dentist.id}
+                      className="flex items-center justify-between p-3 bg-success/5 rounded-lg border border-success/20"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-success/10 rounded-full flex items-center justify-center">
+                          <Gift className="w-4 h-4 text-success" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">{dentist.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {dentist.phone}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-sm text-success font-medium">
+                        🎉 Parabéns!
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
