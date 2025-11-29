@@ -41,7 +41,7 @@ const App = () => (
             </ProtectedRoute>
           } />
           <Route path="/dentist-dashboard" element={
-            <ProtectedRoute requiredRole="dentist">
+            <ProtectedRoute requiredRole="dentista">
               <MainLayout>
                 <DentistDashboard />
               </MainLayout>
