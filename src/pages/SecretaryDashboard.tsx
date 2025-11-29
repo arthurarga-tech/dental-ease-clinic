@@ -19,7 +19,7 @@ import { ptBR } from "date-fns/locale";
 
 const SecretaryDashboard = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { appointments } = useAppointments();
   const { budgets } = useBudgets();
 
@@ -93,7 +93,7 @@ const SecretaryDashboard = () => {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard Secretária</h1>
           <p className="text-sm md:text-base text-muted-foreground">
-            Visão geral das atividades do consultório
+            Bem-vinda, {user?.email}
           </p>
         </div>
         <Button 

@@ -7,11 +7,13 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-  LogOut
+  LogOut,
+  User
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppointments } from "@/hooks/useAppointments";
+import { useDentistProfile } from "@/hooks/useDentistProfile";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
@@ -22,11 +24,13 @@ const DentistDashboard = () => {
   const [selectedDate] = useState(new Date());
   const selectedDateString = format(selectedDate, 'yyyy-MM-dd');
   
+  const { dentist, isLoading: isDentistLoading } = useDentistProfile();
   const { appointments, isLoading } = useAppointments(selectedDateString);
 
-  // Filter appointments for today
+  // Filter appointments for today and for this dentist
   const todayAppointments = (appointments || []).filter(apt => 
-    apt.appointment_date === selectedDateString
+    apt.appointment_date === selectedDateString && 
+    (!dentist || apt.dentist_id === dentist.id)
   );
 
   const confirmedAppointments = (todayAppointments || []).filter(apt => 
@@ -72,10 +76,28 @@ const DentistDashboard = () => {
     }
   ];
 
-  if (isLoading) {
+  if (isLoading || isDentistLoading) {
     return (
       <div className="p-6">
         <div className="text-center">Carregando dashboard...</div>
+      </div>
+    );
+  }
+
+  if (!dentist) {
+    return (
+      <div className="p-6">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 mx-auto mb-3 text-destructive" />
+          <p className="text-lg font-semibold mb-2">Perfil de dentista não encontrado</p>
+          <p className="text-muted-foreground mb-4">
+            Seu usuário não está vinculado a um cadastro de dentista. Entre em contato com o administrador.
+          </p>
+          <Button onClick={signOut} variant="outline">
+            <LogOut className="w-4 h-4 mr-2" />
+            Sair
+          </Button>
+        </div>
       </div>
     );
   }
@@ -86,7 +108,7 @@ const DentistDashboard = () => {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard do Dentista</h1>
           <p className="text-sm md:text-base text-muted-foreground">
-            Bem-vindo, {user?.email}
+            Bem-vindo, Dr(a). {dentist.name}
           </p>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
@@ -219,25 +241,39 @@ const DentistDashboard = () => {
 
         <Card className="bg-primary/5 border-primary/20">
           <CardHeader>
-            <CardTitle className="text-primary">Informações Importantes</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <User className="w-5 h-5 text-primary" />
+              Suas Informações
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-start gap-3">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">CRO</p>
+                <p className="font-medium">{dentist.cro}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Telefone</p>
+                <p className="font-medium">{dentist.phone}</p>
+              </div>
+              {dentist.commission_percentage && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Comissão</p>
+                  <p className="font-medium">{dentist.commission_percentage}%</p>
+                </div>
+              )}
+              <div>
+                <p className="text-sm text-muted-foreground">Status</p>
+                <p className="font-medium">{dentist.status}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 mt-4 pt-4 border-t">
               <AlertCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
               <div className="text-sm">
                 <p className="font-medium text-foreground">Acesso Limitado</p>
                 <p className="text-muted-foreground">
-                  Como dentista, você tem acesso às consultas, prontuários e pacientes. 
+                  Você tem acesso às suas consultas, prontuários e pacientes. 
                   Informações financeiras e administrativas são restritas.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
-              <div className="text-sm">
-                <p className="font-medium text-foreground">Suas Responsabilidades</p>
-                <p className="text-muted-foreground">
-                  Mantenha os prontuários atualizados e gerencie suas consultas diárias.
                 </p>
               </div>
             </div>
