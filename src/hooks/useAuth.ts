@@ -125,7 +125,8 @@ export const useAuth = () => {
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
 
-    if (error) {
+    // Ignore session_not_found errors as the user is already logged out
+    if (error && error.message !== "Session not found") {
       toast({
         title: "Erro ao sair",
         description: error.message,
@@ -133,6 +134,11 @@ export const useAuth = () => {
       });
       return { error };
     }
+
+    // Clear local state
+    setSession(null);
+    setUser(null);
+    setUserRole(null);
 
     toast({
       title: "Logout realizado",
