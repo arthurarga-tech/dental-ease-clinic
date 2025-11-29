@@ -7,9 +7,11 @@ import {
   Plus,
   Clock,
   ClipboardList,
-  CreditCard
+  CreditCard,
+  LogOut
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { useAppointments } from "@/hooks/useAppointments";
 import { useBudgets } from "@/hooks/useBudgets";
 import { format, isToday } from "date-fns";
@@ -17,6 +19,7 @@ import { ptBR } from "date-fns/locale";
 
 const SecretaryDashboard = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const { appointments } = useAppointments();
   const { budgets } = useBudgets();
 
@@ -86,11 +89,21 @@ const SecretaryDashboard = () => {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard Secretária</h1>
-        <p className="text-sm md:text-base text-muted-foreground">
-          Visão geral das atividades do consultório
-        </p>
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard Secretária</h1>
+          <p className="text-sm md:text-base text-muted-foreground">
+            Visão geral das atividades do consultório
+          </p>
+        </div>
+        <Button 
+          onClick={signOut}
+          variant="outline"
+          className="w-full md:w-auto"
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Sair
+        </Button>
       </div>
 
       {/* Stats Cards */}

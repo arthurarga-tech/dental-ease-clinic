@@ -6,7 +6,8 @@ import {
   Users,
   Clock,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  LogOut
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,26 +18,26 @@ import { useState } from "react";
 
 const DentistDashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [selectedDate] = useState(new Date());
   const selectedDateString = format(selectedDate, 'yyyy-MM-dd');
   
   const { appointments, isLoading } = useAppointments(selectedDateString);
 
   // Filter appointments for today
-  const todayAppointments = appointments.filter(apt => 
+  const todayAppointments = (appointments || []).filter(apt => 
     apt.appointment_date === selectedDateString
   );
 
-  const confirmedAppointments = todayAppointments.filter(apt => 
+  const confirmedAppointments = (todayAppointments || []).filter(apt => 
     apt.status === "Confirmado"
   ).length;
 
-  const inProgressAppointments = todayAppointments.filter(apt => 
+  const inProgressAppointments = (todayAppointments || []).filter(apt => 
     apt.status === "Em andamento"
   ).length;
 
-  const completedAppointments = todayAppointments.filter(apt => 
+  const completedAppointments = (todayAppointments || []).filter(apt => 
     apt.status === "Concluído"
   ).length;
 
@@ -71,6 +72,14 @@ const DentistDashboard = () => {
     }
   ];
 
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="text-center">Carregando dashboard...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
@@ -80,13 +89,23 @@ const DentistDashboard = () => {
             Bem-vindo, {user?.email}
           </p>
         </div>
-        <Button 
-          onClick={() => navigate("/agenda")}
-          className="bg-primary hover:bg-primary/90 w-full md:w-auto"
-        >
-          <Calendar className="w-4 h-4 mr-2" />
-          Ver Agenda Completa
-        </Button>
+        <div className="flex gap-2 w-full md:w-auto">
+          <Button 
+            onClick={() => navigate("/agenda")}
+            className="bg-primary hover:bg-primary/90 flex-1 md:flex-none"
+          >
+            <Calendar className="w-4 h-4 mr-2" />
+            Ver Agenda Completa
+          </Button>
+          <Button 
+            onClick={signOut}
+            variant="outline"
+            className="flex-1 md:flex-none"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sair
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
