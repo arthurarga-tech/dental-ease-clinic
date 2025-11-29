@@ -18,6 +18,7 @@ import { useBudgets } from "@/hooks/useBudgets";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { format, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { parseLocalDate } from "@/lib/utils";
 
 const SecretaryDashboard = () => {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ const SecretaryDashboard = () => {
 
   // Filter today's appointments
   const todayAppointments = (appointments || []).filter(apt => 
-    isToday(new Date(apt.appointment_date))
+    isToday(parseLocalDate(apt.appointment_date))
   ).sort((a, b) => a.appointment_time.localeCompare(b.appointment_time));
 
   // Filter pending budgets
