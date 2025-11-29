@@ -70,7 +70,7 @@ export const useAppointments = (selectedDate?: string) => {
 
       return data as Appointment[];
     },
-    enabled: !!selectedDate,
+    enabled: true, // Always enabled, will just return all if no date
   });
 
   // Check for appointment conflicts
