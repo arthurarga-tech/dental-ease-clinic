@@ -10,6 +10,7 @@ import { useFinancial } from "@/hooks/useFinancial";
 import { usePatients } from "@/hooks/usePatients";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { getTodayLocalDate } from "@/lib/utils";
 
 const transactionSchema = z.object({
   type: z.enum(["Receita", "Despesa"]),
@@ -47,7 +48,7 @@ const FinanceiroLancamento = () => {
     payment_method_id: "",
     amount: "",
     description: "",
-    transaction_date: new Date().toISOString().split("T")[0],
+    transaction_date: getTodayLocalDate(),
     due_date: "",
     status: "Pendente" as "Pendente" | "Pago" | "Vencido" | "Cancelado",
   });
@@ -81,7 +82,7 @@ const FinanceiroLancamento = () => {
         payment_method_id: "",
         amount: "",
         description: "",
-        transaction_date: new Date().toISOString().split("T")[0],
+        transaction_date: getTodayLocalDate(),
         due_date: "",
         status: "Pendente",
       });

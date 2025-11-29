@@ -10,6 +10,7 @@ import { useDentists } from "@/hooks/useDentists";
 import { Printer } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { getTodayLocalDate } from "@/lib/utils";
 
 interface MedicalCertificateFormProps {
   open: boolean;
@@ -22,7 +23,7 @@ export const MedicalCertificateForm = ({ open, onOpenChange }: MedicalCertificat
 
   const [selectedPatient, setSelectedPatient] = useState("");
   const [selectedDentist, setSelectedDentist] = useState("");
-  const [certificateDate, setCertificateDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [certificateDate, setCertificateDate] = useState(getTodayLocalDate());
   const [certificateTime, setCertificateTime] = useState(format(new Date(), "HH:mm"));
   const [days, setDays] = useState("1");
   const [observations, setObservations] = useState("");

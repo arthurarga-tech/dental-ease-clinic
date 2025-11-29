@@ -11,6 +11,7 @@ import { useMedicalRecords, MedicalRecord, NewMedicalRecord } from "@/hooks/useM
 import { useToast } from "@/hooks/use-toast";
 import { Odontogram } from "@/components/Odontogram";
 import { z } from "zod";
+import { getTodayLocalDate } from "@/lib/utils";
 
 const medicalRecordSchema = z.object({
   patient_id: z.string().uuid({ message: "Paciente inválido" }),
@@ -55,7 +56,7 @@ export const MedicalRecordForm = ({
       setOdontogram(record.odontogram || {});
     } else if (mode === 'create') {
       // Reset form for create mode
-      const today = new Date().toISOString().split('T')[0];
+      const today = getTodayLocalDate();
       setFormData({
         patient_id: '',
         record_date: today,

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePatients } from "./usePatients";
 import { useDentists } from "./useDentists";
 import { useMedicalRecords } from "./useMedicalRecords";
+import { parseLocalDate } from "@/lib/utils";
 
 export const useDashboardStats = () => {
   const { patients } = usePatients();
@@ -83,14 +84,14 @@ export const useDashboardStats = () => {
   
   const birthdayPatients = patients.filter(patient => {
     if (!patient.birth_date) return false;
-    const birthDate = new Date(patient.birth_date);
+    const birthDate = parseLocalDate(patient.birth_date);
     const birthMD = `${String(birthDate.getMonth() + 1).padStart(2, '0')}-${String(birthDate.getDate()).padStart(2, '0')}`;
     return birthMD === todayMD;
   });
 
   const birthdayDentists = dentists.filter(dentist => {
     if (!dentist.birth_date) return false;
-    const birthDate = new Date(dentist.birth_date);
+    const birthDate = parseLocalDate(dentist.birth_date);
     const birthMD = `${String(birthDate.getMonth() + 1).padStart(2, '0')}-${String(birthDate.getDate()).padStart(2, '0')}`;
     return birthMD === todayMD;
   });

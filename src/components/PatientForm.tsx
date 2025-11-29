@@ -15,9 +15,11 @@ import {
 } from "@/components/ui/form";
 import { NewPatient } from "@/hooks/usePatients";
 
+import { parseLocalDate } from "@/lib/utils";
+
 const calculateAge = (birthDate: string): number => {
   const today = new Date();
-  const birth = new Date(birthDate);
+  const birth = parseLocalDate(birthDate);
   let age = today.getFullYear() - birth.getFullYear();
   const monthDiff = today.getMonth() - birth.getMonth();
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {

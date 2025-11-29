@@ -13,6 +13,7 @@ import { useDentists, Dentist } from "@/hooks/useDentists";
 import { PatientForm } from "@/components/PatientForm";
 import { Loader2, UserPlus } from "lucide-react";
 import { NewAppointment, Appointment } from "@/hooks/useAppointments";
+import { parseLocalDate, getTodayLocalDate } from "@/lib/utils";
 
 const appointmentSchema = z.object({
   patient_id: z.string().min(1, "Selecione um paciente"),
@@ -39,19 +40,6 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
   const { dentists, isLoading: loadingDentists } = useDentists();
   const [isNewPatientDialogOpen, setIsNewPatientDialogOpen] = useState(false);
 
-  // Helper function to format date correctly for date input
-  const formatDateForInput = (date: string) => {
-    const d = new Date(date + 'T00:00:00');
-    return d.toISOString().split('T')[0];
-  };
-
-  const getCurrentDate = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
 
   const {
     register,
@@ -64,7 +52,7 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
     defaultValues: {
       patient_id: appointment?.patient_id || "",
       dentist_id: appointment?.dentist_id || "",
-      appointment_date: appointment ? formatDateForInput(appointment.appointment_date) : (initialDate || getCurrentDate()),
+      appointment_date: appointment?.appointment_date || initialDate || getTodayLocalDate(),
       appointment_time: appointment?.appointment_time || "",
       type: appointment?.type || "",
       duration: appointment?.duration || 30,
@@ -84,7 +72,7 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
       return dentists.filter(d => d.status === "Ativo");
     }
 
-    const selectedDate = new Date(watchedDate + 'T00:00:00');
+    const selectedDate = parseLocalDate(watchedDate);
     const dayOfWeek = selectedDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
     
     // Convert time "HH:MM" to minutes for comparison

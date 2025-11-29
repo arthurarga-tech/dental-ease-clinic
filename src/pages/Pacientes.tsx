@@ -8,7 +8,9 @@ import { PatientForm } from "@/components/PatientForm";
 import { PatientViewDialog } from "@/components/PatientViewDialog";
 import { PatientDeleteDialog } from "@/components/PatientDeleteDialog";
 import { usePatients, Patient } from "@/hooks/usePatients";
-import { calculatePatientStatus } from "@/lib/utils";
+import { calculatePatientStatus, parseLocalDate } from "@/lib/utils";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { 
   Plus, 
   Search, 
@@ -22,7 +24,7 @@ import {
   Loader2,
   Trash2
 } from "lucide-react";
-import { 
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -213,7 +215,7 @@ const Pacientes = () => {
                                   <p>Última atividade: {statusInfo.daysSinceLastActivity} dias atrás</p>
                                   {patient.last_appointment_date && (
                                     <p className="text-xs text-muted-foreground mt-1">
-                                      Última consulta: {new Date(patient.last_appointment_date).toLocaleDateString('pt-BR')}
+                                      Última consulta: {format(parseLocalDate(patient.last_appointment_date), "dd/MM/yyyy", { locale: ptBR })}
                                     </p>
                                   )}
                                 </TooltipContent>

@@ -1,7 +1,9 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Patient } from "@/hooks/usePatients";
-import { calculatePatientStatus } from "@/lib/utils";
+import { calculatePatientStatus, parseLocalDate } from "@/lib/utils";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { 
   Mail, 
   Phone, 
@@ -52,7 +54,7 @@ export const PatientViewDialog = ({ patient, open, onOpenChange }: PatientViewDi
                   <p>Última atividade: {statusInfo.daysSinceLastActivity} dias atrás</p>
                   {patient.last_appointment_date && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Última consulta: {new Date(patient.last_appointment_date).toLocaleDateString('pt-BR')}
+                      Última consulta: {format(parseLocalDate(patient.last_appointment_date), "dd/MM/yyyy", { locale: ptBR })}
                     </p>
                   )}
                 </TooltipContent>
@@ -86,7 +88,7 @@ export const PatientViewDialog = ({ patient, open, onOpenChange }: PatientViewDi
                   <div>
                     <p className="text-sm text-muted-foreground">Data de Nascimento</p>
                     <p className="font-medium">
-                      {new Date(patient.birth_date).toLocaleDateString('pt-BR')}
+                      {format(parseLocalDate(patient.birth_date), "dd/MM/yyyy", { locale: ptBR })}
                     </p>
                   </div>
                 </div>
