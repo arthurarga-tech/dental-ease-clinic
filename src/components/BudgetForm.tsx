@@ -32,10 +32,12 @@ import { cn } from "@/lib/utils";
 import { usePatients } from "@/hooks/usePatients";
 import { useDentists } from "@/hooks/useDentists";
 import { Budget } from "@/hooks/useBudgets";
+import { PROCEDURE_CATEGORIES, ProcedureItem } from "@/data/procedures";
 
 interface Procedure {
   name: string;
   value: number;
+  category?: string;
 }
 
 const budgetSchema = z.object({
@@ -69,11 +71,15 @@ export const BudgetForm = ({
       try {
         return JSON.parse(initialData.procedures);
       } catch {
-        return [{ name: "", value: 0 }];
+        return [];
       }
     }
-    return [{ name: "", value: 0 }];
+    return [];
   });
+
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedProcedure, setSelectedProcedure] = useState<string>("");
+  const [customValue, setCustomValue] = useState<string>("");
 
   const form = useForm<BudgetFormValues>({
     resolver: zodResolver(budgetSchema),
@@ -99,25 +105,44 @@ export const BudgetForm = ({
   const discount = parseFloat(form.watch("discount") || "0");
   const finalAmount = totalAmount - discount;
 
-  const addProcedure = () => {
-    setProcedures([...procedures, { name: "", value: 0 }]);
+  const selectedCategoryData = PROCEDURE_CATEGORIES.find(c => c.id === selectedCategory);
+  const availableProcedures = selectedCategoryData?.procedures || [];
+
+  const addProcedureFromList = () => {
+    if (!selectedProcedure || !selectedCategory) return;
+
+    const procedure = availableProcedures.find(p => p.name === selectedProcedure);
+    if (!procedure) return;
+
+    const value = customValue ? parseFloat(customValue) : procedure.value;
+    const categoryData = PROCEDURE_CATEGORIES.find(c => c.id === selectedCategory);
+
+    setProcedures([
+      ...procedures,
+      {
+        name: procedure.name,
+        value: value,
+        category: categoryData ? `${categoryData.icon} ${categoryData.name}` : undefined,
+      },
+    ]);
+
+    setSelectedCategory("");
+    setSelectedProcedure("");
+    setCustomValue("");
   };
 
   const removeProcedure = (index: number) => {
-    if (procedures.length > 1) {
-      setProcedures(procedures.filter((_, i) => i !== index));
-    }
+    setProcedures(procedures.filter((_, i) => i !== index));
   };
 
-  const updateProcedure = (index: number, field: keyof Procedure, value: string | number) => {
-    const newProcedures = [...procedures];
-    if (field === "value") {
-      newProcedures[index][field] = typeof value === "string" ? parseFloat(value) || 0 : value;
-    } else {
-      newProcedures[index][field] = value as string;
+  useEffect(() => {
+    if (selectedProcedure) {
+      const procedure = availableProcedures.find(p => p.name === selectedProcedure);
+      if (procedure) {
+        setCustomValue(procedure.value.toString());
+      }
     }
-    setProcedures(newProcedures);
-  };
+  }, [selectedProcedure, availableProcedures]);
 
   const handleSubmit = (data: BudgetFormValues) => {
     const validProcedures = procedures.filter(p => p.name.trim() !== "" && p.value > 0);
@@ -271,50 +296,109 @@ export const BudgetForm = ({
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <FormLabel>Procedimentos</FormLabel>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addProcedure}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Procedimento
-            </Button>
-          </div>
+          <FormLabel>Adicionar Procedimentos</FormLabel>
+          
+          <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <FormLabel className="text-sm">Categoria</FormLabel>
+                <Select value={selectedCategory} onValueChange={(value) => {
+                  setSelectedCategory(value);
+                  setSelectedProcedure("");
+                  setCustomValue("");
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROCEDURE_CATEGORIES.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.icon} {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {procedures.map((procedure, index) => (
-            <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border rounded-lg">
-              <div className="md:col-span-7">
-                <Input
-                  placeholder="Nome do procedimento"
-                  value={procedure.name}
-                  onChange={(e) => updateProcedure(index, "name", e.target.value)}
-                />
-              </div>
-              <div className="md:col-span-4">
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="Valor (R$)"
-                  value={procedure.value || ""}
-                  onChange={(e) => updateProcedure(index, "value", e.target.value)}
-                />
-              </div>
-              <div className="md:col-span-1 flex items-center">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeProcedure(index)}
-                  disabled={procedures.length === 1}
+              <div>
+                <FormLabel className="text-sm">Procedimento</FormLabel>
+                <Select
+                  value={selectedProcedure}
+                  onValueChange={setSelectedProcedure}
+                  disabled={!selectedCategory}
                 >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o procedimento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableProcedures.map((procedure, idx) => (
+                      <SelectItem key={idx} value={procedure.name}>
+                        {procedure.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <FormLabel className="text-sm">Valor (R$)</FormLabel>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={customValue}
+                    onChange={(e) => setCustomValue(e.target.value)}
+                    disabled={!selectedProcedure}
+                  />
+                  <Button
+                    type="button"
+                    onClick={addProcedureFromList}
+                    disabled={!selectedProcedure || !customValue}
+                    size="icon"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
-          ))}
+          </div>
+
+          {procedures.length > 0 && (
+            <div className="space-y-2">
+              <FormLabel>Procedimentos Adicionados</FormLabel>
+              {procedures.map((procedure, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 border rounded-lg bg-background"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      {procedure.category && (
+                        <span className="text-xs text-muted-foreground">
+                          {procedure.category}
+                        </span>
+                      )}
+                    </div>
+                    <p className="font-medium">{procedure.name}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-semibold text-lg">
+                      R$ {procedure.value.toFixed(2)}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeProcedure(index)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-muted p-4 rounded-lg">
