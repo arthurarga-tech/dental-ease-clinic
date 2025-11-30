@@ -20,6 +20,10 @@ export interface Appointment {
     phone: string;
     email?: string;
   };
+  dentists?: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 export interface NewAppointment {
@@ -53,6 +57,10 @@ export const useAppointments = (selectedDate?: string) => {
             name,
             phone,
             email
+          ),
+          dentists (
+            id,
+            name
           )
         `)
         .order("appointment_time");

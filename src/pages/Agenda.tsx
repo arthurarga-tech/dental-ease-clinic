@@ -14,7 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
-  Trash2
+  Trash2,
+  Stethoscope
 } from "lucide-react";
 import { useAppointments, Appointment } from "@/hooks/useAppointments";
 import { AppointmentForm } from "@/components/AppointmentForm";
@@ -211,6 +212,12 @@ const Agenda = () => {
                             </div>
                             
                             <div className="space-y-1 text-xs md:text-sm text-muted-foreground">
+                              {appointment.dentists && (
+                                <div className="flex items-center gap-2">
+                                  <Stethoscope className="w-3 h-3 md:w-4 md:h-4" />
+                                  <span className="font-medium truncate">{appointment.dentists.name}</span>
+                                </div>
+                              )}
                               <div className="flex items-center gap-2">
                                 <User className="w-3 h-3 md:w-4 md:h-4" />
                                 <span className="truncate">{appointment.type}</span>
