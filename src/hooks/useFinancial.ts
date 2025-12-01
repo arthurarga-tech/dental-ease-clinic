@@ -18,6 +18,7 @@ export interface FinancialTransaction {
   id: string;
   type: "Receita" | "Despesa";
   patient_id?: string;
+  dentist_id?: string;
   appointment_id?: string;
   category_id: string;
   payment_method_id?: string;
@@ -39,6 +40,7 @@ export interface FinancialTransaction {
 export interface NewTransaction {
   type: "Receita" | "Despesa";
   patient_id?: string;
+  dentist_id?: string;
   appointment_id?: string;
   category_id: string;
   payment_method_id?: string;

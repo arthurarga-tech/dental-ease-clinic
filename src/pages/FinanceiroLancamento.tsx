@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Receipt } from "lucide-react";
 import { useFinancial } from "@/hooks/useFinancial";
 import { usePatients } from "@/hooks/usePatients";
+import { useDentists } from "@/hooks/useDentists";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { getTodayLocalDate } from "@/lib/utils";
@@ -16,6 +17,7 @@ const transactionSchema = z.object({
   type: z.enum(["Receita", "Despesa"]),
   category_id: z.string().uuid({ message: "Categoria inválida" }),
   patient_id: z.string().uuid().optional().or(z.literal("")),
+  dentist_id: z.string().uuid().optional().or(z.literal("")),
   payment_method_id: z.string().uuid().optional().or(z.literal("")),
   amount: z.string()
     .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
@@ -38,12 +40,14 @@ const FinanceiroLancamento = () => {
   } = useFinancial();
   
   const { patients } = usePatients();
+  const { dentists } = useDentists();
   const { toast } = useToast();
   
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     type: "Receita" as "Receita" | "Despesa",
     patient_id: "",
+    dentist_id: "",
     category_id: "",
     payment_method_id: "",
     amount: "",
@@ -68,6 +72,7 @@ const FinanceiroLancamento = () => {
         status: validated.status,
         description: validated.description || undefined,
         patient_id: validated.patient_id || undefined,
+        dentist_id: validated.dentist_id || undefined,
         payment_method_id: validated.payment_method_id || undefined,
         due_date: validated.due_date || undefined,
       };
@@ -78,6 +83,7 @@ const FinanceiroLancamento = () => {
       setFormData({
         type: "Receita",
         patient_id: "",
+        dentist_id: "",
         category_id: "",
         payment_method_id: "",
         amount: "",
@@ -184,6 +190,25 @@ const FinanceiroLancamento = () => {
                     {patients.map((patient) => (
                       <SelectItem key={patient.id} value={patient.id}>
                         {patient.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="dentist_id">Dentista Responsável</Label>
+                <Select
+                  value={formData.dentist_id}
+                  onValueChange={(value) => setFormData({ ...formData, dentist_id: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o dentista (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dentists.filter(d => d.status === "Ativo").map((dentist) => (
+                      <SelectItem key={dentist.id} value={dentist.id}>
+                        {dentist.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

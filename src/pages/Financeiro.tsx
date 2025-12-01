@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useFinancial } from "@/hooks/useFinancial";
 import { usePatients } from "@/hooks/usePatients";
+import { useDentists } from "@/hooks/useDentists";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FinancialTransactionDeleteDialog } from "@/components/FinancialTransactionDeleteDialog";
@@ -31,6 +32,7 @@ const transactionSchema = z.object({
   type: z.enum(["Receita", "Despesa"]),
   category_id: z.string().uuid({ message: "Categoria inválida" }),
   patient_id: z.string().uuid().optional().or(z.literal("")),
+  dentist_id: z.string().uuid().optional().or(z.literal("")),
   payment_method_id: z.string().uuid().optional().or(z.literal("")),
   amount: z.string()
     .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
@@ -62,6 +64,7 @@ const Financeiro = () => {
   } = useFinancial();
   
   const { patients } = usePatients();
+  const { dentists } = useDentists();
   const { toast } = useToast();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -73,6 +76,7 @@ const Financeiro = () => {
   const [formData, setFormData] = useState({
     type: "Receita" as "Receita" | "Despesa",
     patient_id: "",
+    dentist_id: "",
     category_id: "",
     payment_method_id: "",
     amount: "",
@@ -97,6 +101,7 @@ const Financeiro = () => {
         status: validated.status,
         description: validated.description || undefined,
         patient_id: validated.patient_id || undefined,
+        dentist_id: validated.dentist_id || undefined,
         payment_method_id: validated.payment_method_id || undefined,
         due_date: validated.due_date || undefined,
       };
@@ -112,6 +117,7 @@ const Financeiro = () => {
       setFormData({
         type: "Receita",
         patient_id: "",
+        dentist_id: "",
         category_id: "",
         payment_method_id: "",
         amount: "",
@@ -143,6 +149,7 @@ const Financeiro = () => {
     setFormData({
       type: transaction.type,
       patient_id: transaction.patient_id || "",
+      dentist_id: transaction.dentist_id || "",
       category_id: transaction.category_id,
       payment_method_id: transaction.payment_method_id || "",
       amount: transaction.amount.toString(),
@@ -391,6 +398,7 @@ const Financeiro = () => {
           setFormData({
             type: "Receita",
             patient_id: "",
+            dentist_id: "",
             category_id: "",
             payment_method_id: "",
             amount: "",
@@ -459,6 +467,25 @@ const Financeiro = () => {
                     {patients.map((patient) => (
                       <SelectItem key={patient.id} value={patient.id}>
                         {patient.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="dentist_id">Dentista Responsável</Label>
+                <Select
+                  value={formData.dentist_id}
+                  onValueChange={(value) => setFormData({ ...formData, dentist_id: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o dentista (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dentists.filter(d => d.status === "Ativo").map((dentist) => (
+                      <SelectItem key={dentist.id} value={dentist.id}>
+                        {dentist.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
