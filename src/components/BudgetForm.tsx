@@ -195,7 +195,7 @@ export const BudgetForm = ({
           name="dentist_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Dentista (Opcional)</FormLabel>
+              <FormLabel>Dentista Responsável</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -203,11 +203,13 @@ export const BudgetForm = ({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {dentists?.map((dentist) => (
-                    <SelectItem key={dentist.id} value={dentist.id}>
-                      {dentist.name}
-                    </SelectItem>
-                  ))}
+                  {dentists
+                    ?.filter((dentist) => dentist.status === "Ativo")
+                    .map((dentist) => (
+                      <SelectItem key={dentist.id} value={dentist.id}>
+                        {dentist.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
               <FormMessage />
