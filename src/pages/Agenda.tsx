@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Plus, 
   Calendar as CalendarIcon,
@@ -16,20 +15,17 @@ import {
   ChevronRight,
   Loader2,
   Trash2,
-  Stethoscope,
-  LayoutGrid,
-  List
+  Stethoscope
 } from "lucide-react";
 import { useAppointments, Appointment } from "@/hooks/useAppointments";
 import { AppointmentForm } from "@/components/AppointmentForm";
 import { AppointmentViewDialog } from "@/components/AppointmentViewDialog";
 import { AppointmentDeleteDialog } from "@/components/AppointmentDeleteDialog";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth } from "date-fns";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const Agenda = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [viewMode, setViewMode] = useState<"day" | "month">("day");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [viewingAppointment, setViewingAppointment] = useState<Appointment | null>(null);
@@ -39,8 +35,6 @@ const Agenda = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const selectedDateString = format(selectedDate, 'yyyy-MM-dd');
-  const monthStart = format(startOfMonth(selectedDate), 'yyyy-MM-dd');
-  const monthEnd = format(endOfMonth(selectedDate), 'yyyy-MM-dd');
   
   const { 
     appointments, 
@@ -51,11 +45,7 @@ const Agenda = () => {
     isCreating,
     isUpdating,
     isDeleting
-  } = useAppointments(
-    viewMode === "day" ? selectedDateString : undefined,
-    viewMode === "month" ? monthStart : undefined,
-    viewMode === "month" ? monthEnd : undefined
-  );
+  } = useAppointments(selectedDateString);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -118,16 +108,36 @@ const Agenda = () => {
     updateAppointment({ id: appointmentId, status: newStatus as any });
   };
 
-  const getAppointmentsForDay = (day: Date) => {
-    const dayString = format(day, 'yyyy-MM-dd');
-    return appointments?.filter(apt => apt.appointment_date === dayString) || [];
-  };
+  return (
+    <div className="p-4 md:p-6 space-y-6">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Agenda</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Gerenciamento de consultas e horários</p>
+        </div>
+        
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-primary hover:bg-primary/90 w-full md:w-auto">
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Consulta
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Agendar Nova Consulta</DialogTitle>
+            </DialogHeader>
+            <AppointmentForm 
+              onSubmit={handleCreateAppointment}
+              onCancel={() => setIsDialogOpen(false)}
+              isLoading={isCreating}
+              initialDate={selectedDateString}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
 
-  const renderDayView = () => {
-    const dayAppointments = appointments || [];
-    
-    return (
-      <>
+      <Card>
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <CardTitle className="flex items-center gap-2">
@@ -169,14 +179,14 @@ const Agenda = () => {
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
               <span className="ml-2 text-muted-foreground">Carregando consultas...</span>
             </div>
-          ) : dayAppointments.length === 0 ? (
+          ) : appointments.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <CalendarIcon className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>Nenhuma consulta agendada para este dia</p>
             </div>
           ) : (
             <div className="space-y-2">
-              {dayAppointments
+              {appointments
                 .sort((a, b) => a.appointment_time.localeCompare(b.appointment_time))
                 .map((appointment) => (
                   <Card key={appointment.id} className="hover:shadow-md transition-shadow">
@@ -262,167 +272,6 @@ const Agenda = () => {
             </div>
           )}
         </CardContent>
-      </>
-    );
-  };
-
-  const renderMonthView = () => {
-    const monthDays = eachDayOfInterval({
-      start: startOfMonth(selectedDate),
-      end: endOfMonth(selectedDate)
-    });
-
-    return (
-      <>
-        <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <CardTitle className="flex items-center gap-2">
-              <LayoutGrid className="w-5 h-5 text-primary" />
-              Calendário Mensal
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => {
-                const newDate = new Date(selectedDate);
-                newDate.setMonth(newDate.getMonth() - 1);
-                setSelectedDate(newDate);
-              }}>
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              
-              <Button variant="outline" className="text-xs md:text-sm min-w-[180px] md:min-w-[240px]">
-                <CalendarIcon className="mr-2 h-3 w-3 md:h-4 md:w-4" />
-                {format(selectedDate, "MMMM 'de' yyyy", { locale: ptBR })}
-              </Button>
-              
-              <Button variant="outline" size="sm" onClick={() => {
-                const newDate = new Date(selectedDate);
-                newDate.setMonth(newDate.getMonth() + 1);
-                setSelectedDate(newDate);
-              }}>
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-              <span className="ml-2 text-muted-foreground">Carregando consultas...</span>
-            </div>
-          ) : (
-            <div className="grid grid-cols-7 gap-2">
-              {/* Header com dias da semana */}
-              {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((day) => (
-                <div key={day} className="text-center text-sm font-semibold text-muted-foreground p-2">
-                  {day}
-                </div>
-              ))}
-              
-              {/* Dias do mês */}
-              {Array.from({ length: startOfMonth(selectedDate).getDay() }).map((_, i) => (
-                <div key={`empty-${i}`} className="aspect-square" />
-              ))}
-              
-              {monthDays.map((day) => {
-                const dayAppointments = getAppointmentsForDay(day);
-                const isToday = isSameDay(day, new Date());
-                const isSelected = isSameDay(day, selectedDate);
-                
-                return (
-                  <button
-                    key={day.toISOString()}
-                    onClick={() => {
-                      setSelectedDate(day);
-                      setViewMode("day");
-                    }}
-                    className={`
-                      aspect-square p-2 rounded-lg border transition-all
-                      ${isToday ? "border-primary bg-primary/5" : "border-border"}
-                      ${isSelected ? "ring-2 ring-primary" : ""}
-                      ${!isSameMonth(day, selectedDate) ? "opacity-50" : ""}
-                      hover:bg-accent cursor-pointer
-                    `}
-                  >
-                    <div className="flex flex-col h-full">
-                      <span className={`text-sm font-medium ${isToday ? "text-primary" : "text-foreground"}`}>
-                        {format(day, "d")}
-                      </span>
-                      {dayAppointments.length > 0 && (
-                        <div className="flex-1 flex flex-col gap-0.5 mt-1 overflow-hidden">
-                          {dayAppointments.slice(0, 3).map((apt, idx) => (
-                            <div
-                              key={apt.id}
-                              className={`text-[10px] truncate px-1 py-0.5 rounded ${getStatusColor(apt.status)}`}
-                              title={`${apt.appointment_time.substring(0, 5)} - ${apt.patients.name}`}
-                            >
-                              {apt.appointment_time.substring(0, 5)}
-                            </div>
-                          ))}
-                          {dayAppointments.length > 3 && (
-                            <span className="text-[10px] text-muted-foreground">
-                              +{dayAppointments.length - 3}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </>
-    );
-  };
-
-  return (
-    <div className="p-4 md:p-6 space-y-6">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Agenda</h1>
-          <p className="text-sm md:text-base text-muted-foreground">Gerenciamento de consultas e horários</p>
-        </div>
-        
-        <div className="flex gap-2">
-          <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "day" | "month")} className="w-auto">
-            <TabsList>
-              <TabsTrigger value="day" className="flex items-center gap-2">
-                <List className="w-4 h-4" />
-                Dia
-              </TabsTrigger>
-              <TabsTrigger value="month" className="flex items-center gap-2">
-                <LayoutGrid className="w-4 h-4" />
-                Mês
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-          
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90">
-                <Plus className="w-4 h-4 mr-2" />
-                Nova Consulta
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Agendar Nova Consulta</DialogTitle>
-              </DialogHeader>
-              <AppointmentForm 
-                onSubmit={handleCreateAppointment}
-                onCancel={() => setIsDialogOpen(false)}
-                isLoading={isCreating}
-                initialDate={selectedDateString}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-
-      <Card>
-        {viewMode === "day" ? renderDayView() : renderMonthView()}
       </Card>
 
       {/* Edit Appointment Dialog */}
