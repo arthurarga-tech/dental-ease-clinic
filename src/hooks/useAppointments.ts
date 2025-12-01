@@ -36,17 +36,17 @@ export interface NewAppointment {
   notes?: string;
 }
 
-export const useAppointments = (selectedDate?: string) => {
+export const useAppointments = (selectedDate?: string, startDate?: string, endDate?: string) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch appointments for a specific date
+  // Fetch appointments for a specific date or date range
   const {
     data: appointments = [],
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["appointments", selectedDate],
+    queryKey: ["appointments", selectedDate, startDate, endDate],
     queryFn: async () => {
       let query = supabase
         .from("appointments")
@@ -65,7 +65,9 @@ export const useAppointments = (selectedDate?: string) => {
         `)
         .order("appointment_time");
 
-      if (selectedDate) {
+      if (startDate && endDate) {
+        query = query.gte("appointment_date", startDate).lte("appointment_date", endDate);
+      } else if (selectedDate) {
         query = query.eq("appointment_date", selectedDate);
       }
 
