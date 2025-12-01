@@ -9,13 +9,15 @@ import {
   AlertCircle,
   LogOut,
   User,
-  Gift
+  Gift,
+  DollarSign
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppointments } from "@/hooks/useAppointments";
 import { useDentistProfile } from "@/hooks/useDentistProfile";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useDentistReceivables } from "@/hooks/useDentistReceivables";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
@@ -29,6 +31,7 @@ const DentistDashboard = () => {
   const { dentist, isLoading: isDentistLoading } = useDentistProfile();
   const { appointments, isLoading } = useAppointments(selectedDateString);
   const { birthdayPatients, birthdayDentists } = useDashboardStats();
+  const { pendingReceivables, totalPending, isLoading: isLoadingReceivables } = useDentistReceivables(dentist?.id);
 
   // Filter appointments for today and for this dentist
   const todayAppointments = (appointments || []).filter(apt => 
@@ -201,6 +204,78 @@ const DentistDashboard = () => {
               <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>Nenhuma consulta agendada para hoje</p>
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Financial Receivables */}
+      <Card className="bg-success/5 border-success/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-success" />
+            Valores a Receber
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isLoadingReceivables ? (
+            <div className="text-center py-4 text-muted-foreground">
+              Carregando valores...
+            </div>
+          ) : (
+            <>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-4 bg-background rounded-lg border">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Comissões Pendentes</p>
+                    <p className="text-2xl font-bold text-success">
+                      R$ {totalPending.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Fechamentos</p>
+                    <p className="text-lg font-semibold text-foreground">{pendingReceivables.length}</p>
+                  </div>
+                </div>
+              </div>
+
+              {pendingReceivables.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Últimos fechamentos pendentes</p>
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                    {pendingReceivables.slice(0, 5).map((receivable) => (
+                      <div 
+                        key={receivable.id}
+                        className="flex items-center justify-between p-3 bg-background rounded-lg border text-sm"
+                      >
+                        <div>
+                          <p className="font-medium text-foreground">
+                            {format(new Date(receivable.period_start), "dd/MMM", { locale: ptBR })} - {format(new Date(receivable.period_end), "dd/MMM/yyyy", { locale: ptBR })}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {receivable.commission_percentage}% de comissão
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-success">
+                            R$ {receivable.net_amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Bruto: R$ {receivable.gross_amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {pendingReceivables.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <DollarSign className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>Nenhum valor pendente no momento</p>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
