@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Eye, Pencil, Trash2 } from "lucide-react";
+import { Plus, Eye, Pencil, Trash2, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -23,14 +23,21 @@ import { useBudgets, Budget } from "@/hooks/useBudgets";
 import { BudgetForm } from "@/components/BudgetForm";
 import { BudgetViewDialog } from "@/components/BudgetViewDialog";
 import { BudgetDeleteDialog } from "@/components/BudgetDeleteDialog";
+import { BudgetPaymentDialog } from "@/components/BudgetPaymentDialog";
 
 const Orcamento = () => {
   const { budgets, isLoading, createBudget, updateBudget, deleteBudget, isCreating, isUpdating } = useBudgets();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+
+  const openPaymentDialog = (budget: Budget) => {
+    setSelectedBudget(budget);
+    setIsPaymentOpen(true);
+  };
 
   const handleCreate = (data: any) => {
     createBudget(data);
@@ -158,6 +165,15 @@ const Orcamento = () => {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
+                          onClick={() => openPaymentDialog(budget)}
+                          title="Lançar Pagamento"
+                        >
+                          <DollarSign className="h-3 w-3 md:h-4 md:w-4 text-green-600" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
                           onClick={() => openViewDialog(budget)}
                         >
                           <Eye className="h-3 w-3 md:h-4 md:w-4" />
@@ -220,6 +236,12 @@ const Orcamento = () => {
         onOpenChange={setIsDeleteOpen}
         onConfirm={handleDelete}
         budgetInfo={selectedBudget?.patients?.name}
+      />
+
+      <BudgetPaymentDialog
+        budget={selectedBudget}
+        open={isPaymentOpen}
+        onOpenChange={setIsPaymentOpen}
       />
     </div>
   );
