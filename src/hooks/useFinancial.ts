@@ -134,7 +134,7 @@ export const useFinancial = () => {
     },
   });
 
-  // Create transaction
+  // Create transaction (with select - for admin use)
   const createTransaction = useMutation({
     mutationFn: async (newTransaction: NewTransaction) => {
       const { data, error } = await supabase
@@ -145,7 +145,7 @@ export const useFinancial = () => {
 
       if (error) {
         console.error("Error creating transaction:", error);
-        throw error;
+        throw new Error(error.message || "Erro ao criar transação");
       }
 
       return data;
@@ -157,13 +157,35 @@ export const useFinancial = () => {
         description: "A transação foi cadastrada com sucesso.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Error creating transaction:", error);
       toast({
         title: "Erro ao cadastrar transação",
-        description: "Ocorreu um erro ao cadastrar a transação. Tente novamente.",
+        description: error?.message || "Ocorreu um erro ao cadastrar a transação.",
         variant: "destructive",
       });
+    },
+  });
+
+  // Create transaction without select (for secretaria use - they can INSERT but not SELECT)
+  const createTransactionNoSelect = useMutation({
+    mutationFn: async (newTransaction: NewTransaction) => {
+      const { error } = await supabase
+        .from("financial_transactions")
+        .insert([newTransaction]);
+
+      if (error) {
+        console.error("Error creating transaction:", error);
+        throw new Error(error.message || "Erro ao criar transação");
+      }
+
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["financial_transactions"] });
+    },
+    onError: (error: any) => {
+      console.error("Error creating transaction:", error);
     },
   });
 
@@ -240,9 +262,10 @@ export const useFinancial = () => {
     isLoadingPaymentMethods,
     createTransaction: createTransaction.mutate,
     createTransactionAsync: createTransaction.mutateAsync,
+    createTransactionNoSelectAsync: createTransactionNoSelect.mutateAsync,
     updateTransaction: updateTransaction.mutate,
     deleteTransaction: deleteTransaction.mutate,
-    isCreating: createTransaction.isPending,
+    isCreating: createTransaction.isPending || createTransactionNoSelect.isPending,
     isUpdating: updateTransaction.isPending,
     isDeleting: deleteTransaction.isPending,
   };
