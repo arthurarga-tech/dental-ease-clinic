@@ -385,7 +385,7 @@ const Fechamento = () => {
                 {isLoadingCardFees ? (
                   <div className="text-center py-8">Carregando...</div>
                 ) : (
-                <div className="space-y-4">
+                  <div className="space-y-4">
                     {paymentMethods?.filter(pm => pm.name.toLowerCase().includes('cartão') || pm.name.toLowerCase().includes('crédito') || pm.name.toLowerCase().includes('débito')).map((method) => {
                       const existingFee = cardFees?.find(cf => cf.payment_method_id === method.id);
                       const currentValue = cardFeeValues[method.id] ?? String(existingFee?.fee_percentage || 0);
@@ -411,26 +411,44 @@ const Fechamento = () => {
                                   [method.id]: e.target.value
                                 }));
                               }}
-                              onBlur={(e) => {
-                                const newValue = Number(e.target.value);
-                                if (existingFee) {
-                                  updateCardFee({
-                                    id: existingFee.id,
-                                    fee_percentage: newValue
-                                  });
-                                } else {
-                                  createCardFee({
-                                    payment_method_id: method.id,
-                                    fee_percentage: newValue
-                                  });
-                                }
-                              }}
                             />
                             <span className="text-muted-foreground">%</span>
                           </div>
                         </div>
                       );
                     })}
+                    
+                    <Button 
+                      onClick={() => {
+                        const cardMethods = paymentMethods?.filter(pm => 
+                          pm.name.toLowerCase().includes('cartão') || 
+                          pm.name.toLowerCase().includes('crédito') || 
+                          pm.name.toLowerCase().includes('débito')
+                        ) || [];
+                        
+                        cardMethods.forEach(method => {
+                          const existingFee = cardFees?.find(cf => cf.payment_method_id === method.id);
+                          const newValue = Number(cardFeeValues[method.id] ?? existingFee?.fee_percentage ?? 0);
+                          
+                          if (existingFee) {
+                            if (newValue !== Number(existingFee.fee_percentage)) {
+                              updateCardFee({
+                                id: existingFee.id,
+                                fee_percentage: newValue
+                              });
+                            }
+                          } else if (newValue > 0) {
+                            createCardFee({
+                              payment_method_id: method.id,
+                              fee_percentage: newValue
+                            });
+                          }
+                        });
+                      }}
+                      className="w-full mt-4"
+                    >
+                      Salvar Taxas
+                    </Button>
                   </div>
                 )}
               </CardContent>
