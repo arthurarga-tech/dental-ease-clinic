@@ -44,7 +44,7 @@ export const BudgetPaymentDialog = ({
   onOpenChange,
 }: BudgetPaymentDialogProps) => {
   const { toast } = useToast();
-  const { categories, paymentMethods, createTransactionAsync, isCreating } = useFinancial();
+  const { categories, paymentMethods, createTransactionNoSelectAsync, isCreating } = useFinancial();
   const { updateBudget } = useBudgets();
   
   const [selectedProcedures, setSelectedProcedures] = useState<number[]>([]);
@@ -135,7 +135,7 @@ export const BudgetPaymentDialog = ({
       for (const index of selectedProcedures) {
         const proc = procedures[index];
         
-        await createTransactionAsync({
+        await createTransactionNoSelectAsync({
           type: "Receita",
           patient_id: budget.patient_id,
           dentist_id: budget.dentist_id || undefined,
@@ -165,11 +165,12 @@ export const BudgetPaymentDialog = ({
       });
 
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error processing payment:", error);
+      const errorMessage = error?.message || "Ocorreu um erro ao processar o pagamento.";
       toast({
         title: "Erro ao processar pagamento",
-        description: "Ocorreu um erro ao processar o pagamento. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
