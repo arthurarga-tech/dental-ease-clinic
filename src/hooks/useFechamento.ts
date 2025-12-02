@@ -1,6 +1,28 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useState, useCallback } from "react";
+
+export interface DentistCommissionCalculation {
+  dentist_id: string;
+  dentist_name: string;
+  dentist_email: string | null;
+  commission_percentage: number;
+  total_revenue: number;
+  card_fees_total: number;
+  net_after_fees: number;
+  commission_amount: number;
+  transactions_count: number;
+  transactions: Array<{
+    id: string;
+    amount: number;
+    description: string | null;
+    transaction_date: string;
+    payment_method_name: string | null;
+    card_fee_percentage: number;
+    card_fee_amount: number;
+  }>;
+}
 
 export interface CardFee {
   id: string;
@@ -235,6 +257,155 @@ export const useFechamento = () => {
     },
   });
 
+  // State for commission calculations
+  const [commissionCalculations, setCommissionCalculations] = useState<DentistCommissionCalculation[]>([]);
+  const [isCalculating, setIsCalculating] = useState(false);
+
+  // Calculate commissions for a period
+  const calculateCommissions = useCallback(async (periodStart: string, periodEnd: string) => {
+    setIsCalculating(true);
+    try {
+      // Fetch all revenue transactions with dentist_id in the period
+      const { data: transactions, error: transError } = await supabase
+        .from("financial_transactions")
+        .select(`
+          id,
+          amount,
+          description,
+          transaction_date,
+          dentist_id,
+          payment_method_id,
+          payment_methods (
+            id,
+            name
+          )
+        `)
+        .eq("type", "Receita")
+        .eq("status", "Pago")
+        .not("dentist_id", "is", null)
+        .gte("transaction_date", periodStart)
+        .lte("transaction_date", periodEnd);
+
+      if (transError) throw transError;
+
+      // Fetch all dentists
+      const { data: dentists, error: dentError } = await supabase
+        .from("dentists")
+        .select("id, name, email, commission_percentage")
+        .eq("status", "Ativo");
+
+      if (dentError) throw dentError;
+
+      // Fetch card fees
+      const { data: fees, error: feeError } = await supabase
+        .from("card_fees")
+        .select("payment_method_id, fee_percentage");
+
+      if (feeError) throw feeError;
+
+      // Create a map of payment method fees
+      const feeMap = new Map<string, number>();
+      fees?.forEach(fee => {
+        feeMap.set(fee.payment_method_id, Number(fee.fee_percentage));
+      });
+
+      // Group transactions by dentist and calculate
+      const dentistMap = new Map<string, DentistCommissionCalculation>();
+
+      // Initialize with all active dentists
+      dentists?.forEach(dentist => {
+        dentistMap.set(dentist.id, {
+          dentist_id: dentist.id,
+          dentist_name: dentist.name,
+          dentist_email: dentist.email,
+          commission_percentage: Number(dentist.commission_percentage) || 50,
+          total_revenue: 0,
+          card_fees_total: 0,
+          net_after_fees: 0,
+          commission_amount: 0,
+          transactions_count: 0,
+          transactions: [],
+        });
+      });
+
+      // Process transactions
+      transactions?.forEach(trans => {
+        if (!trans.dentist_id) return;
+
+        const dentistCalc = dentistMap.get(trans.dentist_id);
+        if (!dentistCalc) return;
+
+        const amount = Number(trans.amount);
+        const paymentMethodId = trans.payment_method_id;
+        const feePercentage = paymentMethodId ? (feeMap.get(paymentMethodId) || 0) : 0;
+        const feeAmount = amount * (feePercentage / 100);
+
+        dentistCalc.total_revenue += amount;
+        dentistCalc.card_fees_total += feeAmount;
+        dentistCalc.transactions_count += 1;
+        dentistCalc.transactions.push({
+          id: trans.id,
+          amount: amount,
+          description: trans.description,
+          transaction_date: trans.transaction_date,
+          payment_method_name: trans.payment_methods?.name || null,
+          card_fee_percentage: feePercentage,
+          card_fee_amount: feeAmount,
+        });
+      });
+
+      // Calculate final values
+      dentistMap.forEach(calc => {
+        calc.net_after_fees = calc.total_revenue - calc.card_fees_total;
+        calc.commission_amount = calc.net_after_fees * (calc.commission_percentage / 100);
+      });
+
+      // Filter only dentists with transactions and convert to array
+      const results = Array.from(dentistMap.values()).filter(calc => calc.transactions_count > 0);
+      
+      setCommissionCalculations(results);
+      
+      if (results.length === 0) {
+        toast({
+          title: "Nenhuma transação encontrada",
+          description: "Não há receitas com dentista associado no período selecionado.",
+        });
+      }
+
+      return results;
+    } catch (error: any) {
+      console.error("Error calculating commissions:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao calcular comissões",
+        description: error.message || "Ocorreu um erro ao calcular as comissões.",
+      });
+      return [];
+    } finally {
+      setIsCalculating(false);
+    }
+  }, [toast]);
+
+  // Generate settlement from calculation
+  const generateSettlement = useCallback(async (
+    calculation: DentistCommissionCalculation,
+    periodStart: string,
+    periodEnd: string
+  ) => {
+    const settlement: NewSettlement = {
+      dentist_id: calculation.dentist_id,
+      period_start: periodStart,
+      period_end: periodEnd,
+      gross_amount: calculation.total_revenue,
+      card_fees_deducted: calculation.card_fees_total,
+      commission_percentage: calculation.commission_percentage,
+      net_amount: calculation.commission_amount,
+      status: "Pendente",
+    };
+
+    createSettlement.mutate(settlement);
+  }, [createSettlement]);
+
   return {
     cardFees,
     isLoadingCardFees,
@@ -250,5 +421,10 @@ export const useFechamento = () => {
     isUpdatingCardFee: updateCardFee.isPending,
     isCreatingSettlement: createSettlement.isPending,
     isUpdatingSettlement: updateSettlement.isPending,
+    // Commission calculation
+    commissionCalculations,
+    isCalculating,
+    calculateCommissions,
+    generateSettlement,
   };
 };

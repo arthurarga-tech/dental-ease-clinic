@@ -6,14 +6,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, DollarSign, CreditCard, Settings, Calendar } from "lucide-react";
-import { useFechamento } from "@/hooks/useFechamento";
+import { Calculator, DollarSign, CreditCard, Settings, Calendar, Check, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { useFechamento, DentistCommissionCalculation } from "@/hooks/useFechamento";
 import { useDentists } from "@/hooks/useDentists";
 import { useFinancial } from "@/hooks/useFinancial";
-import { format } from "date-fns";
+import { format, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 const Fechamento = () => {
+  const { toast } = useToast();
   const { 
     cardFees, 
     settlements, 
@@ -21,18 +28,54 @@ const Fechamento = () => {
     isLoadingCardFees,
     isLoadingSettlements,
     isLoadingAccountsPayable,
-    updateCardFee 
+    updateCardFee,
+    commissionCalculations,
+    isCalculating,
+    calculateCommissions,
+    generateSettlement,
+    isCreatingSettlement,
   } = useFechamento();
   
-  const { dentists } = useDentists();
+  const { dentists, updateDentist } = useDentists();
   const { paymentMethods } = useFinancial();
   
-  const [periodStart, setPeriodStart] = useState("");
-  const [periodEnd, setPeriodEnd] = useState("");
+  // Default to current month
+  const now = new Date();
+  const [periodStart, setPeriodStart] = useState(format(startOfMonth(now), "yyyy-MM-dd"));
+  const [periodEnd, setPeriodEnd] = useState(format(endOfMonth(now), "yyyy-MM-dd"));
+  const [expandedDentist, setExpandedDentist] = useState<string | null>(null);
 
   // Calculate totals
   const totalAccountsPayable = accountsPayable?.reduce((sum, item) => sum + Number(item.amount), 0) || 0;
   const totalPendingCommissions = settlements?.filter(s => s.status === 'Pendente').reduce((sum, s) => sum + Number(s.net_amount), 0) || 0;
+  const totalCalculatedCommissions = commissionCalculations.reduce((sum, c) => sum + c.commission_amount, 0);
+
+  const handleCalculate = () => {
+    if (!periodStart || !periodEnd) {
+      toast({
+        variant: "destructive",
+        title: "Período inválido",
+        description: "Selecione o período inicial e final.",
+      });
+      return;
+    }
+    calculateCommissions(periodStart, periodEnd);
+  };
+
+  const handleGenerateSettlement = (calc: DentistCommissionCalculation) => {
+    generateSettlement(calc, periodStart, periodEnd);
+  };
+
+  const handleUpdateDentistCommission = (dentistId: string, newPercentage: number) => {
+    updateDentist({
+      id: dentistId,
+      commission_percentage: newPercentage,
+    });
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  };
 
   return (
     <MainLayout>
@@ -145,13 +188,14 @@ const Fechamento = () => {
 
           {/* Comissões Dentistas */}
           <TabsContent value="commissions" className="space-y-4">
+            {/* Period Selection and Calculate */}
             <Card>
               <CardHeader>
-                <CardTitle>Comissões dos Dentistas</CardTitle>
-                <CardDescription>Cálculo de comissões por período</CardDescription>
+                <CardTitle>Calcular Comissões</CardTitle>
+                <CardDescription>Selecione o período para calcular as comissões dos dentistas</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex-1">
                     <Label htmlFor="period-start">Período Início</Label>
                     <Input
@@ -171,13 +215,120 @@ const Fechamento = () => {
                     />
                   </div>
                   <div className="flex items-end">
-                    <Button>
-                      <Calendar className="mr-2 h-4 w-4" />
-                      Calcular
+                    <Button onClick={handleCalculate} disabled={isCalculating}>
+                      {isCalculating ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Calculator className="mr-2 h-4 w-4" />
+                      )}
+                      {isCalculating ? "Calculando..." : "Calcular"}
                     </Button>
                   </div>
                 </div>
 
+                {/* Calculation Results */}
+                {commissionCalculations.length > 0 && (
+                  <div className="space-y-4 mt-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Resultado do Cálculo</h3>
+                      <div className="text-right">
+                        <span className="text-sm text-muted-foreground">Total a pagar: </span>
+                        <span className="text-lg font-bold text-green-600">{formatCurrency(totalCalculatedCommissions)}</span>
+                      </div>
+                    </div>
+
+                    {commissionCalculations.map((calc) => (
+                      <Collapsible
+                        key={calc.dentist_id}
+                        open={expandedDentist === calc.dentist_id}
+                        onOpenChange={(open) => setExpandedDentist(open ? calc.dentist_id : null)}
+                      >
+                        <div className="border rounded-lg overflow-hidden">
+                          <div className="flex items-center justify-between p-4 bg-muted/30">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-medium text-lg">{calc.dentist_name}</span>
+                                <Badge variant="outline">{calc.commission_percentage}% comissão</Badge>
+                              </div>
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm text-muted-foreground mt-2">
+                                <div>
+                                  <span className="block text-xs">Receita Bruta</span>
+                                  <span className="font-medium text-foreground">{formatCurrency(calc.total_revenue)}</span>
+                                </div>
+                                <div>
+                                  <span className="block text-xs">Taxas Cartão</span>
+                                  <span className="font-medium text-red-500">-{formatCurrency(calc.card_fees_total)}</span>
+                                </div>
+                                <div>
+                                  <span className="block text-xs">Líquido</span>
+                                  <span className="font-medium text-foreground">{formatCurrency(calc.net_after_fees)}</span>
+                                </div>
+                                <div>
+                                  <span className="block text-xs">Comissão ({calc.commission_percentage}%)</span>
+                                  <span className="font-bold text-green-600">{formatCurrency(calc.commission_amount)}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 ml-4">
+                              <Button
+                                size="sm"
+                                onClick={() => handleGenerateSettlement(calc)}
+                                disabled={isCreatingSettlement}
+                              >
+                                <Check className="mr-1 h-4 w-4" />
+                                Gerar Fechamento
+                              </Button>
+                              <CollapsibleTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  {expandedDentist === calc.dentist_id ? (
+                                    <ChevronUp className="h-4 w-4" />
+                                  ) : (
+                                    <ChevronDown className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </CollapsibleTrigger>
+                            </div>
+                          </div>
+                          <CollapsibleContent>
+                            <div className="p-4 border-t">
+                              <h4 className="font-medium mb-2">{calc.transactions_count} transações no período</h4>
+                              <div className="space-y-2 max-h-60 overflow-y-auto">
+                                {calc.transactions.map((trans) => (
+                                  <div key={trans.id} className="flex items-center justify-between text-sm p-2 bg-muted/20 rounded">
+                                    <div className="flex-1">
+                                      <span className="font-medium">{trans.description || "Procedimento"}</span>
+                                      <span className="text-muted-foreground ml-2">
+                                        {format(new Date(trans.transaction_date), "dd/MM/yyyy")}
+                                      </span>
+                                    </div>
+                                    <div className="text-right">
+                                      <span className="font-medium">{formatCurrency(trans.amount)}</span>
+                                      {trans.card_fee_percentage > 0 && (
+                                        <span className="text-xs text-muted-foreground ml-2">
+                                          ({trans.payment_method_name} -{trans.card_fee_percentage}%)
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </CollapsibleContent>
+                        </div>
+                      </Collapsible>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Historical Settlements */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Histórico de Fechamentos</CardTitle>
+                <CardDescription>Fechamentos gerados anteriormente</CardDescription>
+              </CardHeader>
+              <CardContent>
                 {isLoadingSettlements ? (
                   <div className="text-center py-8">Carregando...</div>
                 ) : settlements && settlements.length > 0 ? (
@@ -198,16 +349,16 @@ const Fechamento = () => {
                             Período: {format(new Date(settlement.period_start), "dd/MM/yyyy")} - {format(new Date(settlement.period_end), "dd/MM/yyyy")}
                           </p>
                           <div className="text-xs text-muted-foreground mt-1 space-y-1">
-                            <div>Valor Bruto: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(settlement.gross_amount))}</div>
-                            <div>Taxas Deduzidas: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(settlement.card_fees_deducted))}</div>
+                            <div>Valor Bruto: {formatCurrency(Number(settlement.gross_amount))}</div>
+                            <div>Taxas Deduzidas: {formatCurrency(Number(settlement.card_fees_deducted))}</div>
                             <div>Comissão: {settlement.commission_percentage}%</div>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-lg font-bold">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(settlement.net_amount))}
+                          <div className="text-lg font-bold text-green-600">
+                            {formatCurrency(Number(settlement.net_amount))}
                           </div>
-                          <p className="text-xs text-muted-foreground">Valor Líquido</p>
+                          <p className="text-xs text-muted-foreground">Valor a Pagar</p>
                         </div>
                       </div>
                     ))}
@@ -281,16 +432,22 @@ const Fechamento = () => {
                     <div key={dentist.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
                         <span className="font-medium">{dentist.name}</span>
-                        <p className="text-sm text-muted-foreground">{dentist.email}</p>
+                        <p className="text-sm text-muted-foreground">{dentist.email || dentist.cro}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Input
                           type="number"
-                          step="0.01"
+                          step="1"
                           min="0"
                           max="100"
                           defaultValue={dentist.commission_percentage || 50}
                           className="w-24"
+                          onBlur={(e) => {
+                            const newValue = Number(e.target.value);
+                            if (newValue !== dentist.commission_percentage) {
+                              handleUpdateDentistCommission(dentist.id, newValue);
+                            }
+                          }}
                         />
                         <span className="text-muted-foreground">%</span>
                       </div>
