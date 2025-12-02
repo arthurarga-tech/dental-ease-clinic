@@ -239,6 +239,7 @@ export const useFinancial = () => {
     isLoadingCategories,
     isLoadingPaymentMethods,
     createTransaction: createTransaction.mutate,
+    createTransactionAsync: createTransaction.mutateAsync,
     updateTransaction: updateTransaction.mutate,
     deleteTransaction: deleteTransaction.mutate,
     isCreating: createTransaction.isPending,
