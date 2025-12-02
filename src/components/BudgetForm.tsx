@@ -33,6 +33,8 @@ import { usePatients } from "@/hooks/usePatients";
 import { useDentists } from "@/hooks/useDentists";
 import { Budget } from "@/hooks/useBudgets";
 import { PROCEDURE_CATEGORIES, ProcedureItem } from "@/data/procedures";
+import { useDentistProfile } from "@/hooks/useDentistProfile";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Procedure {
   name: string;
@@ -73,6 +75,10 @@ export const BudgetForm = ({
 }: BudgetFormProps) => {
   const { patients } = usePatients();
   const { dentists } = useDentists();
+  const { dentist: currentDentist } = useDentistProfile();
+  const { userRole } = useAuth();
+  
+  const isDentistUser = userRole === 'dentista' || userRole === 'dentist';
 
   const [procedures, setProcedures] = useState<Procedure[]>(() => {
     if (initialData?.procedures) {
@@ -88,6 +94,13 @@ export const BudgetForm = ({
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedProcedure, setSelectedProcedure] = useState<string>("");
   const [customValue, setCustomValue] = useState<string>("");
+
+  // Determine the default dentist_id based on user role
+  const getDefaultDentistId = () => {
+    if (initialData?.dentist_id) return initialData.dentist_id;
+    if (isDentistUser && currentDentist?.id) return currentDentist.id;
+    return undefined;
+  };
 
   const form = useForm<BudgetFormValues>({
     resolver: zodResolver(budgetSchema),
@@ -106,8 +119,16 @@ export const BudgetForm = ({
           status: "Pendente",
           valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
           discount: "0",
+          dentist_id: getDefaultDentistId(),
         },
   });
+
+  // Update dentist_id when currentDentist loads (for dentist users)
+  useEffect(() => {
+    if (isDentistUser && currentDentist?.id && !initialData) {
+      form.setValue('dentist_id', currentDentist.id);
+    }
+  }, [currentDentist?.id, isDentistUser, initialData, form]);
 
   const totalAmount = procedures.reduce((sum, proc) => sum + (proc.value || 0), 0);
   const discount = parseFloat(form.watch("discount") || "0");
@@ -205,22 +226,28 @@ export const BudgetForm = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Dentista Responsável</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o dentista" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {dentists
-                    ?.filter((dentist) => dentist.status === "Ativo")
-                    .map((dentist) => (
-                      <SelectItem key={dentist.id} value={dentist.id}>
-                        {dentist.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+              {isDentistUser && currentDentist ? (
+                <div className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm">
+                  {currentDentist.name}
+                </div>
+              ) : (
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o dentista" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {dentists
+                      ?.filter((dentist) => dentist.status === "Ativo")
+                      .map((dentist) => (
+                        <SelectItem key={dentist.id} value={dentist.id}>
+                          {dentist.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              )}
               <FormMessage />
             </FormItem>
           )}
