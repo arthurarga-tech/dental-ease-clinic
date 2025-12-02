@@ -538,24 +538,6 @@ export type Database = {
           },
         ]
       }
-      partners: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
       patients: {
         Row: {
           address: string | null
@@ -666,42 +648,6 @@ export type Database = {
           name?: string
         }
         Relationships: []
-      }
-      transaction_partners: {
-        Row: {
-          created_at: string
-          id: string
-          partner_id: string
-          transaction_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          partner_id: string
-          transaction_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          partner_id?: string
-          transaction_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "transaction_partners_partner_id_fkey"
-            columns: ["partner_id"]
-            isOneToOne: false
-            referencedRelation: "partners"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transaction_partners_transaction_id_fkey"
-            columns: ["transaction_id"]
-            isOneToOne: false
-            referencedRelation: "financial_transactions"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       user_roles: {
         Row: {
