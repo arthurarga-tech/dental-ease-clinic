@@ -38,7 +38,15 @@ interface Procedure {
   name: string;
   value: number;
   category?: string;
+  status: string;
 }
+
+const PROCEDURE_STATUS_OPTIONS = [
+  { value: "Pendente", label: "Pendente", color: "bg-yellow-100 text-yellow-800" },
+  { value: "Em Andamento", label: "Em Andamento", color: "bg-blue-100 text-blue-800" },
+  { value: "Concluído", label: "Concluído", color: "bg-green-100 text-green-800" },
+  { value: "Cancelado", label: "Cancelado", color: "bg-red-100 text-red-800" },
+];
 
 const budgetSchema = z.object({
   patient_id: z.string().min(1, "Paciente é obrigatório"),
@@ -123,6 +131,7 @@ export const BudgetForm = ({
         name: procedure.name,
         value: value,
         category: categoryData ? `${categoryData.icon} ${categoryData.name}` : undefined,
+        status: "Pendente",
       },
     ]);
 
@@ -366,15 +375,15 @@ export const BudgetForm = ({
             </div>
           </div>
 
-          {procedures.length > 0 && (
+        {procedures.length > 0 && (
             <div className="space-y-2">
               <FormLabel>Procedimentos Adicionados</FormLabel>
               {procedures.map((procedure, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 border rounded-lg bg-background"
+                  className="flex items-center justify-between p-3 border rounded-lg bg-background gap-3"
                 >
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       {procedure.category && (
                         <span className="text-xs text-muted-foreground">
@@ -382,10 +391,29 @@ export const BudgetForm = ({
                         </span>
                       )}
                     </div>
-                    <p className="font-medium">{procedure.name}</p>
+                    <p className="font-medium truncate">{procedure.name}</p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-semibold text-lg">
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <Select
+                      value={procedure.status}
+                      onValueChange={(value) => {
+                        const updated = [...procedures];
+                        updated[index] = { ...updated[index], status: value };
+                        setProcedures(updated);
+                      }}
+                    >
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PROCEDURE_STATUS_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <span className="font-semibold text-lg whitespace-nowrap">
                       R$ {procedure.value.toFixed(2)}
                     </span>
                     <Button
