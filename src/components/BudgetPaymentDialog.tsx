@@ -44,7 +44,7 @@ export const BudgetPaymentDialog = ({
   onOpenChange,
 }: BudgetPaymentDialogProps) => {
   const { toast } = useToast();
-  const { categories, paymentMethods, createTransaction, isCreating } = useFinancial();
+  const { categories, paymentMethods, createTransactionAsync, isCreating } = useFinancial();
   const { updateBudget } = useBudgets();
   
   const [selectedProcedures, setSelectedProcedures] = useState<number[]>([]);
@@ -135,7 +135,7 @@ export const BudgetPaymentDialog = ({
       for (const index of selectedProcedures) {
         const proc = procedures[index];
         
-        createTransaction({
+        await createTransactionAsync({
           type: "Receita",
           patient_id: budget.patient_id,
           dentist_id: budget.dentist_id || undefined,
