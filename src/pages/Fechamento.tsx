@@ -29,6 +29,7 @@ const Fechamento = () => {
     isLoadingSettlements,
     isLoadingAccountsPayable,
     updateCardFee,
+    createCardFee,
     commissionCalculations,
     isCalculating,
     calculateCommissions,
@@ -44,6 +45,7 @@ const Fechamento = () => {
   const [periodStart, setPeriodStart] = useState(format(startOfMonth(now), "yyyy-MM-dd"));
   const [periodEnd, setPeriodEnd] = useState(format(endOfMonth(now), "yyyy-MM-dd"));
   const [expandedDentist, setExpandedDentist] = useState<string | null>(null);
+  const [cardFeeValues, setCardFeeValues] = useState<Record<string, string>>({});
 
   // Calculate totals
   const totalAccountsPayable = accountsPayable?.reduce((sum, item) => sum + Number(item.amount), 0) || 0;
@@ -383,9 +385,10 @@ const Fechamento = () => {
                 {isLoadingCardFees ? (
                   <div className="text-center py-8">Carregando...</div>
                 ) : (
-                  <div className="space-y-4">
+                <div className="space-y-4">
                     {paymentMethods?.filter(pm => pm.name.toLowerCase().includes('cartão') || pm.name.toLowerCase().includes('crédito') || pm.name.toLowerCase().includes('débito')).map((method) => {
                       const existingFee = cardFees?.find(cf => cf.payment_method_id === method.id);
+                      const currentValue = cardFeeValues[method.id] ?? String(existingFee?.fee_percentage || 0);
                       
                       return (
                         <div key={method.id} className="flex items-center justify-between p-4 border rounded-lg">
@@ -400,13 +403,25 @@ const Fechamento = () => {
                               min="0"
                               max="100"
                               placeholder="0.00"
-                              defaultValue={existingFee?.fee_percentage || 0}
+                              value={currentValue}
                               className="w-24"
+                              onChange={(e) => {
+                                setCardFeeValues(prev => ({
+                                  ...prev,
+                                  [method.id]: e.target.value
+                                }));
+                              }}
                               onBlur={(e) => {
+                                const newValue = Number(e.target.value);
                                 if (existingFee) {
                                   updateCardFee({
                                     id: existingFee.id,
-                                    fee_percentage: Number(e.target.value)
+                                    fee_percentage: newValue
+                                  });
+                                } else {
+                                  createCardFee({
+                                    payment_method_id: method.id,
+                                    fee_percentage: newValue
                                   });
                                 }
                               }}
