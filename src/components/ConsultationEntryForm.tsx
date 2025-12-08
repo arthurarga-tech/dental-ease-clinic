@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMedicalRecordEntries, MedicalRecordEntry, NewMedicalRecordEntry } from "@/hooks/useMedicalRecordEntries";
 import { useDentists } from "@/hooks/useDentists";
+import { useDentistProfile } from "@/hooks/useDentistProfile";
 import { Odontogram } from "@/components/Odontogram";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
@@ -42,6 +43,7 @@ export const ConsultationEntryForm = ({
 }: ConsultationEntryFormProps) => {
   const { createEntry, updateEntry, isCreating, isUpdating } = useMedicalRecordEntries(medicalRecordId);
   const { dentists } = useDentists();
+  const { dentist: loggedInDentist } = useDentistProfile();
   const { toast } = useToast();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [odontogramData, setOdontogramData] = useState<Record<string, any>>(currentOdontogram);
@@ -81,11 +83,11 @@ export const ConsultationEntryForm = ({
         treatment: '',
         observations: '',
         status: 'Concluído',
-        dentist_id: ''
+        dentist_id: loggedInDentist?.id || ''
       });
     }
     setOdontogramData(currentOdontogram);
-  }, [entry, mode, open, medicalRecordId, currentOdontogram]);
+  }, [entry, mode, open, medicalRecordId, currentOdontogram, loggedInDentist]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
