@@ -438,7 +438,7 @@ export const BudgetForm = ({
                         ))}
                       </SelectContent>
                     </Select>
-                    {(userRole === 'admin' || userRole === 'dentista' || userRole === 'dentist') ? (
+                    {(userRole === 'admin' || userRole === 'socio' || userRole === 'dentista' || userRole === 'dentist') ? (
                       <div className="flex items-center gap-1">
                         <span className="text-sm text-muted-foreground">R$</span>
                         <Input
