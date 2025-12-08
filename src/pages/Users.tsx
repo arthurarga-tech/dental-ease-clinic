@@ -13,11 +13,14 @@ import { Users as UsersIcon, Mail, Calendar, Loader2 } from "lucide-react";
 import { useUsers, UserProfile } from "@/hooks/useUsers";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import UserViewDialog from "@/components/UserViewDialog";
 
 const Users = () => {
   const { users, isLoading, updateUserRole, toggleUserStatus } = useUsers();
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<string>("");
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
@@ -69,6 +72,13 @@ const Users = () => {
     toggleUserStatus.mutate({ userId, newStatus });
   };
 
+  const handleCardClick = (user: UserProfile) => {
+    if (editingUserId !== user.id) {
+      setSelectedUser(user);
+      setIsViewDialogOpen(true);
+    }
+  };
+
   return (
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
@@ -101,7 +111,11 @@ const Users = () => {
           ) : (
             <div className="space-y-3">
               {users.map((user) => (
-                <Card key={user.id} className="hover:shadow-md transition-shadow">
+                <Card 
+                  key={user.id} 
+                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => handleCardClick(user)}
+                >
                   <CardContent className="p-4">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="space-y-2 flex-1">
@@ -137,7 +151,7 @@ const Users = () => {
                         </div>
                       </div>
 
-                      <div className="flex gap-2 items-center flex-wrap">
+                      <div className="flex gap-2 items-center flex-wrap" onClick={(e) => e.stopPropagation()}>
                         {editingUserId === user.id ? (
                           <>
                             <Select value={selectedRole} onValueChange={setSelectedRole}>
@@ -195,6 +209,12 @@ const Users = () => {
           )}
         </CardContent>
       </Card>
+
+      <UserViewDialog
+        user={selectedUser}
+        open={isViewDialogOpen}
+        onOpenChange={setIsViewDialogOpen}
+      />
     </div>
   );
 };
