@@ -11,8 +11,13 @@ export interface MedicalRecordEntry {
   treatment: string;
   observations: string | null;
   status: string;
+  dentist_id: string | null;
   created_at: string;
   updated_at: string;
+  dentists?: {
+    id: string;
+    name: string;
+  };
 }
 
 export interface NewMedicalRecordEntry {
@@ -23,6 +28,7 @@ export interface NewMedicalRecordEntry {
   treatment: string;
   observations?: string;
   status: string;
+  dentist_id?: string;
 }
 
 export const useMedicalRecordEntries = (medicalRecordId?: string) => {
@@ -37,7 +43,13 @@ export const useMedicalRecordEntries = (medicalRecordId?: string) => {
       
       const { data, error } = await supabase
         .from('medical_record_entries')
-        .select('*')
+        .select(`
+          *,
+          dentists (
+            id,
+            name
+          )
+        `)
         .eq('medical_record_id', medicalRecordId)
         .order('record_date', { ascending: false });
 
