@@ -438,9 +438,27 @@ export const BudgetForm = ({
                         ))}
                       </SelectContent>
                     </Select>
-                    <span className="font-semibold text-lg whitespace-nowrap">
-                      R$ {procedure.value.toFixed(2)}
-                    </span>
+                    {(userRole === 'admin' || userRole === 'dentista' || userRole === 'dentist') ? (
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm text-muted-foreground">R$</span>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={procedure.value}
+                          onChange={(e) => {
+                            const updated = [...procedures];
+                            updated[index] = { ...updated[index], value: parseFloat(e.target.value) || 0 };
+                            setProcedures(updated);
+                          }}
+                          className="w-24 text-right font-semibold"
+                        />
+                      </div>
+                    ) : (
+                      <span className="font-semibold text-lg whitespace-nowrap">
+                        R$ {procedure.value.toFixed(2)}
+                      </span>
+                    )}
                     <Button
                       type="button"
                       variant="ghost"
