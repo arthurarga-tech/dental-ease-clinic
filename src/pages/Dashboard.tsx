@@ -68,44 +68,44 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-sm md:text-base text-muted-foreground">Visão geral do consultório</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Visão geral do consultório</p>
         </div>
-        <div className="flex gap-2 w-full md:w-auto">
+        <div className="flex gap-2">
           <Button 
             onClick={() => navigate("/agenda")}
-            className="bg-primary hover:bg-primary/90 flex-1 md:flex-none"
+            className="bg-primary hover:bg-primary/90 flex-1 sm:flex-none text-xs sm:text-sm h-9 sm:h-10"
           >
-            <Calendar className="w-4 h-4 mr-2" />
+            <Calendar className="w-4 h-4 mr-1.5 sm:mr-2" />
             Nova Consulta
           </Button>
           <Button 
             onClick={signOut}
             variant="outline"
-            className="flex-1 md:flex-none"
+            className="flex-1 sm:flex-none text-xs sm:text-sm h-9 sm:h-10"
           >
-            <LogOut className="w-4 h-4 mr-2" />
+            <LogOut className="w-4 h-4 mr-1.5 sm:mr-2" />
             Sair
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
         {statsCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Card key={index} className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">{stat.title}</p>
-                    <p className="text-3xl font-bold text-foreground">{stat.value}</p>
+              <CardContent className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-start sm:items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">{stat.title}</p>
+                    <p className="text-lg sm:text-xl md:text-3xl font-bold text-foreground truncate">{stat.value}</p>
                   </div>
-                  <div className={`p-3 rounded-lg ${stat.bg}`}>
-                    <Icon className={`w-6 h-6 ${stat.color}`} />
+                  <div className={`p-2 sm:p-3 rounded-lg ${stat.bg} flex-shrink-0`}>
+                    <Icon className={`w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 ${stat.color}`} />
                   </div>
                 </div>
               </CardContent>
@@ -116,29 +116,29 @@ const Dashboard = () => {
 
       {/* Consultas de Hoje - Destaque Principal */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-primary" />
+        <CardHeader className="pb-3 sm:pb-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             Consultas de Hoje
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 sm:space-y-4">
           {todayAppointments.length > 0 ? (
             todayAppointments.map((appointment) => (
               <div 
                 key={appointment.id}
-                className="flex items-center justify-between p-3 bg-secondary rounded-lg"
+                className="flex items-center justify-between p-2.5 sm:p-3 bg-secondary rounded-lg gap-2"
               >
-                <div className="flex items-center gap-3">
-                  <div className="text-sm font-medium text-primary">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <div className="text-xs sm:text-sm font-medium text-primary flex-shrink-0">
                     {appointment.appointment_time.slice(0, 5)}
                   </div>
-                  <div>
-                    <p className="font-medium text-foreground">{appointment.patients.name}</p>
-                    <p className="text-sm text-muted-foreground">{appointment.type}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-foreground text-sm truncate">{appointment.patients.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{appointment.type}</p>
                   </div>
                 </div>
-                <div className={`px-2 py-1 rounded-md text-xs font-medium ${
+                <div className={`px-2 py-1 rounded-md text-xs font-medium flex-shrink-0 ${
                   appointment.status === "Confirmado" 
                     ? "bg-success/10 text-success"
                     : appointment.status === "Em andamento"
@@ -152,9 +152,9 @@ const Dashboard = () => {
               </div>
             ))
           ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p>Nenhuma consulta agendada para hoje</p>
+            <div className="text-center py-6 sm:py-8 text-muted-foreground">
+              <Calendar className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Nenhuma consulta agendada para hoje</p>
             </div>
           )}
         </CardContent>
