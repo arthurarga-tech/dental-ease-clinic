@@ -248,14 +248,19 @@ const ProntuarioNovo = () => {
                               </Button>
                             </div>
                           </div>
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-sm">
-                              <Stethoscope className="w-3 h-3 text-muted-foreground" />
-                              <span className="font-medium">{entry.procedure_type}</span>
-                            </div>
-                            <p className="text-sm text-muted-foreground">{entry.diagnosis}</p>
-                            <p className="text-sm">{entry.treatment}</p>
-                          </div>
+                                          <div className="space-y-1">
+                                            <div className="flex items-center gap-2 text-sm">
+                                              <Stethoscope className="w-3 h-3 text-muted-foreground" />
+                                              <span className="font-medium">{entry.procedure_type}</span>
+                                            </div>
+                                            {entry.dentists?.name && (
+                                              <p className="text-sm text-primary font-medium">
+                                                Dr(a). {entry.dentists.name}
+                                              </p>
+                                            )}
+                                            <p className="text-sm text-muted-foreground">{entry.diagnosis}</p>
+                                            <p className="text-sm">{entry.treatment}</p>
+                                          </div>
                         </CardContent>
                       </Card>
                     ))

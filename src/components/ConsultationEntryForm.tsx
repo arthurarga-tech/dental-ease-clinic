@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMedicalRecordEntries, MedicalRecordEntry, NewMedicalRecordEntry } from "@/hooks/useMedicalRecordEntries";
+import { useDentists } from "@/hooks/useDentists";
 import { Odontogram } from "@/components/Odontogram";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
@@ -18,7 +19,8 @@ const entrySchema = z.object({
   diagnosis: z.string().trim().min(1, { message: "Diagnóstico obrigatório" }),
   treatment: z.string().trim().min(1, { message: "Tratamento obrigatório" }),
   observations: z.string().trim().optional(),
-  status: z.enum(["Agendado", "Em andamento", "Concluído"])
+  status: z.enum(["Agendado", "Em andamento", "Concluído"]),
+  dentist_id: z.string().uuid({ message: "Dentista inválido" }).optional().nullable()
 });
 
 interface ConsultationEntryFormProps {
@@ -39,9 +41,12 @@ export const ConsultationEntryForm = ({
   currentOdontogram = {}
 }: ConsultationEntryFormProps) => {
   const { createEntry, updateEntry, isCreating, isUpdating } = useMedicalRecordEntries(medicalRecordId);
+  const { dentists } = useDentists();
   const { toast } = useToast();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [odontogramData, setOdontogramData] = useState<Record<string, any>>(currentOdontogram);
+  
+  const activeDentists = dentists.filter(d => d.status === 'Ativo');
   
   const [formData, setFormData] = useState({
     medical_record_id: medicalRecordId,
@@ -50,7 +55,8 @@ export const ConsultationEntryForm = ({
     diagnosis: '',
     treatment: '',
     observations: '',
-    status: 'Concluído'
+    status: 'Concluído',
+    dentist_id: ''
   });
 
   useEffect(() => {
@@ -62,7 +68,8 @@ export const ConsultationEntryForm = ({
         diagnosis: entry.diagnosis,
         treatment: entry.treatment,
         observations: entry.observations || '',
-        status: entry.status
+        status: entry.status,
+        dentist_id: entry.dentist_id || ''
       });
     } else if (mode === 'create') {
       const today = new Date().toISOString().split('T')[0];
@@ -73,7 +80,8 @@ export const ConsultationEntryForm = ({
         diagnosis: '',
         treatment: '',
         observations: '',
-        status: 'Concluído'
+        status: 'Concluído',
+        dentist_id: ''
       });
     }
     setOdontogramData(currentOdontogram);
@@ -84,15 +92,24 @@ export const ConsultationEntryForm = ({
     setErrors({});
     
     try {
-      const validated = entrySchema.parse(formData);
+      const dataToValidate = {
+        ...formData,
+        dentist_id: formData.dentist_id || null
+      };
+      const validated = entrySchema.parse(dataToValidate);
+      
+      const entryData = {
+        ...validated,
+        dentist_id: validated.dentist_id || undefined
+      } as NewMedicalRecordEntry;
       
       if (mode === 'edit' && entry) {
         updateEntry({
           id: entry.id,
-          ...validated
+          ...entryData
         }, odontogramData);
       } else {
-        createEntry(validated as NewMedicalRecordEntry, odontogramData);
+        createEntry(entryData, odontogramData);
       }
       
       onOpenChange(false);
@@ -161,6 +178,25 @@ export const ConsultationEntryForm = ({
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="dentist">Dentista Responsável</Label>
+                <Select value={formData.dentist_id} onValueChange={(value) => handleChange('dentist_id', value)}>
+                  <SelectTrigger className={errors.dentist_id ? "border-destructive" : ""}>
+                    <SelectValue placeholder="Selecione o dentista" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activeDentists.map((dentist) => (
+                      <SelectItem key={dentist.id} value={dentist.id}>
+                        {dentist.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.dentist_id && (
+                  <p className="text-sm text-destructive mt-1">{errors.dentist_id}</p>
+                )}
               </div>
               
               <div>
