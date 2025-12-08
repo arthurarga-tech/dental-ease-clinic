@@ -142,6 +142,7 @@ export const PROCEDURE_CATEGORIES: ProcedureCategory[] = [
     icon: "🦷",
     procedures: [
       { name: "Debridamento periodontal", value: 80 },
+      { name: "Limpeza", value: 150 },
     ],
   },
   {
