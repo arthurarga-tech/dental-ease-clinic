@@ -358,11 +358,31 @@ export const BudgetForm = ({
                 </Select>
               </div>
 
-              <div>
+              <div className="md:col-span-2">
                 <FormLabel className="text-sm">Procedimento</FormLabel>
                 <Select
                   value={selectedProcedure}
-                  onValueChange={setSelectedProcedure}
+                  onValueChange={(value) => {
+                    if (!value || !selectedCategory) return;
+                    
+                    const procedure = availableProcedures.find(p => p.name === value);
+                    if (!procedure) return;
+                    
+                    const categoryData = PROCEDURE_CATEGORIES.find(c => c.id === selectedCategory);
+                    
+                    setProcedures([
+                      ...procedures,
+                      {
+                        name: procedure.name,
+                        value: procedure.value,
+                        category: categoryData ? `${categoryData.icon} ${categoryData.name}` : undefined,
+                        status: "Pendente",
+                      },
+                    ]);
+                    
+                    setSelectedCategory("");
+                    setSelectedProcedure("");
+                  }}
                   disabled={!selectedCategory}
                 >
                   <SelectTrigger>
@@ -371,33 +391,11 @@ export const BudgetForm = ({
                   <SelectContent>
                     {availableProcedures.map((procedure, idx) => (
                       <SelectItem key={idx} value={procedure.name}>
-                        {procedure.name}
+                        {procedure.name} - R$ {procedure.value.toFixed(2)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div>
-                <FormLabel className="text-sm">Valor (R$)</FormLabel>
-                <div className="flex gap-2">
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={customValue}
-                    onChange={(e) => setCustomValue(e.target.value)}
-                    disabled={!selectedProcedure}
-                  />
-                  <Button
-                    type="button"
-                    onClick={addProcedureFromList}
-                    disabled={!selectedProcedure || !customValue}
-                    size="icon"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
               </div>
             </div>
           </div>
