@@ -110,21 +110,21 @@ const Pacientes = () => {
   };
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Pacientes</h1>
-          <p className="text-sm md:text-base text-muted-foreground">Gerenciamento de pacientes do consultório</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Pacientes</h1>
+          <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Gerenciamento de pacientes do consultório</p>
         </div>
         
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90 w-full md:w-auto">
+            <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               Novo Paciente
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2">
             <DialogHeader>
               <DialogTitle>Cadastrar Novo Paciente</DialogTitle>
             </DialogHeader>
@@ -138,24 +138,25 @@ const Pacientes = () => {
       </div>
 
       <Card>
-        <CardHeader>
-          <div className="space-y-4">
+        <CardHeader className="pb-3 sm:pb-6">
+          <div className="space-y-3 sm:space-y-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
                 placeholder="Buscar por nome, e-mail ou telefone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 h-10"
               />
             </div>
             
-            {/* Status Filters */}
-            <div className="flex flex-wrap gap-2">
+            {/* Status Filters - scrollable on mobile */}
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
               <Button
                 variant={statusFilter === "Todos" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setStatusFilter("Todos")}
+                className="flex-shrink-0 text-xs sm:text-sm h-8"
               >
                 Todos ({patients.length})
               </Button>
@@ -163,7 +164,7 @@ const Pacientes = () => {
                 variant={statusFilter === "Ativo" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setStatusFilter("Ativo")}
-                className={statusFilter === "Ativo" ? "" : "hover:bg-primary/10"}
+                className={`flex-shrink-0 text-xs sm:text-sm h-8 ${statusFilter === "Ativo" ? "" : "hover:bg-primary/10"}`}
               >
                 ✓ Ativos ({statusCounts["Ativo"] || 0})
               </Button>
@@ -171,15 +172,15 @@ const Pacientes = () => {
                 variant={statusFilter === "Em Alerta" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setStatusFilter("Em Alerta")}
-                className={statusFilter === "Em Alerta" ? "" : "hover:bg-warning/10"}
+                className={`flex-shrink-0 text-xs sm:text-sm h-8 ${statusFilter === "Em Alerta" ? "" : "hover:bg-warning/10"}`}
               >
-                ⚠ Em Alerta ({statusCounts["Em Alerta"] || 0})
+                ⚠ Alerta ({statusCounts["Em Alerta"] || 0})
               </Button>
               <Button
                 variant={statusFilter === "Inativo" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setStatusFilter("Inativo")}
-                className={statusFilter === "Inativo" ? "" : "hover:bg-destructive/10"}
+                className={`flex-shrink-0 text-xs sm:text-sm h-8 ${statusFilter === "Inativo" ? "" : "hover:bg-destructive/10"}`}
               >
                 ✗ Inativos ({statusCounts["Inativo"] || 0})
               </Button>
@@ -193,89 +194,84 @@ const Pacientes = () => {
               <span className="ml-2 text-muted-foreground">Carregando pacientes...</span>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {filteredPatients.map((patient) => {
                 const statusInfo = calculatePatientStatus(patient.created_at, patient.last_appointment_date);
                 
                 return (
                   <Card key={patient.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                            <h3 className="text-base md:text-lg font-semibold text-foreground truncate">{patient.name}</h3>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Badge variant={statusInfo.variant}>
-                                    {statusInfo.icon} {statusInfo.status}
-                                  </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Última atividade: {statusInfo.daysSinceLastActivity} dias atrás</p>
-                                  {patient.last_appointment_date && (
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      Última consulta: {format(parseLocalDate(patient.last_appointment_date), "dd/MM/yyyy", { locale: ptBR })}
-                                    </p>
-                                  )}
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="flex flex-col gap-3">
+                        {/* Header with name and status */}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="text-sm sm:text-base font-semibold text-foreground truncate">{patient.name}</h3>
                           </div>
-                      
-                      <div className="grid grid-cols-1 gap-2 text-xs md:text-sm text-muted-foreground">
-                        {patient.email && (
-                          <div className="flex items-center gap-2">
-                            <Mail className="w-4 h-4" />
-                            {patient.email}
-                          </div>
-                        )}
-                        <div className="flex items-center gap-2">
-                          <Phone className="w-4 h-4" />
-                          {patient.phone}
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant={statusInfo.variant} className="flex-shrink-0 text-xs">
+                                  {statusInfo.icon} {statusInfo.status}
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Última atividade: {statusInfo.daysSinceLastActivity} dias atrás</p>
+                                {patient.last_appointment_date && (
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    Última consulta: {format(parseLocalDate(patient.last_appointment_date), "dd/MM/yyyy", { locale: ptBR })}
+                                  </p>
+                                )}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
-                          Cadastrado em: {new Date(patient.created_at).toLocaleDateString('pt-BR')}
+                        
+                        {/* Contact info */}
+                        <div className="grid grid-cols-1 gap-1.5 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-2">
+                            <Phone className="w-3.5 h-3.5 flex-shrink-0" />
+                            <span className="truncate">{patient.phone}</span>
+                          </div>
+                          {patient.email && (
+                            <div className="flex items-center gap-2">
+                              <Mail className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="truncate">{patient.email}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
+                            <span>Cadastrado em: {new Date(patient.created_at).toLocaleDateString('pt-BR')}</span>
+                          </div>
                         </div>
-                        {patient.address && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4" />
-                            {patient.address}
-                          </div>
-                        )}
-                        {patient.medical_notes && (
-                          <div className="flex items-center gap-2">
-                            <FileText className="w-4 h-4" />
-                            Observações médicas
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-1 md:gap-2 flex-shrink-0">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => openViewDialog(patient)}
-                      >
-                        <Eye className="w-3 h-3 md:w-4 md:h-4" />
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => openEditDialog(patient)}
-                      >
-                        <Edit className="w-3 h-3 md:w-4 md:h-4" />
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => openDeleteDialog(patient)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
-                      </Button>
+                        
+                        {/* Actions */}
+                        <div className="flex gap-2 pt-2 border-t border-border">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => openViewDialog(patient)}
+                            className="flex-1 h-8 text-xs"
+                          >
+                            <Eye className="w-3.5 h-3.5 mr-1" />
+                            Ver
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => openEditDialog(patient)}
+                            className="flex-1 h-8 text-xs"
+                          >
+                            <Edit className="w-3.5 h-3.5 mr-1" />
+                            Editar
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => openDeleteDialog(patient)}
+                            className="text-destructive hover:text-destructive h-8 w-8 p-0"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
                         </div>
                       </div>
                     </CardContent>
@@ -295,7 +291,7 @@ const Pacientes = () => {
 
       {/* Edit Patient Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2">
           <DialogHeader>
             <DialogTitle>Editar Paciente</DialogTitle>
           </DialogHeader>

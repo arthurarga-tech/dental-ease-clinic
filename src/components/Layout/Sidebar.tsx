@@ -78,20 +78,20 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
   };
 
   return (
-    <div className="w-full h-full bg-card border-r border-border flex flex-col md:w-64 md:h-screen">
-      <div className="p-6 border-b border-border">
+    <div className="w-full h-full bg-card border-r border-border flex flex-col lg:w-64 lg:h-screen">
+      <div className="p-4 lg:p-6 border-b border-border">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary rounded-lg">
-            <Stethoscope className="w-6 h-6 text-primary-foreground" />
+            <Stethoscope className="w-5 h-5 lg:w-6 lg:h-6 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-foreground">DentalCare</h1>
-            <p className="text-sm text-muted-foreground">Sistema Odontológico</p>
+            <h1 className="text-lg lg:text-xl font-bold text-foreground">DentalCare</h1>
+            <p className="text-xs lg:text-sm text-muted-foreground">Sistema Odontológico</p>
           </div>
         </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-3 lg:p-4 space-y-1 lg:space-y-2 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
@@ -101,25 +101,25 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
               key={item.path}
               variant={isActive ? "secondary" : "ghost"}
               className={cn(
-                "w-full justify-start gap-3 h-12",
+                "w-full justify-start gap-3 h-11 lg:h-12 text-sm lg:text-base",
                 isActive && "bg-accent text-accent-foreground"
               )}
               onClick={() => handleNavigation(item.path)}
             >
-              <Icon className="w-5 h-5" />
-              {item.label}
+              <Icon className="w-4 h-4 lg:w-5 lg:h-5 flex-shrink-0" />
+              <span className="truncate">{item.label}</span>
             </Button>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-border space-y-2">
+      <div className="p-3 lg:p-4 border-t border-border space-y-2">
         <Button
           variant="outline"
-          className="w-full justify-start gap-3 h-12"
+          className="w-full justify-start gap-3 h-11 lg:h-12 text-sm lg:text-base"
           onClick={handleSignOut}
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className="w-4 h-4 lg:w-5 lg:h-5 flex-shrink-0" />
           Sair
         </Button>
         <div className="text-xs text-muted-foreground text-center pt-2">
