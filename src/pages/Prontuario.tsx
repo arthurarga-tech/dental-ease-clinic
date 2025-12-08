@@ -13,7 +13,8 @@ import {
   Eye,
   Edit,
   Trash2,
-  Pill
+  Pill,
+  Receipt
 } from "lucide-react";
 import { useMedicalRecords, MedicalRecord } from "@/hooks/useMedicalRecords";
 import { usePatients } from "@/hooks/usePatients";
@@ -22,6 +23,7 @@ import { MedicalRecordViewDialog } from "@/components/MedicalRecordViewDialog";
 import { MedicalRecordDeleteDialog } from "@/components/MedicalRecordDeleteDialog";
 import { MedicalCertificateForm } from "@/components/MedicalCertificateForm";
 import { PrescriptionForm } from "@/components/PrescriptionForm";
+import { InvoiceForm } from "@/components/InvoiceForm";
 
 
 const Prontuario = () => {
@@ -32,6 +34,7 @@ const Prontuario = () => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isCertificateOpen, setIsCertificateOpen] = useState(false);
   const [isPrescriptionOpen, setIsPrescriptionOpen] = useState(false);
+  const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
 
@@ -126,6 +129,14 @@ const Prontuario = () => {
           >
             <Pill className="h-4 w-4" />
             Gerar Receita
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setIsInvoiceOpen(true)} 
+            className="w-full sm:w-auto gap-2"
+          >
+            <Receipt className="h-4 w-4" />
+            Gerar Nota Fiscal
           </Button>
         </div>
       </div>
@@ -285,6 +296,11 @@ const Prontuario = () => {
       <PrescriptionForm
         open={isPrescriptionOpen}
         onOpenChange={setIsPrescriptionOpen}
+      />
+
+      <InvoiceForm
+        open={isInvoiceOpen}
+        onOpenChange={setIsInvoiceOpen}
       />
     </div>
   );
