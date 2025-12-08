@@ -17,7 +17,8 @@ import {
   Pill,
   ClipboardPlus,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Receipt
 } from "lucide-react";
 import { useMedicalRecords } from "@/hooks/useMedicalRecords";
 import { useMedicalRecordEntries } from "@/hooks/useMedicalRecordEntries";
@@ -26,6 +27,7 @@ import { MedicalRecordForm } from "@/components/MedicalRecordForm";
 import { ConsultationEntryForm } from "@/components/ConsultationEntryForm";
 import { MedicalCertificateForm } from "@/components/MedicalCertificateForm";
 import { PrescriptionForm } from "@/components/PrescriptionForm";
+import { InvoiceForm } from "@/components/InvoiceForm";
 import { MedicalRecordDeleteDialog } from "@/components/MedicalRecordDeleteDialog";
 import { ConsultationEntryDeleteDialog } from "@/components/ConsultationEntryDeleteDialog";
 import { Odontogram } from "@/components/Odontogram";
@@ -62,6 +64,7 @@ const ProntuarioNovo = () => {
   const [isEntryFormOpen, setIsEntryFormOpen] = useState(false);
   const [isCertificateOpen, setIsCertificateOpen] = useState(false);
   const [isPrescriptionOpen, setIsPrescriptionOpen] = useState(false);
+  const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
   const [selectedMedicalRecordId, setSelectedMedicalRecordId] = useState<string | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const [selectedEntry, setSelectedEntry] = useState<any>(null);
@@ -298,6 +301,14 @@ const ProntuarioNovo = () => {
             <Pill className="h-4 w-4" />
             Gerar Receita
           </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setIsInvoiceOpen(true)} 
+            className="w-full sm:w-auto gap-2"
+          >
+            <Receipt className="h-4 w-4" />
+            Gerar Nota Fiscal
+          </Button>
         </div>
       </div>
 
@@ -380,6 +391,11 @@ const ProntuarioNovo = () => {
       <PrescriptionForm
         open={isPrescriptionOpen}
         onOpenChange={setIsPrescriptionOpen}
+      />
+
+      <InvoiceForm
+        open={isInvoiceOpen}
+        onOpenChange={setIsInvoiceOpen}
       />
 
       <MedicalRecordDeleteDialog
