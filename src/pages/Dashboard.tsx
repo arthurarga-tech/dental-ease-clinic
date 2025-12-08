@@ -34,28 +34,32 @@ const Dashboard = () => {
       value: stats.activePatients.toString(),
       icon: Users,
       color: "text-primary",
-      bg: "bg-primary/10"
+      bg: "bg-primary/10",
+      route: "/pacientes"
     },
     {
       title: "Consultas Hoje",
       value: stats.appointmentsToday.toString(),
       icon: Calendar,
       color: "text-success",
-      bg: "bg-success/10"
+      bg: "bg-success/10",
+      route: "/agenda"
     },
     {
       title: "Receitas (Pago)",
       value: `R$ ${stats.totalReceitas?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0,00'}`,
       icon: TrendingUp,
       color: "text-success",
-      bg: "bg-success/10"
+      bg: "bg-success/10",
+      route: "/financeiro"
     },
     {
       title: "Saldo Atual",
       value: `R$ ${stats.saldoAtual?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0,00'}`,
       icon: CreditCard,
       color: stats.saldoAtual && stats.saldoAtual >= 0 ? "text-success" : "text-destructive",
-      bg: stats.saldoAtual && stats.saldoAtual >= 0 ? "bg-success/10" : "bg-destructive/10"
+      bg: stats.saldoAtual && stats.saldoAtual >= 0 ? "bg-success/10" : "bg-destructive/10",
+      route: "/financeiro"
     }
   ];
 
@@ -97,7 +101,11 @@ const Dashboard = () => {
         {statsCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={index} className="hover:shadow-lg transition-shadow">
+            <Card 
+              key={index} 
+              className="hover:shadow-lg transition-shadow cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+              onClick={() => navigate(stat.route)}
+            >
               <CardContent className="p-3 sm:p-4 md:p-6">
                 <div className="flex items-start sm:items-center justify-between gap-2">
                   <div className="min-w-0 flex-1">
@@ -127,7 +135,8 @@ const Dashboard = () => {
             todayAppointments.map((appointment) => (
               <div 
                 key={appointment.id}
-                className="flex items-center justify-between p-2.5 sm:p-3 bg-secondary rounded-lg gap-2"
+                className="flex items-center justify-between p-2.5 sm:p-3 bg-secondary rounded-lg gap-2 cursor-pointer hover:bg-secondary/80 transition-colors"
+                onClick={() => navigate("/agenda")}
               >
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                   <div className="text-xs sm:text-sm font-medium text-primary flex-shrink-0">
@@ -215,8 +224,12 @@ const Dashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {activeDentists.map((dentist) => (
-                <div key={dentist.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
+            {activeDentists.map((dentist) => (
+                <div 
+                  key={dentist.id} 
+                  className="border-b border-border pb-4 last:border-0 last:pb-0 cursor-pointer hover:bg-secondary/50 p-2 rounded-lg transition-colors -mx-2"
+                  onClick={() => navigate("/dentistas")}
+                >
                   <p className="font-medium text-foreground mb-2">{dentist.name}</p>
                   <div className="space-y-1">
                     {dentist.dentist_availability.length > 0 ? (
@@ -273,7 +286,8 @@ const Dashboard = () => {
                   {birthdayPatients.map((patient) => (
                     <div 
                       key={patient.id}
-                      className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/20"
+                      className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/20 cursor-pointer hover:bg-primary/10 transition-colors"
+                      onClick={() => navigate("/pacientes")}
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
@@ -299,7 +313,8 @@ const Dashboard = () => {
                   {birthdayDentists.map((dentist) => (
                     <div 
                       key={dentist.id}
-                      className="flex items-center justify-between p-3 bg-success/5 rounded-lg border border-success/20"
+                      className="flex items-center justify-between p-3 bg-success/5 rounded-lg border border-success/20 cursor-pointer hover:bg-success/10 transition-colors"
+                      onClick={() => navigate("/dentistas")}
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-success/10 rounded-full flex items-center justify-center">
