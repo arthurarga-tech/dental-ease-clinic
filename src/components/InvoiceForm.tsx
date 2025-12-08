@@ -27,6 +27,7 @@ export const InvoiceForm = ({ open, onOpenChange }: InvoiceFormProps) => {
 
   const [selectedPatient, setSelectedPatient] = useState("");
   const [selectedDentist, setSelectedDentist] = useState("");
+  const [cpfCnpj, setCpfCnpj] = useState("");
   const [invoiceDate, setInvoiceDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [paymentMethod, setPaymentMethod] = useState("");
   const [observations, setObservations] = useState("");
@@ -211,6 +212,7 @@ export const InvoiceForm = ({ open, onOpenChange }: InvoiceFormProps) => {
               <h3>CLIENTE</h3>
               ${patient ? `
                 <p><strong>${patient.name}</strong></p>
+                ${cpfCnpj ? `<p>CPF/CNPJ: ${cpfCnpj}</p>` : ""}
                 ${patient.phone ? `<p>Tel: ${patient.phone}</p>` : ""}
                 ${patient.email ? `<p>Email: ${patient.email}</p>` : ""}
                 ${patient.address ? `<p>Endereço: ${patient.address}</p>` : ""}
@@ -298,20 +300,29 @@ export const InvoiceForm = ({ open, onOpenChange }: InvoiceFormProps) => {
             </div>
 
             <div>
-              <Label>Dentista</Label>
-              <Select value={selectedDentist} onValueChange={setSelectedDentist}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o dentista" />
-                </SelectTrigger>
-                <SelectContent>
-                  {dentists?.map((dentist) => (
-                    <SelectItem key={dentist.id} value={dentist.id}>
-                      {dentist.name} - CRO: {dentist.cro}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>CPF/CNPJ do Paciente</Label>
+              <Input
+                placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                value={cpfCnpj}
+                onChange={(e) => setCpfCnpj(e.target.value)}
+              />
             </div>
+          </div>
+
+          <div>
+            <Label>Dentista</Label>
+            <Select value={selectedDentist} onValueChange={setSelectedDentist}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o dentista" />
+              </SelectTrigger>
+              <SelectContent>
+                {dentists?.map((dentist) => (
+                  <SelectItem key={dentist.id} value={dentist.id}>
+                    {dentist.name} - CRO: {dentist.cro}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
