@@ -150,12 +150,15 @@ export const Odontogram = ({ value, onChange }: OdontogramProps) => {
         </div>
       </div>
 
-      <div className="overflow-x-auto -mx-3 px-3 md:mx-0 md:px-0">
-        <div className="space-y-4 md:space-y-6 min-w-[600px] md:min-w-0">
+      <div 
+        className="overflow-x-auto -mx-3 px-3 md:mx-0 md:px-0 touch-pan-x"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
+        <div className="space-y-4 md:space-y-6 min-w-[520px] md:min-w-0 pb-2">
           {/* Arcada Superior */}
           <div className="space-y-2">
             <p className="text-xs md:text-sm font-medium text-center">Arcada Superior</p>
-            <div className="flex justify-center gap-3 md:gap-6">
+            <div className="flex justify-center gap-2 md:gap-6">
               <div className="flex gap-0.5 md:gap-1">
                 {UPPER_RIGHT.map(renderTooth)}
               </div>
@@ -171,7 +174,7 @@ export const Odontogram = ({ value, onChange }: OdontogramProps) => {
           {/* Arcada Inferior */}
           <div className="space-y-2">
             <p className="text-xs md:text-sm font-medium text-center">Arcada Inferior</p>
-            <div className="flex justify-center gap-3 md:gap-6">
+            <div className="flex justify-center gap-2 md:gap-6">
               <div className="flex gap-0.5 md:gap-1">
                 {LOWER_RIGHT.map(renderTooth)}
               </div>
@@ -184,8 +187,10 @@ export const Odontogram = ({ value, onChange }: OdontogramProps) => {
         </div>
       </div>
 
-      <div className="text-xs text-muted-foreground text-center md:hidden">
-        Deslize horizontalmente para ver todos os dentes
+      <div className="text-xs text-muted-foreground text-center md:hidden flex items-center justify-center gap-1">
+        <span>←</span>
+        <span>Deslize para ver todos os dentes</span>
+        <span>→</span>
       </div>
     </div>
   );
