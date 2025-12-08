@@ -21,7 +21,7 @@ const entrySchema = z.object({
   treatment: z.string().trim().min(1, { message: "Tratamento obrigatório" }),
   observations: z.string().trim().optional(),
   status: z.enum(["Agendado", "Em andamento", "Concluído"]),
-  dentist_id: z.string().uuid({ message: "Dentista inválido" }).optional().nullable()
+  dentist_id: z.string().uuid({ message: "Selecione o dentista responsável" })
 });
 
 interface ConsultationEntryFormProps {
@@ -94,16 +94,9 @@ export const ConsultationEntryForm = ({
     setErrors({});
     
     try {
-      const dataToValidate = {
-        ...formData,
-        dentist_id: formData.dentist_id || null
-      };
-      const validated = entrySchema.parse(dataToValidate);
+      const validated = entrySchema.parse(formData);
       
-      const entryData = {
-        ...validated,
-        dentist_id: validated.dentist_id || undefined
-      } as NewMedicalRecordEntry;
+      const entryData = validated as NewMedicalRecordEntry;
       
       if (mode === 'edit' && entry) {
         updateEntry({
