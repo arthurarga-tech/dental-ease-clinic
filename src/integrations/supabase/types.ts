@@ -561,6 +561,7 @@ export type Database = {
           medical_notes: string | null
           name: string
           phone: string
+          photo_url: string | null
           status: string
           updated_at: string
         }
@@ -575,6 +576,7 @@ export type Database = {
           medical_notes?: string | null
           name: string
           phone: string
+          photo_url?: string | null
           status?: string
           updated_at?: string
         }
@@ -589,6 +591,7 @@ export type Database = {
           medical_notes?: string | null
           name?: string
           phone?: string
+          photo_url?: string | null
           status?: string
           updated_at?: string
         }
