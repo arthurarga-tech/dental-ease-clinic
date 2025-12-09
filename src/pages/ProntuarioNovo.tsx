@@ -23,6 +23,10 @@ import {
 import { useMedicalRecords } from "@/hooks/useMedicalRecords";
 import { useMedicalRecordEntries } from "@/hooks/useMedicalRecordEntries";
 import { usePatients } from "@/hooks/usePatients";
+import { useDentistMedicalRecords } from "@/hooks/useDentistMedicalRecords";
+import { useDentistPatients } from "@/hooks/useDentistPatients";
+import { useAuth } from "@/hooks/useAuth";
+import { useDentistProfile } from "@/hooks/useDentistProfile";
 import { MedicalRecordForm } from "@/components/MedicalRecordForm";
 import { ConsultationEntryForm } from "@/components/ConsultationEntryForm";
 import { MedicalCertificateForm } from "@/components/MedicalCertificateForm";
@@ -58,6 +62,10 @@ const DeleteEntryWrapper = ({ entry, open, onOpenChange, medicalRecordId }: {
 };
 
 const ProntuarioNovo = () => {
+  const { userRole } = useAuth();
+  const isDentist = userRole === 'dentist' || userRole === 'dentista';
+  const { dentist } = useDentistProfile();
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPatient, setSelectedPatient] = useState("");
   const [isRecordFormOpen, setIsRecordFormOpen] = useState(false);
@@ -73,10 +81,18 @@ const ProntuarioNovo = () => {
   const [isDeleteRecordOpen, setIsDeleteRecordOpen] = useState(false);
   const [isDeleteEntryOpen, setIsDeleteEntryOpen] = useState(false);
 
-  const { medicalRecords = [], isLoading, deleteMedicalRecord, isDeleting: isDeletingRecord } = useMedicalRecords();
-  const { patients = [] } = usePatients();
+  // Use different hooks based on user role
+  const adminMedicalRecords = useMedicalRecords();
+  const dentistMedicalRecords = useDentistMedicalRecords();
+  const adminPatients = usePatients();
+  const dentistPatients = useDentistPatients();
+  
+  const medicalRecords = isDentist ? dentistMedicalRecords.medicalRecords : adminMedicalRecords.medicalRecords;
+  const isLoading = isDentist ? dentistMedicalRecords.isLoading : adminMedicalRecords.isLoading;
+  const { deleteMedicalRecord, isDeleting: isDeletingRecord } = adminMedicalRecords;
+  const patients = isDentist ? dentistPatients.patients : adminPatients.patients;
 
-  const filteredRecords = medicalRecords.filter(record => {
+  const filteredRecords = (medicalRecords || []).filter(record => {
     const matchesSearch = record.patients.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPatient = selectedPatient && selectedPatient !== "all" ? record.patient_id === selectedPatient : true;
     return matchesSearch && matchesPatient;
@@ -140,10 +156,21 @@ const ProntuarioNovo = () => {
     const { entries = [], deleteEntry, isDeleting } = useMedicalRecordEntries(record.id);
     const [showOdontogram, setShowOdontogram] = useState(false);
 
+    // Filter entries for dentist - only show entries they created
+    const filteredEntries = isDentist && dentist?.id 
+      ? entries.filter((entry: any) => entry.dentist_id === dentist.id)
+      : entries;
+
     const handleDeleteEntryInCard = (entry: any) => {
       setSelectedEntry(entry);
       setSelectedMedicalRecordId(record.id);
       setIsDeleteEntryOpen(true);
+    };
+
+    // Check if dentist can edit this entry
+    const canEditEntry = (entry: any) => {
+      if (!isDentist) return true;
+      return entry.dentist_id === dentist?.id;
     };
 
     return (
@@ -155,22 +182,26 @@ const ProntuarioNovo = () => {
               <p className="text-sm text-muted-foreground">Prontuário criado em {formatLocalDate(record.created_at.split('T')[0])}</p>
             </div>
             <div className="flex gap-2">
-              <Button 
-                size="sm"
-                variant="outline"
-                onClick={() => handleEditRecord(record)}
-                className="gap-2"
-              >
-                <Edit className="w-4 h-4" />
-              </Button>
-              <Button 
-                size="sm"
-                variant="outline"
-                onClick={() => handleDeleteRecord(record)}
-                className="gap-2"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+              {!isDentist && (
+                <>
+                  <Button 
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEditRecord(record)}
+                    className="gap-2"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDeleteRecord(record)}
+                    className="gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
               <Button 
                 size="sm"
                 onClick={() => handleAddConsultation(record.id)}
@@ -209,16 +240,16 @@ const ProntuarioNovo = () => {
             
             <AccordionItem value="consultations">
               <AccordionTrigger className="text-sm">
-                Histórico de Consultas ({entries.length})
+                {isDentist ? `Minhas Consultas (${filteredEntries.length})` : `Histórico de Consultas (${entries.length})`}
               </AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-3 mt-2">
-                  {entries.length === 0 ? (
+                  {filteredEntries.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-4">
-                      Nenhuma consulta registrada
+                      {isDentist ? "Você ainda não registrou consultas para este paciente" : "Nenhuma consulta registrada"}
                     </p>
                   ) : (
-                    entries.map((entry: any) => (
+                    filteredEntries.map((entry: any) => (
                       <Card key={entry.id} className="bg-secondary/50">
                         <CardContent className="p-3">
                           <div className="flex justify-between items-start mb-2">
@@ -230,22 +261,26 @@ const ProntuarioNovo = () => {
                               </Badge>
                             </div>
                             <div className="flex gap-1">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleEditEntry(record.id, entry)}
-                                className="h-7 w-7 p-0"
-                              >
-                                <Edit className="w-3 h-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleDeleteEntryInCard(entry)}
-                                className="h-7 w-7 p-0"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
+                              {canEditEntry(entry) && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleEditEntry(record.id, entry)}
+                                    className="h-7 w-7 p-0"
+                                  >
+                                    <Edit className="w-3 h-3" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleDeleteEntryInCard(entry)}
+                                    className="h-7 w-7 p-0"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                </>
+                              )}
                             </div>
                           </div>
                                           <div className="space-y-1">
@@ -279,14 +314,20 @@ const ProntuarioNovo = () => {
       <div className="flex flex-col gap-4">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Prontuários</h1>
-            <p className="text-sm md:text-base text-muted-foreground">Registros médicos e histórico dos pacientes</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+              {isDentist ? "Meus Prontuários" : "Prontuários"}
+            </h1>
+            <p className="text-sm md:text-base text-muted-foreground">
+              {isDentist ? "Prontuários dos pacientes que você atendeu" : "Registros médicos e histórico dos pacientes"}
+            </p>
           </div>
           
-          <Button className="bg-primary hover:bg-primary/90 w-full md:w-auto" onClick={handleCreateRecord}>
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Prontuário
-          </Button>
+          {!isDentist && (
+            <Button className="bg-primary hover:bg-primary/90 w-full md:w-auto" onClick={handleCreateRecord}>
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Prontuário
+            </Button>
+          )}
         </div>
         
         <div className="flex flex-col sm:flex-row gap-2">
