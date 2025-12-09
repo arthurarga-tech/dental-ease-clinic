@@ -1,5 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Patient } from "@/hooks/usePatients";
 import { calculatePatientStatus, parseLocalDate } from "@/lib/utils";
 import { format } from "date-fns";
@@ -25,6 +26,15 @@ interface PatientViewDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const getInitials = (name: string) => {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+};
+
 export const PatientViewDialog = ({ patient, open, onOpenChange }: PatientViewDialogProps) => {
   if (!patient) return null;
 
@@ -41,25 +51,36 @@ export const PatientViewDialog = ({ patient, open, onOpenChange }: PatientViewDi
         </DialogHeader>
         
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-foreground">{patient.name}</h2>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge variant={statusInfo.variant}>
-                    {statusInfo.icon} {statusInfo.status}
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Última atividade: {statusInfo.daysSinceLastActivity} dias atrás</p>
-                  {patient.last_appointment_date && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Última consulta: {format(parseLocalDate(patient.last_appointment_date), "dd/MM/yyyy", { locale: ptBR })}
-                    </p>
-                  )}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+          <div className="flex items-center gap-4">
+            <Avatar className="w-20 h-20 border-2 border-border">
+              <AvatarImage src={patient.photo_url} alt={patient.name} />
+              <AvatarFallback className="text-xl bg-muted">
+                {getInitials(patient.name)}
+              </AvatarFallback>
+            </Avatar>
+            
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-foreground">{patient.name}</h2>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge variant={statusInfo.variant}>
+                        {statusInfo.icon} {statusInfo.status}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Última atividade: {statusInfo.daysSinceLastActivity} dias atrás</p>
+                      {patient.last_appointment_date && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Última consulta: {format(parseLocalDate(patient.last_appointment_date), "dd/MM/yyyy", { locale: ptBR })}
+                        </p>
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

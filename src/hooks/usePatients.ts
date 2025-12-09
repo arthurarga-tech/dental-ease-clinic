@@ -13,6 +13,7 @@ export interface Patient {
   medical_notes?: string;
   guardian_name?: string;
   guardian_relationship?: string;
+  photo_url?: string;
   status: "Ativo" | "Inativo";
   created_at: string;
   updated_at: string;
@@ -28,6 +29,7 @@ export interface NewPatient {
   medical_notes?: string;
   guardian_name?: string;
   guardian_relationship?: string;
+  photo_url?: string;
 }
 
 export const usePatients = () => {

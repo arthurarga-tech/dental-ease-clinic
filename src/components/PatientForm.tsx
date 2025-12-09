@@ -1,9 +1,9 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { NewPatient } from "@/hooks/usePatients";
-
+import { PatientPhotoUpload } from "./PatientPhotoUpload";
 import { parseLocalDate } from "@/lib/utils";
 
 const calculateAge = (birthDate: string): number => {
@@ -58,13 +58,14 @@ const patientSchema = z.object({
 type PatientFormData = z.infer<typeof patientSchema>;
 
 interface PatientFormProps {
-  onSubmit: (data: PatientFormData) => void;
+  onSubmit: (data: NewPatient) => void;
   onCancel: () => void;
   isLoading?: boolean;
-  initialData?: Partial<PatientFormData>;
+  initialData?: Partial<NewPatient & { photo_url?: string }>;
 }
 
 export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData }: PatientFormProps) => {
+  const [photoUrl, setPhotoUrl] = useState<string | undefined>(initialData?.photo_url);
   const form = useForm<PatientFormData>({
     resolver: zodResolver(patientSchema),
     defaultValues: {
@@ -81,6 +82,8 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
   const birthDate = form.watch("birth_date");
   const isMinor = birthDate ? calculateAge(birthDate) < 18 : false;
 
+  const patientName = form.watch("name");
+
   const handleSubmit = (data: PatientFormData) => {
     // Convert empty strings to undefined for optional fields
     const cleanData: NewPatient = {
@@ -91,6 +94,7 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
       medical_notes: data.medical_notes || undefined,
       guardian_name: data.guardian_name || undefined,
       guardian_relationship: data.guardian_relationship || undefined,
+      photo_url: photoUrl,
     };
     onSubmit(cleanData);
   };
@@ -98,6 +102,15 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-3 md:space-y-4">
+        <div className="flex justify-center pb-2">
+          <PatientPhotoUpload
+            currentPhotoUrl={photoUrl}
+            patientName={patientName || ""}
+            onPhotoChange={setPhotoUrl}
+            disabled={isLoading}
+          />
+        </div>
+
         <FormField
           control={form.control}
           name="name"
