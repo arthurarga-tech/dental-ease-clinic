@@ -68,6 +68,23 @@ export const useBudgets = () => {
     },
   });
 
+  // Check if patient has an active (Pendente or Aprovado) budget
+  const checkDuplicateBudget = async (patientId: string, excludeBudgetId?: string): Promise<boolean> => {
+    const query = supabase
+      .from("budgets")
+      .select("id")
+      .eq("patient_id", patientId)
+      .in("status", ["Pendente", "Aprovado"]);
+    
+    if (excludeBudgetId) {
+      query.neq("id", excludeBudgetId);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data?.length || 0) > 0;
+  };
+
   const createBudget = useMutation({
     mutationFn: async (newBudget: NewBudget) => {
       const { data, error } = await supabase
@@ -154,5 +171,6 @@ export const useBudgets = () => {
     isCreating: createBudget.isPending,
     isUpdating: updateBudget.isPending,
     isDeleting: deleteBudget.isPending,
+    checkDuplicateBudget,
   };
 };

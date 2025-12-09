@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { Plus, Eye, Pencil, Trash2, DollarSign } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, Eye, Pencil, Trash2, DollarSign, Search } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -24,31 +25,70 @@ import { BudgetForm } from "@/components/BudgetForm";
 import { BudgetViewDialog } from "@/components/BudgetViewDialog";
 import { BudgetDeleteDialog } from "@/components/BudgetDeleteDialog";
 import { BudgetPaymentDialog } from "@/components/BudgetPaymentDialog";
+import { useToast } from "@/hooks/use-toast";
 
 const Orcamento = () => {
-  const { budgets, isLoading, createBudget, updateBudget, deleteBudget, isCreating, isUpdating } = useBudgets();
+  const { budgets, isLoading, createBudget, updateBudget, deleteBudget, isCreating, isUpdating, checkDuplicateBudget } = useBudgets();
+  const { toast } = useToast();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredBudgets = useMemo(() => {
+    if (!budgets) return [];
+    if (!searchTerm.trim()) return budgets;
+    
+    const lowerSearch = searchTerm.toLowerCase();
+    return budgets.filter((budget) =>
+      budget.patients?.name?.toLowerCase().includes(lowerSearch)
+    );
+  }, [budgets, searchTerm]);
 
   const openPaymentDialog = (budget: Budget) => {
     setSelectedBudget(budget);
     setIsPaymentOpen(true);
   };
 
-  const handleCreate = (data: any) => {
-    createBudget(data);
-    setIsFormOpen(false);
+  const handleCreate = async (data: any) => {
+    try {
+      const hasDuplicate = await checkDuplicateBudget(data.patient_id);
+      if (hasDuplicate) {
+        toast({
+          title: "Orçamento duplicado",
+          description: "Este paciente já possui um orçamento Pendente ou Aprovado.",
+          variant: "destructive",
+        });
+        return;
+      }
+      createBudget(data);
+      setIsFormOpen(false);
+    } catch (error) {
+      console.error("Error checking duplicate:", error);
+    }
   };
 
-  const handleUpdate = (data: any) => {
+  const handleUpdate = async (data: any) => {
     if (editingBudget) {
-      updateBudget({ id: editingBudget.id, ...data });
-      setIsFormOpen(false);
-      setEditingBudget(null);
+      try {
+        const hasDuplicate = await checkDuplicateBudget(data.patient_id, editingBudget.id);
+        if (hasDuplicate) {
+          toast({
+            title: "Orçamento duplicado",
+            description: "Este paciente já possui outro orçamento Pendente ou Aprovado.",
+            variant: "destructive",
+          });
+          return;
+        }
+        updateBudget({ id: editingBudget.id, ...data });
+        setIsFormOpen(false);
+        setEditingBudget(null);
+      } catch (error) {
+        console.error("Error checking duplicate:", error);
+      }
     }
   };
 
@@ -111,6 +151,16 @@ const Orcamento = () => {
         </Button>
       </div>
 
+      <div className="relative w-full md:w-80">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar por paciente..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
       <Card>
         <div className="overflow-x-auto">
           <Table>
@@ -131,14 +181,14 @@ const Orcamento = () => {
                     Carregando...
                   </TableCell>
                 </TableRow>
-              ) : budgets?.length === 0 ? (
+              ) : filteredBudgets.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center">
                     Nenhum orçamento encontrado
                   </TableCell>
                 </TableRow>
               ) : (
-                budgets?.map((budget) => (
+                filteredBudgets.map((budget) => (
                   <TableRow key={budget.id}>
                     <TableCell className="font-medium text-xs md:text-sm">
                       {budget.patients?.name}
