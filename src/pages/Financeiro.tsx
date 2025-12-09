@@ -66,7 +66,7 @@ const Financeiro = () => {
   
   const { patients } = usePatients();
   const { dentists } = useDentists();
-  const { cardFees } = useFechamento();
+  const { cardFees = [] } = useFechamento();
   const { toast } = useToast();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
