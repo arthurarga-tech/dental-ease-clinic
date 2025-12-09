@@ -8,6 +8,8 @@ import { PatientForm } from "@/components/PatientForm";
 import { PatientViewDialog } from "@/components/PatientViewDialog";
 import { PatientDeleteDialog } from "@/components/PatientDeleteDialog";
 import { usePatients, Patient } from "@/hooks/usePatients";
+import { useDentistPatients } from "@/hooks/useDentistPatients";
+import { useAuth } from "@/hooks/useAuth";
 import { calculatePatientStatus, parseLocalDate } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -32,6 +34,9 @@ import {
 } from "@/components/ui/tooltip";
 
 const Pacientes = () => {
+  const { userRole } = useAuth();
+  const isDentist = userRole === 'dentist' || userRole === 'dentista';
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"Todos" | "Ativo" | "Em Alerta" | "Inativo">("Todos");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -40,16 +45,20 @@ const Pacientes = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   
+  // Use different hooks based on user role
+  const adminHook = usePatients();
+  const dentistHook = useDentistPatients();
+  
+  const patients = isDentist ? dentistHook.patients : adminHook.patients;
+  const isLoading = isDentist ? dentistHook.isLoading : adminHook.isLoading;
   const { 
-    patients, 
-    isLoading, 
     createPatient, 
     updatePatient,
     deletePatient,
     isCreating,
     isUpdating,
     isDeleting
-  } = usePatients();
+  } = adminHook;
 
   const filteredPatients = patients.filter(patient => {
     const matchesSearch = 
@@ -99,42 +108,41 @@ const Pacientes = () => {
     setIsViewDialogOpen(true);
   };
 
-  const openEditDialog = (patient: Patient) => {
-    setSelectedPatient(patient);
-    setIsEditDialogOpen(true);
-  };
-
-  const openDeleteDialog = (patient: Patient) => {
-    setSelectedPatient(patient);
-    setIsDeleteDialogOpen(true);
-  };
-
   return (
     <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
       <div className="flex flex-col gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Pacientes</h1>
-          <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Gerenciamento de pacientes do consultório</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
+            {isDentist ? "Meus Pacientes" : "Pacientes"}
+          </h1>
+          <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
+            {isDentist 
+              ? "Pacientes que você atendeu ou atenderá" 
+              : "Gerenciamento de pacientes do consultório"
+            }
+          </p>
         </div>
         
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Paciente
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2">
-            <DialogHeader>
-              <DialogTitle>Cadastrar Novo Paciente</DialogTitle>
-            </DialogHeader>
-            <PatientForm 
-              onSubmit={handleCreatePatient}
-              onCancel={() => setIsCreateDialogOpen(false)}
-              isLoading={isCreating}
-            />
-          </DialogContent>
-        </Dialog>
+        {!isDentist && (
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Paciente
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2">
+              <DialogHeader>
+                <DialogTitle>Cadastrar Novo Paciente</DialogTitle>
+              </DialogHeader>
+              <PatientForm 
+                onSubmit={handleCreatePatient}
+                onCancel={() => setIsCreateDialogOpen(false)}
+                isLoading={isCreating}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <Card>
@@ -255,23 +263,33 @@ const Pacientes = () => {
                             <Eye className="w-3.5 h-3.5 mr-1" />
                             Ver
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => openEditDialog(patient)}
-                            className="flex-1 h-8 text-xs"
-                          >
-                            <Edit className="w-3.5 h-3.5 mr-1" />
-                            Editar
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => openDeleteDialog(patient)}
-                            className="text-destructive hover:text-destructive h-8 w-8 p-0"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
+                          {!isDentist && (
+                            <>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedPatient(patient);
+                                  setIsEditDialogOpen(true);
+                                }}
+                                className="flex-1 h-8 text-xs"
+                              >
+                                <Edit className="w-3.5 h-3.5 mr-1" />
+                                Editar
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedPatient(patient);
+                                  setIsDeleteDialogOpen(true);
+                                }}
+                                className="text-destructive hover:text-destructive h-8 w-8 p-0"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -289,25 +307,27 @@ const Pacientes = () => {
         </CardContent>
       </Card>
 
-      {/* Edit Patient Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2">
-          <DialogHeader>
-            <DialogTitle>Editar Paciente</DialogTitle>
-          </DialogHeader>
-          {selectedPatient && (
-            <PatientForm 
-              initialData={selectedPatient}
-              onSubmit={handleEditPatient}
-              onCancel={() => {
-                setIsEditDialogOpen(false);
-                setSelectedPatient(null);
-              }}
-              isLoading={isUpdating}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Edit Patient Dialog - Only for non-dentists */}
+      {!isDentist && (
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2">
+            <DialogHeader>
+              <DialogTitle>Editar Paciente</DialogTitle>
+            </DialogHeader>
+            {selectedPatient && (
+              <PatientForm 
+                initialData={selectedPatient}
+                onSubmit={handleEditPatient}
+                onCancel={() => {
+                  setIsEditDialogOpen(false);
+                  setSelectedPatient(null);
+                }}
+                isLoading={isUpdating}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* View Patient Dialog */}
       <PatientViewDialog
@@ -316,14 +336,16 @@ const Pacientes = () => {
         onOpenChange={setIsViewDialogOpen}
       />
 
-      {/* Delete Patient Dialog */}
-      <PatientDeleteDialog
-        patient={selectedPatient}
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-        onConfirm={handleDeletePatient}
-        isDeleting={isDeleting}
-      />
+      {/* Delete Patient Dialog - Only for non-dentists */}
+      {!isDentist && (
+        <PatientDeleteDialog
+          patient={selectedPatient}
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          onConfirm={handleDeletePatient}
+          isDeleting={isDeleting}
+        />
+      )}
     </div>
   );
 };
