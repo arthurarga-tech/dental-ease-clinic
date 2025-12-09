@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePatients } from "./usePatients";
 import { useDentists } from "./useDentists";
-import { useMedicalRecords } from "./useMedicalRecords";
 import { parseLocalDate } from "@/lib/utils";
 
 export const useDashboardStats = () => {
@@ -60,17 +59,51 @@ export const useDashboardStats = () => {
     },
   });
 
+  // Get card fees for deduction calculation
+  const {
+    data: cardFees = [],
+    isLoading: isLoadingCardFees,
+  } = useQuery({
+    queryKey: ["card_fees"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("card_fees")
+        .select("*");
+
+      if (error) {
+        console.error("Error fetching card fees:", error);
+        throw error;
+      }
+
+      return data || [];
+    },
+  });
+
+  // Helper to get card fee percentage for a payment method
+  const getCardFeePercentage = (paymentMethodId: string | null | undefined): number => {
+    if (!paymentMethodId) return 0;
+    const cardFee = cardFees.find((cf: any) => cf.payment_method_id === paymentMethodId);
+    return cardFee ? Number(cardFee.fee_percentage) : 0;
+  };
+
   // Calculate stats
   const activePatients = patients.filter(p => p.status === "Ativo").length;
   
   const appointmentsToday = todayAppointments.length;
   
-  // Financial calculations from real data
+  // Financial calculations from real data with card fee deductions
   const receitas = transactions.filter((t: any) => t.type === "Receita" && t.status === "Pago");
   const despesas = transactions.filter((t: any) => t.type === "Despesa" && t.status === "Pago");
   const receitasPendentes = transactions.filter((t: any) => t.type === "Receita" && t.status === "Pendente");
   
-  const totalReceitas = receitas.reduce((sum, t: any) => sum + Number(t.amount), 0);
+  // Calculate total receitas with card fee deductions
+  const totalReceitas = receitas.reduce((sum, t: any) => {
+    const amount = Number(t.amount);
+    const feePercentage = getCardFeePercentage(t.payment_method_id);
+    const netAmount = amount - (amount * feePercentage / 100);
+    return sum + netAmount;
+  }, 0);
+  
   const totalDespesas = despesas.reduce((sum, t: any) => sum + Number(t.amount), 0);
   const receitasPendentesTotal = receitasPendentes.reduce((sum, t: any) => sum + Number(t.amount), 0);
   const monthlyRevenue = totalReceitas;
@@ -111,6 +144,6 @@ export const useDashboardStats = () => {
     todayAppointments,
     birthdayPatients,
     birthdayDentists,
-    isLoading: isLoadingAppointments || isLoadingTransactions,
+    isLoading: isLoadingAppointments || isLoadingTransactions || isLoadingCardFees,
   };
 };
