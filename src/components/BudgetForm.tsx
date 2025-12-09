@@ -130,7 +130,10 @@ export const BudgetForm = ({
     }
   }, [currentDentist?.id, isDentistUser, initialData, form]);
 
-  const totalAmount = procedures.reduce((sum, proc) => sum + (proc.value || 0), 0);
+  // Only sum procedures that are not "Concluído"
+  const totalAmount = procedures
+    .filter((proc) => proc.status !== "Concluído")
+    .reduce((sum, proc) => sum + (proc.value || 0), 0);
   const discount = parseFloat(form.watch("discount") || "0");
   const finalAmount = totalAmount - discount;
 
