@@ -22,6 +22,7 @@ import {
 import { useFinancial } from "@/hooks/useFinancial";
 import { usePatients } from "@/hooks/usePatients";
 import { useDentists } from "@/hooks/useDentists";
+import { useFechamento } from "@/hooks/useFechamento";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FinancialTransactionDeleteDialog } from "@/components/FinancialTransactionDeleteDialog";
@@ -65,6 +66,7 @@ const Financeiro = () => {
   
   const { patients } = usePatients();
   const { dentists } = useDentists();
+  const { cardFees } = useFechamento();
   const { toast } = useToast();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -174,13 +176,27 @@ const Financeiro = () => {
     }
   };
 
-  // Calculate stats
+  // Calculate stats with card fee deductions
   const receitas = transactions.filter(t => t.type === "Receita" && t.status === "Pago");
   const despesas = transactions.filter(t => t.type === "Despesa" && t.status === "Pago");
   const receitasPendentes = transactions.filter(t => t.type === "Receita" && t.status === "Pendente");
   const contasVencidas = transactions.filter(t => t.status === "Vencido");
 
-  const totalReceitas = receitas.reduce((sum, t) => sum + Number(t.amount), 0);
+  // Helper to get card fee percentage for a payment method
+  const getCardFeePercentage = (paymentMethodId: string | null | undefined): number => {
+    if (!paymentMethodId) return 0;
+    const cardFee = cardFees.find(cf => cf.payment_method_id === paymentMethodId);
+    return cardFee ? Number(cardFee.fee_percentage) : 0;
+  };
+
+  // Calculate total receitas with card fee deductions
+  const totalReceitas = receitas.reduce((sum, t) => {
+    const amount = Number(t.amount);
+    const feePercentage = getCardFeePercentage(t.payment_method_id);
+    const netAmount = amount - (amount * feePercentage / 100);
+    return sum + netAmount;
+  }, 0);
+  
   const totalDespesas = despesas.reduce((sum, t) => sum + Number(t.amount), 0);
   const receitasPendentesTotal = receitasPendentes.reduce((sum, t) => sum + Number(t.amount), 0);
   const saldo = totalReceitas - totalDespesas;
