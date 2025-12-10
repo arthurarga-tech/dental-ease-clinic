@@ -10,7 +10,7 @@ export interface Appointment {
   appointment_time: string;
   type: string;
   duration: number;
-  status: "Agendado" | "Confirmado" | "Em andamento" | "Concluído" | "Cancelado";
+  status: "Agendado" | "Confirmado" | "Em andamento" | "Concluído" | "Cancelado" | "Remarcado" | "Faltou";
   notes?: string;
   created_at: string;
   updated_at: string;
