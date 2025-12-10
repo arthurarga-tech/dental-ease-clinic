@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Plus, Eye, Pencil, Trash2, DollarSign, Search } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -29,6 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 
 const Orcamento = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { budgets, isLoading, createBudget, updateBudget, deleteBudget, isCreating, isUpdating, checkDuplicateBudget } = useBudgets();
   const { toast } = useToast();
   const { userRole } = useAuth();
@@ -41,6 +43,20 @@ const Orcamento = () => {
   const [searchTerm, setSearchTerm] = useState("");
   
   const isDentistUser = userRole === 'dentista' || userRole === 'dentist';
+  
+  // Auto-open budget for specific patient from URL param
+  useEffect(() => {
+    const patientId = searchParams.get('patient');
+    if (patientId && budgets && budgets.length > 0) {
+      const patientBudget = budgets.find(b => b.patient_id === patientId);
+      if (patientBudget) {
+        setSelectedBudget(patientBudget);
+        setIsViewOpen(true);
+        // Clear the param after opening
+        setSearchParams({});
+      }
+    }
+  }, [searchParams, budgets, setSearchParams]);
 
   const filteredBudgets = useMemo(() => {
     if (!budgets) return [];

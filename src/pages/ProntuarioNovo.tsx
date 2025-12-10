@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,12 +64,23 @@ const DeleteEntryWrapper = ({ entry, open, onOpenChange, medicalRecordId }: {
 };
 
 const ProntuarioNovo = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { userRole } = useAuth();
   const isDentist = userRole === 'dentist' || userRole === 'dentista';
   const { dentist } = useDentistProfile();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPatient, setSelectedPatient] = useState("");
+  
+  // Auto-filter by patient from URL param
+  useEffect(() => {
+    const patientId = searchParams.get('patient');
+    if (patientId) {
+      setSelectedPatient(patientId);
+      // Clear the param after setting filter
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
   const [isRecordFormOpen, setIsRecordFormOpen] = useState(false);
   const [isEntryFormOpen, setIsEntryFormOpen] = useState(false);
   const [isCertificateOpen, setIsCertificateOpen] = useState(false);
