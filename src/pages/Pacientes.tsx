@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { calculatePatientStatus, parseLocalDate } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
 import { 
   Plus, 
   Search, 
@@ -24,7 +25,9 @@ import {
   Eye,
   FileText,
   Loader2,
-  Trash2
+  Trash2,
+  ClipboardList,
+  DollarSign
 } from "lucide-react";
 import {
   Tooltip,
@@ -34,6 +37,7 @@ import {
 } from "@/components/ui/tooltip";
 
 const Pacientes = () => {
+  const navigate = useNavigate();
   const { userRole } = useAuth();
   const isDentist = userRole === 'dentist' || userRole === 'dentista';
   
@@ -253,15 +257,33 @@ const Pacientes = () => {
                         </div>
                         
                         {/* Actions */}
-                        <div className="flex gap-2 pt-2 border-t border-border">
+                        <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
                           <Button 
                             variant="outline" 
                             size="sm"
                             onClick={() => openViewDialog(patient)}
-                            className="flex-1 h-8 text-xs"
+                            className="h-8 text-xs"
                           >
                             <Eye className="w-3.5 h-3.5 mr-1" />
                             Ver
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => navigate(`/prontuario/${patient.id}`)}
+                            className="h-8 text-xs"
+                          >
+                            <ClipboardList className="w-3.5 h-3.5 mr-1" />
+                            Prontuário
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => navigate(`/orcamento?patient=${patient.id}`)}
+                            className="h-8 text-xs"
+                          >
+                            <DollarSign className="w-3.5 h-3.5 mr-1" />
+                            Orçamento
                           </Button>
                           {!isDentist && (
                             <>
@@ -272,7 +294,7 @@ const Pacientes = () => {
                                   setSelectedPatient(patient);
                                   setIsEditDialogOpen(true);
                                 }}
-                                className="flex-1 h-8 text-xs"
+                                className="h-8 text-xs"
                               >
                                 <Edit className="w-3.5 h-3.5 mr-1" />
                                 Editar
