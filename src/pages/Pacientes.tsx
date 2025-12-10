@@ -270,7 +270,7 @@ const Pacientes = () => {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => navigate(`/prontuario/${patient.id}`)}
+                            onClick={() => navigate(`/prontuario?patient=${patient.id}`)}
                             className="h-8 text-xs"
                           >
                             <ClipboardList className="w-3.5 h-3.5 mr-1" />
