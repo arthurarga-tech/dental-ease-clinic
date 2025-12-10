@@ -322,12 +322,10 @@ const ProntuarioNovo = () => {
             </p>
           </div>
           
-          {!isDentist && (
-            <Button className="bg-primary hover:bg-primary/90 w-full md:w-auto" onClick={handleCreateRecord}>
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Prontuário
-            </Button>
-          )}
+          <Button className="bg-primary hover:bg-primary/90 w-full md:w-auto" onClick={handleCreateRecord}>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Prontuário
+          </Button>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-2">
