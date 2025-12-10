@@ -185,13 +185,16 @@ export const useAppointments = (selectedDate?: string) => {
   // Update appointment
   const updateAppointment = useMutation({
     mutationFn: async ({ id, ...updateData }: Partial<Appointment> & { id: string }) => {
+      // Extract only valid fields for update (exclude relationship fields)
+      const { patients, dentists, ...validUpdateData } = updateData as any;
+      
       // Check for conflicts if time-related fields are being updated
-      if (updateData.dentist_id && updateData.appointment_date && updateData.appointment_time && updateData.duration) {
+      if (validUpdateData.dentist_id && validUpdateData.appointment_date && validUpdateData.appointment_time && validUpdateData.duration) {
         const hasConflict = await checkConflict(
-          updateData.dentist_id,
-          updateData.appointment_date,
-          updateData.appointment_time,
-          updateData.duration,
+          validUpdateData.dentist_id,
+          validUpdateData.appointment_date,
+          validUpdateData.appointment_time,
+          validUpdateData.duration,
           id // Exclude current appointment from conflict check
         );
 
@@ -202,7 +205,7 @@ export const useAppointments = (selectedDate?: string) => {
 
       const { data, error } = await supabase
         .from("appointments")
-        .update(updateData)
+        .update(validUpdateData)
         .eq("id", id)
         .select(`
           id,
