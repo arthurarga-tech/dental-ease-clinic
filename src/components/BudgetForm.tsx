@@ -6,6 +6,7 @@ import { CalendarIcon, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import {
   Form,
@@ -83,7 +84,12 @@ export const BudgetForm = ({
   const [procedures, setProcedures] = useState<Procedure[]>(() => {
     if (initialData?.procedures) {
       try {
-        return JSON.parse(initialData.procedures);
+        const parsed = JSON.parse(initialData.procedures);
+        // For dentist users, filter out completed procedures
+        if (isDentistUser) {
+          return parsed.filter((p: Procedure) => p.status !== "Concluído");
+        }
+        return parsed;
       } catch {
         return [];
       }
@@ -406,73 +412,91 @@ export const BudgetForm = ({
         {procedures.length > 0 && (
             <div className="space-y-2">
               <FormLabel>Procedimentos Adicionados</FormLabel>
-              {procedures.map((procedure, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 border rounded-lg bg-background gap-3"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      {procedure.category && (
-                        <span className="text-xs text-muted-foreground">
-                          {procedure.category}
-                        </span>
-                      )}
+              {procedures.map((procedure, index) => {
+                const isPending = procedure.status === "Pendente";
+                const canEditProcedure = !isDentistUser || isPending;
+                
+                return (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 border rounded-lg bg-background gap-3"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        {procedure.category && (
+                          <span className="text-xs text-muted-foreground">
+                            {procedure.category}
+                          </span>
+                        )}
+                      </div>
+                      <p className="font-medium truncate">{procedure.name}</p>
                     </div>
-                    <p className="font-medium truncate">{procedure.name}</p>
-                  </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <Select
-                      value={procedure.status}
-                      onValueChange={(value) => {
-                        const updated = [...procedures];
-                        updated[index] = { ...updated[index], status: value };
-                        setProcedures(updated);
-                      }}
-                    >
-                      <SelectTrigger className="w-[140px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PROCEDURE_STATUS_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {(userRole === 'admin' || userRole === 'socio' || userRole === 'dentista' || userRole === 'dentist') ? (
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm text-muted-foreground">R$</span>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={procedure.value}
-                          onChange={(e) => {
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      {isDentistUser ? (
+                        <Badge variant="outline" className={
+                          procedure.status === "Concluído" ? "bg-green-100 text-green-800" :
+                          procedure.status === "Em Andamento" ? "bg-blue-100 text-blue-800" :
+                          procedure.status === "Cancelado" ? "bg-red-100 text-red-800" :
+                          "bg-yellow-100 text-yellow-800"
+                        }>
+                          {procedure.status || "Pendente"}
+                        </Badge>
+                      ) : (
+                        <Select
+                          value={procedure.status}
+                          onValueChange={(value) => {
                             const updated = [...procedures];
-                            updated[index] = { ...updated[index], value: parseFloat(e.target.value) || 0 };
+                            updated[index] = { ...updated[index], status: value };
                             setProcedures(updated);
                           }}
-                          className="w-24 text-right font-semibold"
-                        />
-                      </div>
-                    ) : (
-                      <span className="font-semibold text-lg whitespace-nowrap">
-                        R$ {procedure.value.toFixed(2)}
-                      </span>
-                    )}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeProcedure(index)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                        >
+                          <SelectTrigger className="w-[140px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PROCEDURE_STATUS_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      {canEditProcedure && (userRole === 'admin' || userRole === 'socio' || userRole === 'dentista' || userRole === 'dentist') ? (
+                        <div className="flex items-center gap-1">
+                          <span className="text-sm text-muted-foreground">R$</span>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={procedure.value}
+                            onChange={(e) => {
+                              const updated = [...procedures];
+                              updated[index] = { ...updated[index], value: parseFloat(e.target.value) || 0 };
+                              setProcedures(updated);
+                            }}
+                            className="w-24 text-right font-semibold"
+                          />
+                        </div>
+                      ) : (
+                        <span className="font-semibold text-lg whitespace-nowrap">
+                          R$ {procedure.value.toFixed(2)}
+                        </span>
+                      )}
+                      {canEditProcedure && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeProcedure(index)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -515,19 +539,25 @@ export const BudgetForm = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Status</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="Pendente">Pendente</SelectItem>
-                  <SelectItem value="Aprovado">Aprovado</SelectItem>
-                  <SelectItem value="Recusado">Recusado</SelectItem>
-                  <SelectItem value="Expirado">Expirado</SelectItem>
-                </SelectContent>
-              </Select>
+              {isDentistUser ? (
+                <div className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm">
+                  {field.value}
+                </div>
+              ) : (
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Pendente">Pendente</SelectItem>
+                    <SelectItem value="Aprovado">Aprovado</SelectItem>
+                    <SelectItem value="Recusado">Recusado</SelectItem>
+                    <SelectItem value="Expirado">Expirado</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
               <FormMessage />
             </FormItem>
           )}

@@ -26,10 +26,12 @@ import { BudgetViewDialog } from "@/components/BudgetViewDialog";
 import { BudgetDeleteDialog } from "@/components/BudgetDeleteDialog";
 import { BudgetPaymentDialog } from "@/components/BudgetPaymentDialog";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const Orcamento = () => {
   const { budgets, isLoading, createBudget, updateBudget, deleteBudget, isCreating, isUpdating, checkDuplicateBudget } = useBudgets();
   const { toast } = useToast();
+  const { userRole } = useAuth();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -37,6 +39,8 @@ const Orcamento = () => {
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  
+  const isDentistUser = userRole === 'dentista' || userRole === 'dentist';
 
   const filteredBudgets = useMemo(() => {
     if (!budgets) return [];
@@ -211,15 +215,17 @@ const Orcamento = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => openPaymentDialog(budget)}
-                          title="Lançar Pagamento"
-                        >
-                          <DollarSign className="h-3 w-3 md:h-4 md:w-4 text-green-600" />
-                        </Button>
+                        {!isDentistUser && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => openPaymentDialog(budget)}
+                            title="Lançar Pagamento"
+                          >
+                            <DollarSign className="h-3 w-3 md:h-4 md:w-4 text-green-600" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
@@ -236,14 +242,16 @@ const Orcamento = () => {
                         >
                           <Pencil className="h-3 w-3 md:h-4 md:w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => openDeleteDialog(budget)}
-                        >
-                          <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
-                        </Button>
+                        {!isDentistUser && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => openDeleteDialog(budget)}
+                          >
+                            <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

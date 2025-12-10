@@ -9,6 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Budget } from "@/hooks/useBudgets";
+import { useAuth } from "@/hooks/useAuth";
 
 interface BudgetViewDialogProps {
   budget: Budget | null;
@@ -21,6 +22,9 @@ export const BudgetViewDialog = ({
   open,
   onOpenChange,
 }: BudgetViewDialogProps) => {
+  const { userRole } = useAuth();
+  const isDentistUser = userRole === 'dentista' || userRole === 'dentist';
+  
   if (!budget) return null;
 
   const getStatusColor = (status: string) => {
@@ -102,7 +106,11 @@ export const BudgetViewDialog = ({
             <div className="space-y-2">
               {(() => {
                 try {
-                  const procedures = JSON.parse(budget.procedures);
+                  let procedures = JSON.parse(budget.procedures);
+                  // For dentist users, filter out completed procedures
+                  if (isDentistUser) {
+                    procedures = procedures.filter((p: any) => p.status !== "Concluído");
+                  }
                   return procedures.map((proc: any, index: number) => (
                     <div key={index} className="flex justify-between items-center bg-muted p-3 rounded-md">
                       <div className="flex-1">
