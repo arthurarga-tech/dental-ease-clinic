@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { 
   Plus, 
   Calendar as CalendarIcon,
@@ -15,7 +16,10 @@ import {
   ChevronRight,
   Loader2,
   Trash2,
-  Stethoscope
+  Stethoscope,
+  ChevronDown,
+  CalendarX,
+  UserX
 } from "lucide-react";
 import { useAppointments, Appointment } from "@/hooks/useAppointments";
 import { AppointmentForm } from "@/components/AppointmentForm";
@@ -57,6 +61,10 @@ const Agenda = () => {
         return "bg-primary text-primary-foreground";
       case "Cancelado":
         return "bg-destructive text-destructive-foreground";
+      case "Remarcado":
+        return "bg-orange-500 text-white";
+      case "Faltou":
+        return "bg-red-700 text-white";
       default:
         return "bg-muted text-muted-foreground";
     }
@@ -243,27 +251,44 @@ const Agenda = () => {
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
-                          {(appointment.status === "Concluído" || appointment.status === "Cancelado") ? (
+                          {(appointment.status === "Concluído" || appointment.status === "Cancelado" || appointment.status === "Remarcado" || appointment.status === "Faltou") ? (
                             <Button variant="secondary" size="sm" onClick={() => handleOpenView(appointment)} className="flex-1 h-8 text-xs">
                               Ver
                             </Button>
+                          ) : appointment.status === "Agendado" ? (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="default" size="sm" className="flex-1 h-8 text-xs" disabled={isUpdating}>
+                                  {isUpdating && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
+                                  Iniciar
+                                  <ChevronDown className="w-3 h-3 ml-1" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleStatusUpdate(appointment.id, "Em andamento")}>
+                                  <Clock className="w-3.5 h-3.5 mr-2" />
+                                  Iniciar Atendimento
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleStatusUpdate(appointment.id, "Remarcado")}>
+                                  <CalendarX className="w-3.5 h-3.5 mr-2" />
+                                  Remarcado
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleStatusUpdate(appointment.id, "Faltou")} className="text-destructive">
+                                  <UserX className="w-3.5 h-3.5 mr-2" />
+                                  Faltou
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           ) : (
                             <Button 
-                              variant={appointment.status === "Agendado" ? "default" : "secondary"} 
+                              variant="secondary" 
                               size="sm"
                               className="flex-1 h-8 text-xs"
-                              onClick={() => {
-                                const nextStatus = appointment.status === "Agendado" ? "Em andamento" : 
-                                                 appointment.status === "Em andamento" ? "Concluído" : appointment.status;
-                                if (nextStatus !== appointment.status) {
-                                  handleStatusUpdate(appointment.id, nextStatus);
-                                }
-                              }}
+                              onClick={() => handleStatusUpdate(appointment.id, "Concluído")}
                               disabled={isUpdating}
                             >
                               {isUpdating && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
-                              {appointment.status === "Agendado" ? "Iniciar" : 
-                               appointment.status === "Em andamento" ? "Finalizar" : "Ver"}
+                              Finalizar
                             </Button>
                           )}
                         </div>
