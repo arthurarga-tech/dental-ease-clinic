@@ -35,6 +35,7 @@ import { InvoiceForm } from "@/components/InvoiceForm";
 import { MedicalRecordDeleteDialog } from "@/components/MedicalRecordDeleteDialog";
 import { ConsultationEntryDeleteDialog } from "@/components/ConsultationEntryDeleteDialog";
 import { Odontogram } from "@/components/Odontogram";
+import { PatientAppointmentHistory } from "@/components/PatientAppointmentHistory";
 
 // Wrapper component to use the hook properly
 const DeleteEntryWrapper = ({ entry, open, onOpenChange, medicalRecordId }: {
@@ -221,6 +222,17 @@ const ProntuarioNovo = () => {
           )}
 
           <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="appointment-history">
+              <AccordionTrigger className="text-sm">
+                <div className="flex items-center gap-2">
+                  Histórico de Faltas e Remarcações
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <PatientAppointmentHistory patientId={record.patient_id} />
+              </AccordionContent>
+            </AccordionItem>
+
             <AccordionItem value="odontogram">
               <AccordionTrigger className="text-sm">
                 <div className="flex items-center gap-2">
