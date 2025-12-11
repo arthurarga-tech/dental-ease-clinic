@@ -13,6 +13,7 @@ interface DentistFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   dentist?: Dentist;
+  prefillData?: { name?: string; email?: string } | null;
 }
 
 const DAYS_OF_WEEK = [
@@ -25,7 +26,7 @@ const DAYS_OF_WEEK = [
   { value: 6, label: "Sábado" },
 ];
 
-export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) => {
+export const DentistForm = ({ open, onOpenChange, dentist, prefillData }: DentistFormProps) => {
   const { specializations, createDentist, updateDentist, isCreating, isUpdating } = useDentists();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -40,7 +41,7 @@ export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) =
     availability_slots: [] as AvailabilitySlot[],
   });
 
-  // Update form data when dentist changes
+  // Update form data when dentist changes or prefillData is provided
   useEffect(() => {
     if (dentist) {
       setFormData({
@@ -58,6 +59,18 @@ export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) =
           end_time: da.end_time,
         })) || [],
       });
+    } else if (prefillData) {
+      setFormData({
+        name: prefillData.name || "",
+        email: prefillData.email || "",
+        phone: "",
+        cro: "",
+        birth_date: "",
+        address: "",
+        commission_percentage: 50,
+        specialization_ids: [],
+        availability_slots: [],
+      });
     } else {
       setFormData({
         name: "",
@@ -71,7 +84,7 @@ export const DentistForm = ({ open, onOpenChange, dentist }: DentistFormProps) =
         availability_slots: [],
       });
     }
-  }, [dentist, open]);
+  }, [dentist, prefillData, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,12 +21,27 @@ import { DentistViewDialog } from "@/components/DentistViewDialog";
 import { DentistDeleteDialog } from "@/components/DentistDeleteDialog";
 
 const Dentistas = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { dentists, deleteDentist, isLoading } = useDentists();
   const [searchTerm, setSearchTerm] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedDentist, setSelectedDentist] = useState<Dentist | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [prefillData, setPrefillData] = useState<{ name?: string; email?: string } | null>(null);
+
+  // Check for prefill data from URL params (when redirected from Users page)
+  useEffect(() => {
+    const name = searchParams.get("name");
+    const email = searchParams.get("email");
+    
+    if (name || email) {
+      setPrefillData({ name: name || "", email: email || "" });
+      setIsFormOpen(true);
+      // Clear URL params after reading
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
 
   const filteredDentists = dentists.filter(dentist =>
     dentist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -58,7 +74,15 @@ const Dentistas = () => {
 
   const handleNewDentist = () => {
     setSelectedDentist(null);
+    setPrefillData(null);
     setIsFormOpen(true);
+  };
+
+  const handleFormClose = (open: boolean) => {
+    setIsFormOpen(open);
+    if (!open) {
+      setPrefillData(null);
+    }
   };
 
   if (isLoading) {
@@ -247,8 +271,9 @@ const Dentistas = () => {
       {/* Dialogs */}
       <DentistForm
         open={isFormOpen}
-        onOpenChange={setIsFormOpen}
+        onOpenChange={handleFormClose}
         dentist={selectedDentist}
+        prefillData={prefillData}
       />
 
       <DentistViewDialog

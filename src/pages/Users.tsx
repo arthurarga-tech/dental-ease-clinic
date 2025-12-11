@@ -87,7 +87,7 @@ const Users = () => {
           description: "Este usuário precisa ter um cadastro como dentista antes de ser ativado.",
           variant: "destructive",
         });
-        navigate("/dentistas");
+        navigate(`/dentistas?name=${encodeURIComponent(user.full_name || "")}&email=${encodeURIComponent(user.email)}`);
         return;
       }
     }
