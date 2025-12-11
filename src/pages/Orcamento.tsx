@@ -285,7 +285,7 @@ const Orcamento = () => {
           if (!open) setEditingBudget(null);
         }}
       >
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl w-[95vw] max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingBudget ? "Editar Orçamento" : "Novo Orçamento"}
