@@ -93,10 +93,13 @@ export const useAuth = () => {
 
     toast({
       title: "Cadastro realizado!",
-      description: "Você já pode fazer login no sistema.",
+      description: "Aguarde a aprovação do administrador para acessar o sistema.",
     });
 
-    return { data };
+    // Sign out immediately after signup since user is inactive
+    await supabase.auth.signOut();
+
+    return { data, pendingApproval: true };
   };
 
   const signIn = async (email: string, password: string) => {
@@ -112,6 +115,28 @@ export const useAuth = () => {
         variant: "destructive",
       });
       return { error };
+    }
+
+    // Check if user is active
+    if (data.user) {
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('status')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        console.error('Error checking user status:', profileError);
+      } else if (profileData?.status === 'Inativo') {
+        // User is inactive, sign them out and show message
+        await supabase.auth.signOut();
+        toast({
+          title: "Conta pendente de aprovação",
+          description: "Seu cadastro ainda não foi aprovado pelo administrador. Por favor, aguarde.",
+          variant: "destructive",
+        });
+        return { error: { message: 'Conta pendente de aprovação' } };
+      }
     }
 
     toast({
