@@ -368,9 +368,32 @@ const Financeiro = () => {
                       )}
                       <div>
                         <span className="font-medium">Valor:</span>{" "}
-                        <span className={transaction.type === "Receita" ? "text-success" : "text-destructive"}>
-                          R$ {Number(transaction.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </span>
+                        {(() => {
+                          const amount = Number(transaction.amount);
+                          const feePercentage = transaction.type === "Receita" && transaction.status === "Pago" 
+                            ? getCardFeePercentage(transaction.payment_method_id) 
+                            : 0;
+                          const netAmount = amount - (amount * feePercentage / 100);
+                          const hasDeduction = feePercentage > 0;
+                          
+                          return (
+                            <span className={transaction.type === "Receita" ? "text-success" : "text-destructive"}>
+                              {hasDeduction ? (
+                                <>
+                                  <span className="line-through text-muted-foreground mr-1">
+                                    R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                  </span>
+                                  R$ {netAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                  <span className="text-xs text-muted-foreground ml-1">
+                                    (-{feePercentage}%)
+                                  </span>
+                                </>
+                              ) : (
+                                `R$ ${amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                              )}
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
                     
