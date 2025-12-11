@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,12 +12,17 @@ import {
 } from "@/components/ui/select";
 import { Users as UsersIcon, Mail, Calendar, Loader2 } from "lucide-react";
 import { useUsers, UserProfile } from "@/hooks/useUsers";
+import { useDentists } from "@/hooks/useDentists";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import UserViewDialog from "@/components/UserViewDialog";
+import { useToast } from "@/hooks/use-toast";
 
 const Users = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const { users, isLoading, updateUserRole, toggleUserStatus } = useUsers();
+  const { dentists } = useDentists();
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
@@ -67,9 +73,26 @@ const Users = () => {
     setSelectedRole("");
   };
 
-  const handleToggleStatus = (userId: string, currentStatus: string) => {
+  const handleToggleStatus = (user: UserProfile) => {
+    const currentStatus = user.status;
     const newStatus = currentStatus === "Ativo" ? "Inativo" : "Ativo";
-    toggleUserStatus.mutate({ userId, newStatus });
+    
+    // If trying to activate a dentist user, check if they have a dentist record
+    if (newStatus === "Ativo" && user.role === "dentista") {
+      const hasDentistRecord = dentists.some(d => d.email === user.email);
+      
+      if (!hasDentistRecord) {
+        toast({
+          title: "Cadastro de dentista necessário",
+          description: "Este usuário precisa ter um cadastro como dentista antes de ser ativado.",
+          variant: "destructive",
+        });
+        navigate("/dentistas");
+        return;
+      }
+    }
+    
+    toggleUserStatus.mutate({ userId: user.id, newStatus });
   };
 
   const handleCardClick = (user: UserProfile) => {
@@ -187,7 +210,7 @@ const Users = () => {
                             <Button
                               size="sm"
                               variant={user.status === "Ativo" ? "destructive" : "default"}
-                              onClick={() => handleToggleStatus(user.id, user.status)}
+                              onClick={() => handleToggleStatus(user)}
                               disabled={toggleUserStatus.isPending}
                             >
                               {toggleUserStatus.isPending ? (
