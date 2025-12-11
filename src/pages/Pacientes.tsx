@@ -9,6 +9,7 @@ import { PatientViewDialog } from "@/components/PatientViewDialog";
 import { PatientDeleteDialog } from "@/components/PatientDeleteDialog";
 import { usePatients, Patient } from "@/hooks/usePatients";
 import { useDentistPatients } from "@/hooks/useDentistPatients";
+import { usePatientIndicators } from "@/hooks/usePatientIndicators";
 import { useAuth } from "@/hooks/useAuth";
 import { calculatePatientStatus, parseLocalDate } from "@/lib/utils";
 import { format } from "date-fns";
@@ -52,6 +53,7 @@ const Pacientes = () => {
   // Use different hooks based on user role
   const adminHook = usePatients();
   const dentistHook = useDentistPatients();
+  const { getIndicators } = usePatientIndicators();
   
   const patients = isDentist ? dentistHook.patients : adminHook.patients;
   const isLoading = isDentist ? dentistHook.isLoading : adminHook.isLoading;
@@ -209,6 +211,7 @@ const Pacientes = () => {
             <div className="space-y-3 sm:space-y-4">
               {filteredPatients.map((patient) => {
                 const statusInfo = calculatePatientStatus(patient.created_at, patient.last_appointment_date);
+                const indicators = getIndicators(patient.id);
                 
                 return (
                   <Card key={patient.id} className="hover:shadow-md transition-shadow">
@@ -218,6 +221,39 @@ const Pacientes = () => {
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 flex-1">
                             <h3 className="text-sm sm:text-base font-semibold text-foreground truncate">{patient.name}</h3>
+                            {/* Indicators */}
+                            <div className="flex gap-1.5 mt-1">
+                              {indicators.hasMedicalRecord && (
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Badge variant="outline" className="text-xs px-1.5 py-0 h-5 bg-blue-500/10 text-blue-600 border-blue-500/30">
+                                        <ClipboardList className="w-3 h-3 mr-1" />
+                                        Prontuário
+                                      </Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Paciente possui prontuário</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )}
+                              {indicators.hasActiveBudget && (
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Badge variant="outline" className="text-xs px-1.5 py-0 h-5 bg-green-500/10 text-green-600 border-green-500/30">
+                                        <DollarSign className="w-3 h-3 mr-1" />
+                                        Orçamento
+                                      </Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Paciente possui orçamento ativo</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )}
+                            </div>
                           </div>
                           <TooltipProvider>
                             <Tooltip>
