@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +39,7 @@ const Auth = () => {
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showSignupConfirmPassword, setShowSignupConfirmPassword] = useState(false);
+  const [pendingApproval, setPendingApproval] = useState(false);
 
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -80,6 +83,9 @@ const Auth = () => {
     // Reset form after successful signup
     if (!result.error) {
       signupForm.reset();
+      if (result.pendingApproval) {
+        setPendingApproval(true);
+      }
     }
   };
 
@@ -91,6 +97,15 @@ const Auth = () => {
           <CardDescription>Faça login ou crie uma conta para acessar o sistema</CardDescription>
         </CardHeader>
         <CardContent>
+          {pendingApproval && (
+            <Alert className="mb-4 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20">
+              <Clock className="h-4 w-4 text-yellow-600" />
+              <AlertTitle className="text-yellow-700 dark:text-yellow-500">Aguardando aprovação</AlertTitle>
+              <AlertDescription className="text-yellow-600 dark:text-yellow-400">
+                Seu cadastro foi realizado com sucesso! Um administrador irá revisar e aprovar seu acesso em breve.
+              </AlertDescription>
+            </Alert>
+          )}
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
