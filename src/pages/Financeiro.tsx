@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getTodayLocalDate } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,7 +84,7 @@ const Financeiro = () => {
     payment_method_id: "",
     amount: "",
     description: "",
-    transaction_date: new Date().toISOString().split("T")[0],
+    transaction_date: getTodayLocalDate(),
     due_date: "",
     status: "Pendente" as "Pendente" | "Pago" | "Vencido" | "Cancelado",
   });
@@ -124,7 +125,7 @@ const Financeiro = () => {
         payment_method_id: "",
         amount: "",
         description: "",
-        transaction_date: new Date().toISOString().split("T")[0],
+        transaction_date: getTodayLocalDate(),
         due_date: "",
         status: "Pendente",
       });
@@ -442,7 +443,7 @@ const Financeiro = () => {
             payment_method_id: "",
             amount: "",
             description: "",
-            transaction_date: new Date().toISOString().split("T")[0],
+            transaction_date: getTodayLocalDate(),
             due_date: "",
             status: "Pendente",
           });

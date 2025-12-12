@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getTodayLocalDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -74,7 +75,7 @@ export const ConsultationEntryForm = ({
         dentist_id: entry.dentist_id || ''
       });
     } else if (mode === 'create') {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getTodayLocalDate();
       setFormData({
         medical_record_id: medicalRecordId,
         record_date: today,
