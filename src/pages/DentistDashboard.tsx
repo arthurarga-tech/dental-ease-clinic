@@ -40,48 +40,6 @@ const DentistDashboard = () => {
     (!dentist || apt.dentist_id === dentist.id)
   );
 
-  const confirmedAppointments = (todayAppointments || []).filter(apt => 
-    apt.status === "Confirmado"
-  ).length;
-
-  const inProgressAppointments = (todayAppointments || []).filter(apt => 
-    apt.status === "Em andamento"
-  ).length;
-
-  const completedAppointments = (todayAppointments || []).filter(apt => 
-    apt.status === "Concluído"
-  ).length;
-
-  const statsCards = [
-    {
-      title: "Consultas Hoje",
-      value: todayAppointments.length.toString(),
-      icon: Calendar,
-      color: "text-primary",
-      bg: "bg-primary/10"
-    },
-    {
-      title: "Confirmadas",
-      value: confirmedAppointments.toString(),
-      icon: CheckCircle2,
-      color: "text-success",
-      bg: "bg-success/10"
-    },
-    {
-      title: "Em Andamento",
-      value: inProgressAppointments.toString(),
-      icon: AlertCircle,
-      color: "text-warning",
-      bg: "bg-warning/10"
-    },
-    {
-      title: "Concluídas",
-      value: completedAppointments.toString(),
-      icon: CheckCircle2,
-      color: "text-primary",
-      bg: "bg-primary/10"
-    }
-  ];
 
   if (isLoading || isDentistLoading) {
     return (
@@ -137,27 +95,6 @@ const DentistDashboard = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statsCards.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={index} className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">{stat.title}</p>
-                    <p className="text-3xl font-bold text-foreground">{stat.value}</p>
-                  </div>
-                  <div className={`p-3 rounded-lg ${stat.bg}`}>
-                    <Icon className={`w-6 h-6 ${stat.color}`} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
 
       {/* Today's Appointments */}
       <Card>
