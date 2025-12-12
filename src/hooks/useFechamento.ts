@@ -257,6 +257,32 @@ export const useFechamento = () => {
     },
   });
 
+  // Delete settlement
+  const deleteSettlement = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("dentist_settlements")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dentistSettlements"] });
+      toast({
+        title: "Fechamento excluído",
+        description: "Fechamento excluído com sucesso.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir fechamento",
+        description: error.message,
+      });
+    },
+  });
+
   // State for commission calculations
   const [commissionCalculations, setCommissionCalculations] = useState<DentistCommissionCalculation[]>([]);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -417,10 +443,12 @@ export const useFechamento = () => {
     updateCardFee: updateCardFee.mutate,
     createSettlement: createSettlement.mutate,
     updateSettlement: updateSettlement.mutate,
+    deleteSettlement: deleteSettlement.mutate,
     isCreatingCardFee: createCardFee.isPending,
     isUpdatingCardFee: updateCardFee.isPending,
     isCreatingSettlement: createSettlement.isPending,
     isUpdatingSettlement: updateSettlement.isPending,
+    isDeletingSettlement: deleteSettlement.isPending,
     // Commission calculation
     commissionCalculations,
     isCalculating,
