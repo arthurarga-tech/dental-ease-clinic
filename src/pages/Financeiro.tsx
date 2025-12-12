@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getTodayLocalDate } from "@/lib/utils";
+import { cn, getTodayLocalDate, parseLocalDate, formatLocalDate } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   Plus, 
   DollarSign, 
@@ -18,7 +20,8 @@ import {
   Receipt,
   Search,
   Trash2,
-  Pencil
+  Pencil,
+  X
 } from "lucide-react";
 import { useFinancial } from "@/hooks/useFinancial";
 import { usePatients } from "@/hooks/usePatients";
@@ -76,6 +79,8 @@ const Financeiro = () => {
   const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [formData, setFormData] = useState({
     type: "Receita" as "Receita" | "Despesa",
     patient_id: "",
@@ -251,12 +256,28 @@ const Financeiro = () => {
 
   const filteredTransactions = transactions.filter(transaction => {
     const searchLower = searchTerm.toLowerCase();
-    return (
+    const matchesSearch = (
       transaction.financial_categories?.name?.toLowerCase().includes(searchLower) ||
       transaction.description?.toLowerCase().includes(searchLower) ||
       transaction.patients?.name?.toLowerCase().includes(searchLower)
     );
+    
+    // Date filter
+    const transactionDate = transaction.transaction_date;
+    const startDateStr = startDate ? formatLocalDate(startDate) : null;
+    const endDateStr = endDate ? formatLocalDate(endDate) : null;
+    
+    const matchesDateRange = 
+      (!startDateStr || transactionDate >= startDateStr) &&
+      (!endDateStr || transactionDate <= endDateStr);
+    
+    return matchesSearch && matchesDateRange;
   });
+  
+  const clearDateFilters = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+  };
 
   const filteredCategories = categories.filter(c => c.type === formData.type);
 
@@ -303,17 +324,89 @@ const Financeiro = () => {
         })}
       </div>
 
-      {/* Search */}
+      {/* Search and Date Filters */}
       <Card>
-        <CardContent className="p-6">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar transações..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+        <CardContent className="p-4 md:p-6">
+          <div className="flex flex-col gap-4">
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Buscar transações..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <div className="flex flex-col md:flex-row gap-3 items-start md:items-center">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">Filtrar por período:</span>
+              
+              <div className="flex flex-wrap gap-2 items-center">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[140px] justify-start text-left font-normal",
+                        !startDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {startDate ? format(startDate, "dd/MM/yyyy") : "Data inicial"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={setStartDate}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                      locale={ptBR}
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                <span className="text-muted-foreground">até</span>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[140px] justify-start text-left font-normal",
+                        !endDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {endDate ? format(endDate, "dd/MM/yyyy") : "Data final"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={setEndDate}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                      locale={ptBR}
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                {(startDate || endDate) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearDateFilters}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Limpar
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
