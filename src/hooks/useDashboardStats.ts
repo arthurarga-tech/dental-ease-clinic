@@ -2,14 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePatients } from "./usePatients";
 import { useDentists } from "./useDentists";
-import { parseLocalDate } from "@/lib/utils";
+import { parseLocalDate, getTodayLocalDate } from "@/lib/utils";
 
 export const useDashboardStats = () => {
   const { patients } = usePatients();
   const { dentists } = useDentists();
 
-  // Get today's appointments
-  const todayString = new Date().toISOString().split('T')[0];
+  // Get today's appointments using São Paulo timezone
+  const todayString = getTodayLocalDate();
 
   const {
     data: todayAppointments = [],
