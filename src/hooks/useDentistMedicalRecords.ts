@@ -13,24 +13,24 @@ export const useDentistMedicalRecords = () => {
         return [];
       }
 
-      // Get medical records that have entries created by this dentist
-      const { data: entriesData, error: entriesError } = await supabase
-        .from("medical_record_entries")
-        .select("medical_record_id")
+      // Get patient IDs from appointments where this dentist is assigned
+      const { data: appointments, error: appointmentsError } = await supabase
+        .from("appointments")
+        .select("patient_id")
         .eq("dentist_id", dentist.id);
 
-      if (entriesError) {
-        console.error("Error fetching dentist entries:", entriesError);
-        throw entriesError;
+      if (appointmentsError) {
+        console.error("Error fetching dentist appointments:", appointmentsError);
+        throw appointmentsError;
       }
 
-      if (!entriesData || entriesData.length === 0) {
+      if (!appointments || appointments.length === 0) {
         return [];
       }
 
-      const uniqueRecordIds = [...new Set(entriesData.map(e => e.medical_record_id))];
+      const uniquePatientIds = [...new Set(appointments.map(a => a.patient_id))];
 
-      // Fetch medical records with patient data
+      // Fetch medical records for patients this dentist has appointments with
       const { data: records, error: recordsError } = await supabase
         .from("medical_records")
         .select(`
@@ -42,7 +42,7 @@ export const useDentistMedicalRecords = () => {
             email
           )
         `)
-        .in("id", uniqueRecordIds)
+        .in("patient_id", uniquePatientIds)
         .order("created_at", { ascending: false });
 
       if (recordsError) {
