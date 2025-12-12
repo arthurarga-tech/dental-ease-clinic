@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ToothData {
   number: number;
@@ -33,6 +34,9 @@ const UPPER_LEFT = [21, 22, 23, 24, 25, 26, 27, 28];
 const LOWER_LEFT = [31, 32, 33, 34, 35, 36, 37, 38];
 const LOWER_RIGHT = [48, 47, 46, 45, 44, 43, 42, 41];
 
+const UPPER_ARCH = [...UPPER_RIGHT, ...UPPER_LEFT];
+const LOWER_ARCH = [...LOWER_RIGHT, ...LOWER_LEFT];
+
 export const Odontogram = ({ value, onChange }: OdontogramProps) => {
   const [selectedTooth, setSelectedTooth] = useState<number | null>(null);
   const [notes, setNotes] = useState("");
@@ -57,11 +61,34 @@ export const Odontogram = ({ value, onChange }: OdontogramProps) => {
     setSelectedTooth(null);
   };
 
+  const updateArchTeeth = (arch: number[], status: string) => {
+    const statusInfo = TOOTH_STATUSES.find(s => s.value === status);
+    const updatedData = { ...value };
+    
+    arch.forEach(toothNumber => {
+      updatedData[toothNumber] = {
+        ...getToothData(toothNumber),
+        status,
+        color: statusInfo?.color || ""
+      };
+    });
+    
+    onChange(updatedData);
+  };
+
   const clearTooth = (toothNumber: number) => {
     const { [toothNumber]: removed, ...rest } = value;
     onChange(rest);
     setSelectedTooth(null);
     setNotes("");
+  };
+
+  const clearArch = (arch: number[]) => {
+    const updatedData = { ...value };
+    arch.forEach(toothNumber => {
+      delete updatedData[toothNumber];
+    });
+    onChange(updatedData);
   };
 
   const renderTooth = (toothNumber: number) => {
@@ -157,7 +184,31 @@ export const Odontogram = ({ value, onChange }: OdontogramProps) => {
         <div className="space-y-4 md:space-y-6 min-w-[520px] md:min-w-0 pb-2">
           {/* Arcada Superior */}
           <div className="space-y-2">
-            <p className="text-xs md:text-sm font-medium text-center">Arcada Superior</p>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+              <p className="text-xs md:text-sm font-medium text-center md:text-left">Arcada Superior</p>
+              <div className="flex items-center gap-2 justify-center md:justify-end">
+                <Select onValueChange={(status) => updateArchTeeth(UPPER_ARCH, status)}>
+                  <SelectTrigger className="h-7 w-[130px] text-xs">
+                    <SelectValue placeholder="Aplicar status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TOOTH_STATUSES.map((status) => (
+                      <SelectItem key={status.value} value={status.value} className="text-xs">
+                        {status.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => clearArch(UPPER_ARCH)}
+                  className="h-7 text-xs px-2"
+                >
+                  Limpar
+                </Button>
+              </div>
+            </div>
             <div className="flex justify-center gap-2 md:gap-6">
               <div className="flex gap-0.5 md:gap-1">
                 {UPPER_RIGHT.map(renderTooth)}
@@ -173,7 +224,31 @@ export const Odontogram = ({ value, onChange }: OdontogramProps) => {
 
           {/* Arcada Inferior */}
           <div className="space-y-2">
-            <p className="text-xs md:text-sm font-medium text-center">Arcada Inferior</p>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+              <p className="text-xs md:text-sm font-medium text-center md:text-left">Arcada Inferior</p>
+              <div className="flex items-center gap-2 justify-center md:justify-end">
+                <Select onValueChange={(status) => updateArchTeeth(LOWER_ARCH, status)}>
+                  <SelectTrigger className="h-7 w-[130px] text-xs">
+                    <SelectValue placeholder="Aplicar status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TOOTH_STATUSES.map((status) => (
+                      <SelectItem key={status.value} value={status.value} className="text-xs">
+                        {status.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => clearArch(LOWER_ARCH)}
+                  className="h-7 text-xs px-2"
+                >
+                  Limpar
+                </Button>
+              </div>
+            </div>
             <div className="flex justify-center gap-2 md:gap-6">
               <div className="flex gap-0.5 md:gap-1">
                 {LOWER_RIGHT.map(renderTooth)}
