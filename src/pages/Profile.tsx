@@ -8,13 +8,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Percent } from "lucide-react";
+import { Loader2, Percent, DollarSign } from "lucide-react";
 import { useDentistProfile } from "@/hooks/useDentistProfile";
+import { useDentistPendingCommissions } from "@/hooks/useDentistPendingCommissions";
 
 export default function Profile() {
   const { user, userRole } = useAuth();
   const { toast } = useToast();
   const { dentist, isLoading: isLoadingDentist } = useDentistProfile();
+  const { totalPendingCommission, isLoading: isLoadingCommissions } = useDentistPendingCommissions(
+    dentist?.id,
+    dentist?.commission_percentage ?? 50
+  );
   const [loading, setLoading] = useState(false);
   const [fullName, setFullName] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -164,13 +169,37 @@ export default function Profile() {
                         Carregando...
                       </div>
                     ) : dentist ? (
-                      <div className="p-4 bg-muted rounded-lg">
-                        <div className="text-3xl font-bold text-primary">
-                          {dentist.commission_percentage ?? 50}%
+                      <div className="space-y-4">
+                        <div className="p-4 bg-muted rounded-lg">
+                          <div className="text-3xl font-bold text-primary">
+                            {dentist.commission_percentage ?? 50}%
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Percentual de comissão sobre receitas
+                          </p>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Percentual de comissão sobre receitas
-                        </p>
+                        
+                        <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
+                          <div className="flex items-center gap-2 mb-2">
+                            <DollarSign className="h-5 w-5 text-primary" />
+                            <span className="font-semibold">Valores a Receber</span>
+                          </div>
+                          {isLoadingCommissions ? (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Calculando...
+                            </div>
+                          ) : (
+                            <>
+                              <div className="text-3xl font-bold text-primary">
+                                R$ {totalPendingCommission.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                              </div>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Total de comissões pendentes de pagamento
+                              </p>
+                            </>
+                          )}
+                        </div>
                       </div>
                     ) : (
                       <p className="text-muted-foreground">
