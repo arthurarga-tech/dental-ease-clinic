@@ -8,16 +8,20 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2 } from "lucide-react";
+import { Loader2, Percent } from "lucide-react";
+import { useDentistProfile } from "@/hooks/useDentistProfile";
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const { toast } = useToast();
+  const { dentist, isLoading: isLoadingDentist } = useDentistProfile();
   const [loading, setLoading] = useState(false);
   const [fullName, setFullName] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  const isDentist = userRole === "dentista" || userRole === "dentist";
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,6 +150,35 @@ export default function Profile() {
                     Atualizar Perfil
                   </Button>
                 </form>
+
+                {/* Dentist Commission Info */}
+                {isDentist && (
+                  <div className="mt-6 pt-6 border-t">
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <Percent className="h-5 w-5" />
+                      Comissão
+                    </h3>
+                    {isLoadingDentist ? (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Carregando...
+                      </div>
+                    ) : dentist ? (
+                      <div className="p-4 bg-muted rounded-lg">
+                        <div className="text-3xl font-bold text-primary">
+                          {dentist.commission_percentage ?? 50}%
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Percentual de comissão sobre receitas
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground">
+                        Perfil de dentista não encontrado
+                      </p>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, DollarSign, CreditCard, Settings, Calendar, Check, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Calculator, DollarSign, CreditCard, Settings, Calendar, Check, Loader2, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { useFechamento, DentistCommissionCalculation } from "@/hooks/useFechamento";
 import { useDentists } from "@/hooks/useDentists";
 import { useFinancial } from "@/hooks/useFinancial";
@@ -35,6 +35,8 @@ const Fechamento = () => {
     calculateCommissions,
     generateSettlement,
     isCreatingSettlement,
+    deleteSettlement,
+    isDeletingSettlement,
   } = useFechamento();
   
   const { dentists, updateDentist } = useDentists();
@@ -356,11 +358,22 @@ const Fechamento = () => {
                             <div>Comissão: {settlement.commission_percentage}%</div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-green-600">
-                            {formatCurrency(Number(settlement.net_amount))}
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-green-600">
+                              {formatCurrency(Number(settlement.net_amount))}
+                            </div>
+                            <p className="text-xs text-muted-foreground">Valor a Pagar</p>
                           </div>
-                          <p className="text-xs text-muted-foreground">Valor a Pagar</p>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => deleteSettlement(settlement.id)}
+                            disabled={isDeletingSettlement}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}
