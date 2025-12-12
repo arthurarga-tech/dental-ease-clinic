@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -219,6 +220,12 @@ const Pacientes = () => {
                       <div className="flex flex-col gap-3">
                         {/* Header with name and status */}
                         <div className="flex items-start justify-between gap-2">
+                          <Avatar className="h-10 w-10 flex-shrink-0">
+                            <AvatarImage src={patient.photo_url || undefined} alt={patient.name} />
+                            <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                              {patient.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
                           <div className="min-w-0 flex-1">
                             <h3 className="text-sm sm:text-base font-semibold text-foreground truncate">{patient.name}</h3>
                             {/* Indicators */}
