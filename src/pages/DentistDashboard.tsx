@@ -94,7 +94,7 @@ const DentistDashboard = () => {
         </div>
 
         {/* Quick Action Buttons - Mobile grid */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           <Button 
             onClick={() => navigate("/agenda")}
             className="flex-col h-auto py-3 px-2 gap-1"
@@ -111,6 +111,15 @@ const DentistDashboard = () => {
           >
             <FileText className="w-5 h-5" />
             <span className="text-xs">Prontuários</span>
+          </Button>
+          <Button 
+            onClick={() => navigate("/orcamento")}
+            variant="secondary"
+            className="flex-col h-auto py-3 px-2 gap-1"
+            size="sm"
+          >
+            <DollarSign className="w-5 h-5" />
+            <span className="text-xs">Orçamentos</span>
           </Button>
           <Button 
             onClick={() => navigate("/pacientes")}
