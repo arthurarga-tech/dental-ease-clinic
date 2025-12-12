@@ -11,7 +11,8 @@ import {
   User,
   Gift,
   DollarSign,
-  History
+  History,
+  ChevronRight
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -40,25 +41,27 @@ const DentistDashboard = () => {
     (!dentist || apt.dentist_id === dentist.id)
   );
 
-
   if (isLoading || isDentistLoading) {
     return (
-      <div className="p-6">
-        <div className="text-center">Carregando dashboard...</div>
+      <div className="p-4 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-3"></div>
+          <p className="text-muted-foreground">Carregando dashboard...</p>
+        </div>
       </div>
     );
   }
 
   if (!dentist) {
     return (
-      <div className="p-6">
-        <div className="text-center">
+      <div className="p-4 min-h-screen flex items-center justify-center">
+        <div className="text-center max-w-sm">
           <AlertCircle className="w-12 h-12 mx-auto mb-3 text-destructive" />
-          <p className="text-lg font-semibold mb-2">Perfil de dentista não encontrado</p>
-          <p className="text-muted-foreground mb-4">
-            Seu usuário não está vinculado a um cadastro de dentista. Entre em contato com o administrador.
+          <p className="text-lg font-semibold mb-2">Perfil não encontrado</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Seu usuário não está vinculado a um cadastro de dentista.
           </p>
-          <Button onClick={signOut} variant="outline">
+          <Button onClick={signOut} variant="outline" className="w-full">
             <LogOut className="w-4 h-4 mr-2" />
             Sair
           </Button>
@@ -68,63 +71,97 @@ const DentistDashboard = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard do Dentista</h1>
-          <p className="text-sm md:text-base text-muted-foreground">
-            Bem-vindo, Dr(a). {dentist.name}
-          </p>
-        </div>
-        <div className="flex gap-2 w-full md:w-auto">
-          <Button 
-            onClick={() => navigate("/agenda")}
-            className="bg-primary hover:bg-primary/90 flex-1 md:flex-none"
-          >
-            <Calendar className="w-4 h-4 mr-2" />
-            Ver Agenda Completa
-          </Button>
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
+      {/* Header - Mobile optimized */}
+      <div className="space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground truncate">
+              Olá, Dr(a). {dentist.name.split(' ')[0]}
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
+            </p>
+          </div>
           <Button 
             onClick={signOut}
-            variant="outline"
-            className="flex-1 md:flex-none"
+            variant="ghost"
+            size="icon"
+            className="shrink-0"
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sair
+            <LogOut className="w-5 h-5" />
+          </Button>
+        </div>
+
+        {/* Quick Action Buttons - Mobile grid */}
+        <div className="grid grid-cols-3 gap-2">
+          <Button 
+            onClick={() => navigate("/agenda")}
+            className="flex-col h-auto py-3 px-2 gap-1"
+            size="sm"
+          >
+            <Calendar className="w-5 h-5" />
+            <span className="text-xs">Agenda</span>
+          </Button>
+          <Button 
+            onClick={() => navigate("/prontuario")}
+            variant="secondary"
+            className="flex-col h-auto py-3 px-2 gap-1"
+            size="sm"
+          >
+            <FileText className="w-5 h-5" />
+            <span className="text-xs">Prontuários</span>
+          </Button>
+          <Button 
+            onClick={() => navigate("/pacientes")}
+            variant="secondary"
+            className="flex-col h-auto py-3 px-2 gap-1"
+            size="sm"
+          >
+            <Users className="w-5 h-5" />
+            <span className="text-xs">Pacientes</span>
           </Button>
         </div>
       </div>
 
-
       {/* Today's Appointments */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-primary" />
-            Consultas de Hoje
-          </CardTitle>
+        <CardHeader className="pb-2 sm:pb-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+              Consultas de Hoje
+            </CardTitle>
+            <span className="text-xs sm:text-sm text-muted-foreground bg-muted px-2 py-1 rounded-full">
+              {todayAppointments.length} consulta{todayAppointments.length !== 1 ? 's' : ''}
+            </span>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-2 sm:space-y-3">
           {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-6 text-muted-foreground">
               Carregando consultas...
             </div>
           ) : todayAppointments.length > 0 ? (
             todayAppointments.map((appointment) => (
               <div 
                 key={appointment.id}
-                className="flex items-center justify-between p-4 bg-secondary rounded-lg hover:bg-secondary/80 transition-colors"
+                className="flex items-center gap-3 p-3 bg-secondary rounded-lg hover:bg-secondary/80 transition-colors active:scale-[0.99]"
               >
-                <div className="flex items-center gap-4">
-                  <div className="text-sm font-medium text-primary min-w-[60px]">
+                <div className="text-center min-w-[50px] sm:min-w-[60px]">
+                  <p className="text-sm sm:text-base font-bold text-primary">
                     {appointment.appointment_time.slice(0, 5)}
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">{appointment.patients.name}</p>
-                    <p className="text-sm text-muted-foreground">{appointment.type}</p>
-                  </div>
+                  </p>
                 </div>
-                <div className={`px-3 py-1 rounded-md text-xs font-medium ${
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-foreground text-sm sm:text-base truncate">
+                    {appointment.patients.name}
+                  </p>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                    {appointment.type}
+                  </p>
+                </div>
+                <div className={`shrink-0 px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${
                   appointment.status === "Confirmado" 
                     ? "bg-success/10 text-success"
                     : appointment.status === "Em andamento"
@@ -138,273 +175,189 @@ const DentistDashboard = () => {
               </div>
             ))
           ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>Nenhuma consulta agendada para hoje</p>
+            <div className="text-center py-8 text-muted-foreground">
+              <Calendar className="w-10 h-10 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Nenhuma consulta para hoje</p>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Financial Receivables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Pending */}
+      {/* Financial Summary Cards - Stacked on mobile, side by side on tablet+ */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        {/* Pending Receivables */}
         <Card className="bg-success/5 border-success/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-success" />
-              Valores a Receber
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <DollarSign className="w-4 h-4 text-success" />
+              A Receber
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
             {isLoadingReceivables ? (
-              <div className="text-center py-4 text-muted-foreground">
-                Carregando valores...
+              <div className="text-center py-3 text-muted-foreground text-sm">
+                Carregando...
               </div>
             ) : (
-              <>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-4 bg-background rounded-lg border">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Comissões Pendentes</p>
-                      <p className="text-2xl font-bold text-success">
-                        R$ {totalPending.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-muted-foreground">Fechamentos</p>
-                      <p className="text-lg font-semibold text-foreground">{pendingReceivables.length}</p>
-                    </div>
-                  </div>
+              <div className="space-y-3">
+                <div className="flex items-baseline justify-between">
+                  <p className="text-2xl sm:text-3xl font-bold text-success">
+                    R$ {totalPending.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </p>
+                  <span className="text-xs text-muted-foreground">
+                    {pendingReceivables.length} fechamento{pendingReceivables.length !== 1 ? 's' : ''}
+                  </span>
                 </div>
 
                 {pendingReceivables.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Últimos fechamentos pendentes</p>
-                    <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                      {pendingReceivables.slice(0, 5).map((receivable) => (
-                        <div 
-                          key={receivable.id}
-                          className="flex items-center justify-between p-3 bg-background rounded-lg border text-sm"
-                        >
-                          <div>
-                            <p className="font-medium text-foreground">
-                              {format(new Date(receivable.period_start), "dd/MMM", { locale: ptBR })} - {format(new Date(receivable.period_end), "dd/MMM/yyyy", { locale: ptBR })}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {receivable.commission_percentage}% de comissão
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-success">
-                              R$ {receivable.net_amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Bruto: R$ {receivable.gross_amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                            </p>
-                          </div>
+                  <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                    {pendingReceivables.slice(0, 3).map((receivable) => (
+                      <div 
+                        key={receivable.id}
+                        className="flex items-center justify-between p-2 bg-background rounded-lg border text-xs sm:text-sm"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-foreground truncate">
+                            {format(new Date(receivable.period_start), "dd/MM", { locale: ptBR })} - {format(new Date(receivable.period_end), "dd/MM/yy", { locale: ptBR })}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {receivable.commission_percentage}% comissão
+                          </p>
                         </div>
-                      ))}
-                    </div>
+                        <p className="font-semibold text-success shrink-0 ml-2">
+                          R$ {receivable.net_amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 )}
 
                 {pendingReceivables.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <DollarSign className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>Nenhum valor pendente no momento</p>
-                  </div>
+                  <p className="text-xs text-muted-foreground text-center py-2">
+                    Nenhum valor pendente
+                  </p>
                 )}
-              </>
+              </div>
             )}
           </CardContent>
         </Card>
 
         {/* Paid History */}
         <Card className="bg-primary/5 border-primary/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <History className="w-5 h-5 text-primary" />
-              Histórico de Pagamentos
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <History className="w-4 h-4 text-primary" />
+              Recebido
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
             {isLoadingReceivables ? (
-              <div className="text-center py-4 text-muted-foreground">
-                Carregando histórico...
+              <div className="text-center py-3 text-muted-foreground text-sm">
+                Carregando...
               </div>
             ) : (
-              <>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-4 bg-background rounded-lg border">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total Recebido</p>
-                      <p className="text-2xl font-bold text-primary">
-                        R$ {totalPaid.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-muted-foreground">Pagamentos</p>
-                      <p className="text-lg font-semibold text-foreground">{paidReceivables.length}</p>
-                    </div>
-                  </div>
+              <div className="space-y-3">
+                <div className="flex items-baseline justify-between">
+                  <p className="text-2xl sm:text-3xl font-bold text-primary">
+                    R$ {totalPaid.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </p>
+                  <span className="text-xs text-muted-foreground">
+                    {paidReceivables.length} pagamento{paidReceivables.length !== 1 ? 's' : ''}
+                  </span>
                 </div>
 
                 {paidReceivables.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Últimos pagamentos recebidos</p>
-                    <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                      {paidReceivables.slice(0, 5).map((receivable) => (
-                        <div 
-                          key={receivable.id}
-                          className="flex items-center justify-between p-3 bg-background rounded-lg border text-sm"
-                        >
-                          <div>
-                            <p className="font-medium text-foreground">
-                              {format(new Date(receivable.period_start), "dd/MMM", { locale: ptBR })} - {format(new Date(receivable.period_end), "dd/MMM/yyyy", { locale: ptBR })}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {receivable.payment_date ? `Pago em ${format(new Date(receivable.payment_date), "dd/MM/yyyy")}` : "Data não informada"}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-primary">
-                              R$ {receivable.net_amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                            </p>
-                            <p className="text-xs text-success flex items-center justify-end gap-1">
-                              <CheckCircle2 className="w-3 h-3" />
-                              Pago
-                            </p>
-                          </div>
+                  <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                    {paidReceivables.slice(0, 3).map((receivable) => (
+                      <div 
+                        key={receivable.id}
+                        className="flex items-center justify-between p-2 bg-background rounded-lg border text-xs sm:text-sm"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-foreground truncate">
+                            {format(new Date(receivable.period_start), "dd/MM", { locale: ptBR })} - {format(new Date(receivable.period_end), "dd/MM/yy", { locale: ptBR })}
+                          </p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 text-success" />
+                            {receivable.payment_date ? format(new Date(receivable.payment_date), "dd/MM/yy") : "Pago"}
+                          </p>
                         </div>
-                      ))}
-                    </div>
+                        <p className="font-semibold text-primary shrink-0 ml-2">
+                          R$ {receivable.net_amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 )}
 
                 {paidReceivables.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <History className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>Nenhum pagamento recebido ainda</p>
-                  </div>
+                  <p className="text-xs text-muted-foreground text-center py-2">
+                    Nenhum pagamento recebido
+                  </p>
                 )}
-              </>
+              </div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-primary" />
-              Ações Rápidas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => navigate("/agenda")}
-            >
-              <Calendar className="w-4 h-4 mr-2" />
-              Ver Agenda Completa
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => navigate("/prontuario")}
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Acessar Prontuários
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => navigate("/pacientes")}
-            >
-              <Users className="w-4 h-4 mr-2" />
-              Ver Pacientes
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-primary/5 border-primary/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="w-5 h-5 text-primary" />
-              Suas Informações
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">CRO</p>
-                <p className="font-medium">{dentist.cro}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Telefone</p>
-                <p className="font-medium">{dentist.phone}</p>
-              </div>
-              {dentist.commission_percentage && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Comissão</p>
-                  <p className="font-medium">{dentist.commission_percentage}%</p>
-                </div>
-              )}
-              <div>
-                <p className="text-sm text-muted-foreground">Status</p>
-                <p className="font-medium">{dentist.status}</p>
-              </div>
+      {/* Dentist Info Card */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <User className="w-4 h-4 text-primary" />
+            Suas Informações
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+            <div className="bg-muted/50 rounded-lg p-2.5">
+              <p className="text-xs text-muted-foreground">CRO</p>
+              <p className="font-medium truncate">{dentist.cro}</p>
             </div>
-            <div className="flex items-start gap-3 mt-4 pt-4 border-t">
-              <AlertCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-              <div className="text-sm">
-                <p className="font-medium text-foreground">Acesso Limitado</p>
-                <p className="text-muted-foreground">
-                  Você tem acesso às suas consultas, prontuários e pacientes. 
-                  Informações financeiras e administrativas são restritas.
-                </p>
-              </div>
+            <div className="bg-muted/50 rounded-lg p-2.5">
+              <p className="text-xs text-muted-foreground">Telefone</p>
+              <p className="font-medium truncate">{dentist.phone}</p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            {dentist.commission_percentage && (
+              <div className="bg-muted/50 rounded-lg p-2.5">
+                <p className="text-xs text-muted-foreground">Comissão</p>
+                <p className="font-medium">{dentist.commission_percentage}%</p>
+              </div>
+            )}
+            <div className="bg-muted/50 rounded-lg p-2.5">
+              <p className="text-xs text-muted-foreground">Status</p>
+              <p className="font-medium">{dentist.status}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Birthday reminder card */}
       {(birthdayPatients.length > 0 || birthdayDentists.length > 0) && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Gift className="w-5 h-5 text-primary" />
-              Aniversariantes de Hoje
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Gift className="w-4 h-4 text-primary" />
+              Aniversariantes de Hoje 🎉
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="space-y-3">
               {birthdayPatients.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Pacientes</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Pacientes</p>
                   {birthdayPatients.map((patient) => (
                     <div 
                       key={patient.id}
-                      className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/20"
+                      className="flex items-center gap-3 p-2.5 bg-background rounded-lg border"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                          <Gift className="w-4 h-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">{patient.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {patient.phone}
-                          </p>
-                        </div>
+                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+                        <Gift className="w-4 h-4 text-primary" />
                       </div>
-                      <div className="text-sm text-primary font-medium">
-                        🎉 Parabéns!
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-foreground text-sm truncate">{patient.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{patient.phone}</p>
                       </div>
                     </div>
                   ))}
@@ -412,25 +365,18 @@ const DentistDashboard = () => {
               )}
               {birthdayDentists.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Dentistas</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Colegas</p>
                   {birthdayDentists.map((dentist) => (
                     <div 
                       key={dentist.id}
-                      className="flex items-center justify-between p-3 bg-success/5 rounded-lg border border-success/20"
+                      className="flex items-center gap-3 p-2.5 bg-background rounded-lg border"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-success/10 rounded-full flex items-center justify-center">
-                          <Gift className="w-4 h-4 text-success" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">{dentist.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {dentist.phone}
-                          </p>
-                        </div>
+                      <div className="w-8 h-8 bg-success/10 rounded-full flex items-center justify-center shrink-0">
+                        <Gift className="w-4 h-4 text-success" />
                       </div>
-                      <div className="text-sm text-success font-medium">
-                        🎉 Parabéns!
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-foreground text-sm truncate">Dr(a). {dentist.name}</p>
+                        <p className="text-xs text-muted-foreground">CRO: {dentist.cro}</p>
                       </div>
                     </div>
                   ))}
@@ -440,6 +386,15 @@ const DentistDashboard = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Access Notice - Compact on mobile */}
+      <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg text-xs sm:text-sm">
+        <AlertCircle className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+        <p className="text-muted-foreground">
+          <span className="font-medium text-foreground">Acesso restrito: </span>
+          Você pode acessar suas consultas, prontuários e pacientes.
+        </p>
+      </div>
     </div>
   );
 };
