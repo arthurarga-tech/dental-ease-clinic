@@ -204,87 +204,92 @@ export const BudgetForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="patient_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Paciente</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o paciente" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {patients?.map((patient) => (
-                    <SelectItem key={patient.id} value={patient.id}>
-                      {patient.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="dentist_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Dentista Responsável</FormLabel>
-              {isDentistUser && currentDentist ? (
-                <div className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm">
-                  {currentDentist.name}
-                </div>
-              ) : (
+        {/* Patient and Dentist - Stack on mobile */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="patient_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Paciente</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o dentista" />
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione o paciente" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
-                    {dentists
-                      ?.filter((dentist) => dentist.status === "Ativo")
-                      .map((dentist) => (
-                        <SelectItem key={dentist.id} value={dentist.id}>
-                          {dentist.name}
-                        </SelectItem>
-                      ))}
+                  <SelectContent className="max-h-[300px]">
+                    {patients?.map((patient) => (
+                      <SelectItem key={patient.id} value={patient.id}>
+                        {patient.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-              )}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="dentist_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Dentista Responsável</FormLabel>
+                {isDentistUser && currentDentist ? (
+                  <div className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm">
+                    {currentDentist.name}
+                  </div>
+                ) : (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecione o dentista" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="max-h-[300px]">
+                      {dentists
+                        ?.filter((dentist) => dentist.status === "Ativo")
+                        .map((dentist) => (
+                          <SelectItem key={dentist.id} value={dentist.id}>
+                            {dentist.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+        </div>
+
+        {/* Dates - Always side by side, but smaller on mobile */}
+        <div className="grid grid-cols-2 gap-3">
           <FormField
             control={form.control}
             name="budget_date"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Data do Orçamento</FormLabel>
+                <FormLabel className="text-xs sm:text-sm">Data do Orçamento</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
                         variant="outline"
                         className={cn(
-                          "pl-3 text-left font-normal",
+                          "pl-2 sm:pl-3 text-left font-normal text-xs sm:text-sm h-9 sm:h-10",
                           !field.value && "text-muted-foreground"
                         )}
                       >
                         {field.value ? (
                           format(field.value, "dd/MM/yyyy")
                         ) : (
-                          <span>Selecione a data</span>
+                          <span>Selecione</span>
                         )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        <CalendarIcon className="ml-auto h-3 w-3 sm:h-4 sm:w-4 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -307,23 +312,23 @@ export const BudgetForm = ({
             name="valid_until"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Válido Até</FormLabel>
+                <FormLabel className="text-xs sm:text-sm">Válido Até</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
                         variant="outline"
                         className={cn(
-                          "pl-3 text-left font-normal",
+                          "pl-2 sm:pl-3 text-left font-normal text-xs sm:text-sm h-9 sm:h-10",
                           !field.value && "text-muted-foreground"
                         )}
                       >
                         {field.value ? (
                           format(field.value, "dd/MM/yyyy")
                         ) : (
-                          <span>Selecione a data</span>
+                          <span>Selecione</span>
                         )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        <CalendarIcon className="ml-auto h-3 w-3 sm:h-4 sm:w-4 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -342,24 +347,25 @@ export const BudgetForm = ({
           />
         </div>
 
-        <div className="space-y-4">
-          <FormLabel>Adicionar Procedimentos</FormLabel>
+        <div className="space-y-3">
+          <FormLabel className="text-sm">Adicionar Procedimentos</FormLabel>
           
-          <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-3 sm:p-4 border rounded-lg bg-muted/30 space-y-3">
+            {/* Category and Procedure - Stack on mobile */}
+            <div className="space-y-3">
               <div>
-                <FormLabel className="text-sm">Categoria</FormLabel>
+                <FormLabel className="text-xs text-muted-foreground">Categoria</FormLabel>
                 <Select value={selectedCategory} onValueChange={(value) => {
                   setSelectedCategory(value);
                   setSelectedProcedure("");
                   setCustomValue("");
                 }}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full text-sm">
                     <SelectValue placeholder="Selecione a categoria" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-[250px]">
                     {PROCEDURE_CATEGORIES.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
+                      <SelectItem key={category.id} value={category.id} className="text-sm">
                         {category.icon} {category.name}
                       </SelectItem>
                     ))}
@@ -367,8 +373,8 @@ export const BudgetForm = ({
                 </Select>
               </div>
 
-              <div className="md:col-span-2">
-                <FormLabel className="text-sm">Procedimento</FormLabel>
+              <div>
+                <FormLabel className="text-xs text-muted-foreground">Procedimento</FormLabel>
                 <Select
                   value={selectedProcedure}
                   onValueChange={(value) => {
@@ -394,13 +400,14 @@ export const BudgetForm = ({
                   }}
                   disabled={!selectedCategory}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full text-sm">
                     <SelectValue placeholder="Selecione o procedimento" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-[250px]">
                     {availableProcedures.map((procedure, idx) => (
-                      <SelectItem key={idx} value={procedure.name}>
-                        {procedure.name} - R$ {procedure.value.toFixed(2)}
+                      <SelectItem key={idx} value={procedure.name} className="text-sm">
+                        <span className="block truncate">{procedure.name}</span>
+                        <span className="text-xs text-muted-foreground ml-1">R$ {procedure.value.toFixed(2)}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -411,100 +418,116 @@ export const BudgetForm = ({
 
         {procedures.length > 0 && (
             <div className="space-y-2">
-              <FormLabel>Procedimentos Adicionados</FormLabel>
-              {procedures.map((procedure, index) => {
-                const isPending = procedure.status === "Pendente";
-                const canEditProcedure = !isDentistUser || isPending;
-                
-                return (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 border rounded-lg bg-background gap-3"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        {procedure.category && (
-                          <span className="text-xs text-muted-foreground">
-                            {procedure.category}
-                          </span>
-                        )}
-                      </div>
-                      <p className="font-medium truncate">{procedure.name}</p>
-                    </div>
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                      {isDentistUser ? (
-                        <Badge variant="outline" className={
-                          procedure.status === "Concluído" ? "bg-green-100 text-green-800" :
-                          procedure.status === "Em Andamento" ? "bg-blue-100 text-blue-800" :
-                          procedure.status === "Cancelado" ? "bg-red-100 text-red-800" :
-                          "bg-yellow-100 text-yellow-800"
-                        }>
-                          {procedure.status || "Pendente"}
-                        </Badge>
-                      ) : (
-                        <Select
-                          value={procedure.status}
-                          onValueChange={(value) => {
-                            const updated = [...procedures];
-                            updated[index] = { ...updated[index], status: value };
-                            setProcedures(updated);
-                          }}
-                        >
-                          <SelectTrigger className="w-[140px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {PROCEDURE_STATUS_OPTIONS.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                      {canEditProcedure && (userRole === 'admin' || userRole === 'socio' || userRole === 'dentista' || userRole === 'dentist') ? (
-                        <div className="flex items-center gap-1">
-                          <span className="text-sm text-muted-foreground">R$</span>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={procedure.value}
-                            onChange={(e) => {
-                              const updated = [...procedures];
-                              updated[index] = { ...updated[index], value: parseFloat(e.target.value) || 0 };
-                              setProcedures(updated);
-                            }}
-                            className="w-24 text-right font-semibold"
-                          />
+              <FormLabel className="text-sm">Procedimentos Adicionados ({procedures.length})</FormLabel>
+              <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                {procedures.map((procedure, index) => {
+                  const isPending = procedure.status === "Pendente";
+                  const canEditProcedure = !isDentistUser || isPending;
+                  
+                  return (
+                    <div
+                      key={index}
+                      className="p-2 sm:p-3 border rounded-lg bg-background"
+                    >
+                      {/* Mobile: Stack layout */}
+                      <div className="flex flex-col gap-2">
+                        {/* Procedure name and category */}
+                        <div className="min-w-0">
+                          {procedure.category && (
+                            <span className="text-[10px] sm:text-xs text-muted-foreground block truncate">
+                              {procedure.category}
+                            </span>
+                          )}
+                          <p className="font-medium text-sm sm:text-base truncate">{procedure.name}</p>
                         </div>
-                      ) : (
-                        <span className="font-semibold text-lg whitespace-nowrap">
-                          R$ {procedure.value.toFixed(2)}
-                        </span>
-                      )}
-                      {canEditProcedure && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeProcedure(index)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      )}
+                        
+                        {/* Controls row */}
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          {/* Status */}
+                          <div className="flex-shrink-0">
+                            {isDentistUser ? (
+                              <Badge variant="outline" className={cn(
+                                "text-[10px] sm:text-xs",
+                                procedure.status === "Concluído" ? "bg-green-100 text-green-800" :
+                                procedure.status === "Em Andamento" ? "bg-blue-100 text-blue-800" :
+                                procedure.status === "Cancelado" ? "bg-red-100 text-red-800" :
+                                "bg-yellow-100 text-yellow-800"
+                              )}>
+                                {procedure.status || "Pendente"}
+                              </Badge>
+                            ) : (
+                              <Select
+                                value={procedure.status}
+                                onValueChange={(value) => {
+                                  const updated = [...procedures];
+                                  updated[index] = { ...updated[index], status: value };
+                                  setProcedures(updated);
+                                }}
+                              >
+                                <SelectTrigger className="w-[110px] sm:w-[130px] h-8 text-xs sm:text-sm">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {PROCEDURE_STATUS_OPTIONS.map((option) => (
+                                    <SelectItem key={option.value} value={option.value} className="text-sm">
+                                      {option.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          </div>
+                          
+                          {/* Value and Delete */}
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            {canEditProcedure && (userRole === 'admin' || userRole === 'socio' || userRole === 'dentista' || userRole === 'dentist') ? (
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs text-muted-foreground">R$</span>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={procedure.value}
+                                  onChange={(e) => {
+                                    const updated = [...procedures];
+                                    updated[index] = { ...updated[index], value: parseFloat(e.target.value) || 0 };
+                                    setProcedures(updated);
+                                  }}
+                                  className="w-20 sm:w-24 text-right font-semibold text-sm h-8"
+                                />
+                              </div>
+                            ) : (
+                              <span className="font-semibold text-sm sm:text-base whitespace-nowrap">
+                                R$ {procedure.value.toFixed(2)}
+                              </span>
+                            )}
+                            {canEditProcedure && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 shrink-0"
+                                onClick={() => removeProcedure(index)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-muted p-4 rounded-lg">
+        {/* Totals - Responsive grid */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 bg-muted p-3 sm:p-4 rounded-lg">
           <div>
-            <FormLabel className="text-muted-foreground">Subtotal</FormLabel>
-            <p className="text-xl font-semibold mt-1">
+            <FormLabel className="text-xs sm:text-sm text-muted-foreground">Subtotal</FormLabel>
+            <p className="text-sm sm:text-xl font-semibold mt-1">
               R$ {totalAmount.toFixed(2)}
             </p>
           </div>
@@ -515,9 +538,9 @@ export const BudgetForm = ({
               name="discount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Desconto (R$)</FormLabel>
+                  <FormLabel className="text-xs sm:text-sm">Desconto (R$)</FormLabel>
                   <FormControl>
-                    <Input type="number" step="0.01" {...field} />
+                    <Input type="number" step="0.01" {...field} className="h-8 sm:h-10 text-sm" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -526,58 +549,65 @@ export const BudgetForm = ({
           </div>
 
           <div>
-            <FormLabel className="text-muted-foreground">Valor Final</FormLabel>
-            <p className="text-2xl font-bold text-green-600 mt-1">
+            <FormLabel className="text-xs sm:text-sm text-muted-foreground">Valor Final</FormLabel>
+            <p className="text-sm sm:text-2xl font-bold text-green-600 mt-1">
               R$ {finalAmount.toFixed(2)}
             </p>
           </div>
         </div>
 
-        <FormField
-          control={form.control}
-          name="status"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Status</FormLabel>
-              {isDentistUser ? (
-                <div className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm">
-                  {field.value}
-                </div>
-              ) : (
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Pendente">Pendente</SelectItem>
-                    <SelectItem value="Aprovado">Aprovado</SelectItem>
-                    <SelectItem value="Recusado">Recusado</SelectItem>
-                    <SelectItem value="Expirado">Expirado</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Status and Notes - Stack on mobile */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm">Status</FormLabel>
+                {isDentistUser ? (
+                  <div className="flex h-9 sm:h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm">
+                    {field.value}
+                  </div>
+                ) : (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="h-9 sm:h-10">
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Pendente">Pendente</SelectItem>
+                      <SelectItem value="Aprovado">Aprovado</SelectItem>
+                      <SelectItem value="Recusado">Recusado</SelectItem>
+                      <SelectItem value="Expirado">Expirado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Observações</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Observações adicionais" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="notes"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm">Observações</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Observações adicionais" 
+                    {...field} 
+                    className="min-h-[60px] sm:min-h-[80px] text-sm"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
+        <Button type="submit" className="w-full h-10 sm:h-11 text-sm sm:text-base" disabled={isSubmitting}>
           {isSubmitting
             ? "Salvando..."
             : initialData
