@@ -44,12 +44,12 @@ export const BudgetViewDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-[95vw] md:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Detalhes do Orçamento</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           <div className="flex items-start justify-between">
             <div>
               <h3 className="text-lg font-semibold">
@@ -66,9 +66,9 @@ export const BudgetViewDialog = ({
 
           <Separator />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">
+              <p className="text-xs md:text-sm font-medium text-muted-foreground">
                 Data do Orçamento
               </p>
               <p className="text-sm">
@@ -79,7 +79,7 @@ export const BudgetViewDialog = ({
             </div>
 
             <div>
-              <p className="text-sm font-medium text-muted-foreground">
+              <p className="text-xs md:text-sm font-medium text-muted-foreground">
                 Válido Até
               </p>
               <p className="text-sm">
@@ -90,8 +90,8 @@ export const BudgetViewDialog = ({
             </div>
 
             {budget.dentists && (
-              <div className="col-span-2">
-                <p className="text-sm font-medium text-muted-foreground">
+              <div className="col-span-1 sm:col-span-2">
+                <p className="text-xs md:text-sm font-medium text-muted-foreground">
                   Dentista
                 </p>
                 <p className="text-sm">{budget.dentists.name}</p>
@@ -100,10 +100,10 @@ export const BudgetViewDialog = ({
           </div>
 
           <div>
-            <p className="text-sm font-medium text-muted-foreground mb-2">
+            <p className="text-xs md:text-sm font-medium text-muted-foreground mb-2">
               Procedimentos
             </p>
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-[200px] overflow-y-auto">
               {(() => {
                 try {
                   let procedures = JSON.parse(budget.procedures);
@@ -112,23 +112,23 @@ export const BudgetViewDialog = ({
                     procedures = procedures.filter((p: any) => p.status !== "Concluído");
                   }
                   return procedures.map((proc: any, index: number) => (
-                    <div key={index} className="flex justify-between items-center bg-muted p-3 rounded-md">
-                      <div className="flex-1">
+                    <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 bg-muted p-2 md:p-3 rounded-md">
+                      <div className="flex-1 min-w-0">
                         {proc.category && (
-                          <span className="text-xs text-muted-foreground block">{proc.category}</span>
+                          <span className="text-xs text-muted-foreground block truncate">{proc.category}</span>
                         )}
-                        <span className="text-sm font-medium">{proc.name}</span>
+                        <span className="text-xs md:text-sm font-medium block truncate">{proc.name}</span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <Badge variant="outline" className={
+                      <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 flex-shrink-0">
+                        <Badge variant="outline" className={`text-xs ${
                           proc.status === "Concluído" ? "bg-green-100 text-green-800" :
                           proc.status === "Em Andamento" ? "bg-blue-100 text-blue-800" :
                           proc.status === "Cancelado" ? "bg-red-100 text-red-800" :
                           "bg-yellow-100 text-yellow-800"
-                        }>
+                        }`}>
                           {proc.status || "Pendente"}
                         </Badge>
-                        <span className="text-sm font-semibold">R$ {proc.value.toFixed(2)}</span>
+                        <span className="text-xs md:text-sm font-semibold whitespace-nowrap">R$ {proc.value.toFixed(2)}</span>
                       </div>
                     </div>
                   ));
@@ -143,30 +143,30 @@ export const BudgetViewDialog = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 bg-muted p-4 rounded-md">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 bg-muted p-3 md:p-4 rounded-md">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">
+              <p className="text-xs md:text-sm font-medium text-muted-foreground">
                 Valor Total
               </p>
-              <p className="text-lg font-semibold">
+              <p className="text-base md:text-lg font-semibold">
                 R$ {budget.total_amount.toFixed(2)}
               </p>
             </div>
 
             <div>
-              <p className="text-sm font-medium text-muted-foreground">
+              <p className="text-xs md:text-sm font-medium text-muted-foreground">
                 Desconto
               </p>
-              <p className="text-lg font-semibold text-red-500">
+              <p className="text-base md:text-lg font-semibold text-red-500">
                 - R$ {budget.discount.toFixed(2)}
               </p>
             </div>
 
             <div>
-              <p className="text-sm font-medium text-muted-foreground">
+              <p className="text-xs md:text-sm font-medium text-muted-foreground">
                 Valor Final
               </p>
-              <p className="text-lg font-semibold text-green-600">
+              <p className="text-base md:text-lg font-semibold text-green-600">
                 R$ {budget.final_amount.toFixed(2)}
               </p>
             </div>
