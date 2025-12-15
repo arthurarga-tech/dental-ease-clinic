@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { MainLayout } from "@/components/Layout/MainLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -105,8 +104,7 @@ export default function Profile() {
   };
 
   return (
-    <MainLayout>
-      <div className="container mx-auto p-6 max-w-4xl">
+    <div className="container mx-auto p-6 max-w-4xl">
         <h1 className="text-3xl font-bold mb-6">Meu Perfil</h1>
 
         <Tabs defaultValue="info" className="w-full">
@@ -257,6 +255,5 @@ export default function Profile() {
           </TabsContent>
         </Tabs>
       </div>
-    </MainLayout>
   );
 }
