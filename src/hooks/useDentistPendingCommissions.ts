@@ -3,19 +3,26 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const useDentistPendingCommissions = (dentistId?: string, commissionPercentage?: number) => {
   const { data, isLoading } = useQuery({
-    queryKey: ["dentist-pending-commissions", dentistId],
+    queryKey: ["dentist-pending-commissions", dentistId, commissionPercentage],
     queryFn: async () => {
       if (!dentistId) return { totalPendingCommission: 0 };
+
+      const toNumber = (value: unknown) => {
+        const n = typeof value === "number" ? value : Number(value);
+        return Number.isFinite(n) ? n : 0;
+      };
 
       // Fetch all paid revenue transactions for this dentist
       const { data: transactions, error: transactionsError } = await supabase
         .from("financial_transactions")
-        .select(`
+        .select(
+          `
           id,
           amount,
           payment_method_id,
           transaction_date
-        `)
+        `
+        )
         .eq("dentist_id", dentistId)
         .eq("type", "Receita")
         .eq("status", "Pago");
@@ -49,13 +56,13 @@ export const useDentistPendingCommissions = (dentistId?: string, commissionPerce
       // Create a map of payment method to fee percentage
       const feeMap = new Map<string, number>();
       cardFees?.forEach((fee) => {
-        feeMap.set(fee.payment_method_id, fee.fee_percentage);
+        feeMap.set(fee.payment_method_id, toNumber(fee.fee_percentage));
       });
 
       // Helper function to check if a transaction date is within any settlement period
       const isInSettledPeriod = (transactionDate: string): boolean => {
         if (!settlements || settlements.length === 0) return false;
-        
+
         const txDate = new Date(transactionDate);
         return settlements.some((settlement) => {
           const periodStart = new Date(settlement.period_start);
@@ -74,12 +81,13 @@ export const useDentistPendingCommissions = (dentistId?: string, commissionPerce
           return;
         }
 
-        pendingGross += transaction.amount;
-        
+        const amount = toNumber(transaction.amount);
+        pendingGross += amount;
+
         // Deduct card fees if applicable
         if (transaction.payment_method_id && feeMap.has(transaction.payment_method_id)) {
-          const feePercentage = feeMap.get(transaction.payment_method_id) || 0;
-          pendingCardFees += transaction.amount * (feePercentage / 100);
+          const feePercentage = toNumber(feeMap.get(transaction.payment_method_id));
+          pendingCardFees += amount * (feePercentage / 100);
         }
       });
 
@@ -87,11 +95,12 @@ export const useDentistPendingCommissions = (dentistId?: string, commissionPerce
       const pendingNet = pendingGross - pendingCardFees;
 
       // Apply commission percentage
-      const commission = commissionPercentage ?? 50;
+      const commission = toNumber(commissionPercentage ?? 50);
       const totalPendingCommission = pendingNet * (commission / 100);
+      const safeTotalPendingCommission = Number.isFinite(totalPendingCommission) ? totalPendingCommission : 0;
 
       return {
-        totalPendingCommission: Math.max(0, totalPendingCommission),
+        totalPendingCommission: Math.max(0, safeTotalPendingCommission),
         pendingGross,
         pendingCardFees,
         pendingNet,
