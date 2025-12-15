@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, Eye, Pencil, Trash2, DollarSign, Search } from "lucide-react";
+import { Plus, Eye, Pencil, Trash2, DollarSign, Search, UserCheck, Stethoscope } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useBudgets, Budget } from "@/hooks/useBudgets";
 import { BudgetForm } from "@/components/BudgetForm";
 import { BudgetViewDialog } from "@/components/BudgetViewDialog";
@@ -28,6 +34,8 @@ import { BudgetDeleteDialog } from "@/components/BudgetDeleteDialog";
 import { BudgetPaymentDialog } from "@/components/BudgetPaymentDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 const Orcamento = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -43,6 +51,51 @@ const Orcamento = () => {
   const [searchTerm, setSearchTerm] = useState("");
   
   const isDentistUser = userRole === 'dentista' || userRole === 'dentist';
+  
+  // Fetch appointment dentists for all budgets
+  const { data: appointmentDentistsMap } = useQuery({
+    queryKey: ["all-budget-appointment-dentists", budgets?.map(b => b.patient_id)],
+    queryFn: async () => {
+      if (!budgets || budgets.length === 0) return {};
+
+      const patientIds = [...new Set(budgets.map(b => b.patient_id))];
+      
+      const { data, error } = await supabase
+        .from("appointments")
+        .select(`
+          patient_id,
+          dentist_id,
+          dentists (
+            id,
+            name
+          )
+        `)
+        .in("patient_id", patientIds)
+        .not("dentist_id", "is", null);
+
+      if (error) throw error;
+
+      // Group by patient_id
+      const result: Record<string, { dentist_id: string; dentist_name: string }[]> = {};
+      data?.forEach((apt: any) => {
+        if (apt.patient_id && apt.dentist_id && apt.dentists) {
+          if (!result[apt.patient_id]) {
+            result[apt.patient_id] = [];
+          }
+          // Avoid duplicates
+          if (!result[apt.patient_id].some(d => d.dentist_id === apt.dentist_id)) {
+            result[apt.patient_id].push({
+              dentist_id: apt.dentist_id,
+              dentist_name: apt.dentists.name,
+            });
+          }
+        }
+      });
+
+      return result;
+    },
+    enabled: !!budgets && budgets.length > 0,
+  });
   
   // Auto-open budget for specific patient from URL param
   useEffect(() => {
@@ -208,13 +261,45 @@ const Orcamento = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredBudgets.map((budget) => (
+                filteredBudgets.map((budget) => {
+                  const patientAppointmentDentists = appointmentDentistsMap?.[budget.patient_id] || [];
+                  const isCreatorAlsoAppointmentDentist = patientAppointmentDentists.some(
+                    (d) => d.dentist_id === budget.dentist_id
+                  );
+                  
+                  return (
                   <TableRow key={budget.id}>
                     <TableCell className="font-medium text-xs md:text-sm">
                       {budget.patients?.name}
                     </TableCell>
                     <TableCell className="hidden md:table-cell text-xs md:text-sm">
-                      {budget.dentists?.name || "-"}
+                      <TooltipProvider>
+                        <div className="flex items-center gap-1">
+                          {budget.dentists?.name || "-"}
+                          {budget.dentists && (
+                            <>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <UserCheck className="h-3 w-3 text-primary" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Criou o orçamento</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              {isCreatorAlsoAppointmentDentist && (
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <Stethoscope className="h-3 w-3 text-green-600" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Tem consulta com paciente</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </TooltipProvider>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell text-xs md:text-sm">
                       {format(new Date(budget.budget_date), "dd/MM/yyyy", {
@@ -271,7 +356,8 @@ const Orcamento = () => {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
+                  );
+                })
               )}
             </TableBody>
           </Table>
