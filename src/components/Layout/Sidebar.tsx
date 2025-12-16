@@ -32,6 +32,19 @@ const adminMenuItems = [
   { icon: User, label: "Perfil", path: "/perfil" },
 ];
 
+// Visualizador: same as admin but read-only (no backups, no users management)
+const visualizadorMenuItems = [
+  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+  { icon: Users, label: "Pacientes", path: "/pacientes" },
+  { icon: Calendar, label: "Agenda", path: "/agenda" },
+  { icon: FileSpreadsheet, label: "Orçamento", path: "/orcamento" },
+  { icon: FileText, label: "Prontuário", path: "/prontuario" },
+  { icon: UserRoundPlus, label: "Dentistas", path: "/dentistas" },
+  { icon: CreditCard, label: "Financeiro", path: "/financeiro" },
+  { icon: Calculator, label: "Fechamento", path: "/fechamento" },
+  { icon: User, label: "Perfil", path: "/perfil" },
+];
+
 const dentistMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dentist-dashboard" },
   { icon: Users, label: "Pacientes", path: "/pacientes" },
@@ -66,6 +79,8 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
       ? dentistMenuItems 
       : userRole === 'secretaria' 
       ? secretaryMenuItems 
+      : userRole === 'visualizador'
+      ? visualizadorMenuItems
       : adminMenuItems;
 
   const handleNavigation = (path: string) => {

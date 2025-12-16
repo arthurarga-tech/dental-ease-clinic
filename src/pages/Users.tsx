@@ -32,6 +32,8 @@ const Users = () => {
     switch (role) {
       case "admin":
         return "bg-primary text-primary-foreground";
+      case "visualizador":
+        return "bg-blue-500 text-white";
       case "dentista":
         return "bg-success text-success-foreground";
       case "secretaria":
@@ -46,6 +48,8 @@ const Users = () => {
     switch (role) {
       case "admin":
         return "Administrador";
+      case "visualizador":
+        return "Visualizador";
       case "dentista":
         return "Dentista";
       case "secretaria":
@@ -183,6 +187,7 @@ const Users = () => {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="admin">Administrador</SelectItem>
+                                <SelectItem value="visualizador">Visualizador</SelectItem>
                                 <SelectItem value="dentista">Dentista</SelectItem>
                                 <SelectItem value="secretaria">Secretária</SelectItem>
                               </SelectContent>
