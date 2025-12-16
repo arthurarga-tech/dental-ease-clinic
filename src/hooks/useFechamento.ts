@@ -412,25 +412,106 @@ export const useFechamento = () => {
     }
   }, [toast]);
 
+  // Helper to get next 10th of month
+  const getNextTenth = () => {
+    const today = new Date();
+    const currentDay = today.getDate();
+    let targetDate: Date;
+    
+    if (currentDay < 10) {
+      // Still this month
+      targetDate = new Date(today.getFullYear(), today.getMonth(), 10);
+    } else {
+      // Next month
+      targetDate = new Date(today.getFullYear(), today.getMonth() + 1, 10);
+    }
+    
+    return targetDate.toISOString().split('T')[0];
+  };
+
   // Generate settlement from calculation
   const generateSettlement = useCallback(async (
     calculation: DentistCommissionCalculation,
     periodStart: string,
     periodEnd: string
   ) => {
-    const settlement: NewSettlement = {
-      dentist_id: calculation.dentist_id,
-      period_start: periodStart,
-      period_end: periodEnd,
-      gross_amount: calculation.total_revenue,
-      card_fees_deducted: calculation.card_fees_total,
-      commission_percentage: calculation.commission_percentage,
-      net_amount: calculation.commission_amount,
-      status: "Pendente",
-    };
+    try {
+      // 1. Create settlement
+      const settlement: NewSettlement = {
+        dentist_id: calculation.dentist_id,
+        period_start: periodStart,
+        period_end: periodEnd,
+        gross_amount: calculation.total_revenue,
+        card_fees_deducted: calculation.card_fees_total,
+        commission_percentage: calculation.commission_percentage,
+        net_amount: calculation.commission_amount,
+        status: "Pendente",
+      };
 
-    createSettlement.mutate(settlement);
-  }, [createSettlement]);
+      const { data: settlementData, error: settlementError } = await supabase
+        .from("dentist_settlements")
+        .insert(settlement)
+        .select()
+        .single();
+
+      if (settlementError) throw settlementError;
+
+      // 2. Find "Salário" category
+      const { data: categories, error: catError } = await supabase
+        .from("financial_categories")
+        .select("id")
+        .eq("name", "Salários")
+        .eq("type", "Despesa")
+        .limit(1);
+
+      if (catError) throw catError;
+
+      const categoryId = categories?.[0]?.id;
+      if (!categoryId) {
+        toast({
+          variant: "destructive",
+          title: "Categoria não encontrada",
+          description: "Categoria 'Salários' não encontrada. Crie a categoria antes de gerar o fechamento.",
+        });
+        return;
+      }
+
+      // 3. Create expense transaction
+      const today = new Date().toISOString().split('T')[0];
+      const dueDate = getNextTenth();
+
+      const { error: transError } = await supabase
+        .from("financial_transactions")
+        .insert({
+          type: "Despesa",
+          category_id: categoryId,
+          amount: calculation.commission_amount,
+          transaction_date: today,
+          due_date: dueDate,
+          status: "Pendente",
+          description: `Fechamento ${calculation.dentist_name}`,
+          dentist_id: calculation.dentist_id,
+        });
+
+      if (transError) throw transError;
+
+      queryClient.invalidateQueries({ queryKey: ["dentistSettlements"] });
+      queryClient.invalidateQueries({ queryKey: ["accountsPayable"] });
+      queryClient.invalidateQueries({ queryKey: ["financialTransactions"] });
+
+      toast({
+        title: "Fechamento gerado",
+        description: `Fechamento e despesa de ${calculation.dentist_name} criados com sucesso.`,
+      });
+    } catch (error: any) {
+      console.error("Error generating settlement:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao gerar fechamento",
+        description: error.message,
+      });
+    }
+  }, [queryClient, toast]);
 
   return {
     cardFees,
