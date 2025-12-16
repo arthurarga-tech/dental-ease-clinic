@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Percent, DollarSign } from "lucide-react";
+import { Loader2, Percent, DollarSign, RefreshCw } from "lucide-react";
 import { useDentistProfile } from "@/hooks/useDentistProfile";
 import { useDentistPendingCommissions } from "@/hooks/useDentistPendingCommissions";
 
@@ -15,7 +15,15 @@ export default function Profile() {
   const { user, userRole } = useAuth();
   const { toast } = useToast();
   const { dentist, isLoading: isLoadingDentist } = useDentistProfile();
-  const { totalPendingCommission, isLoading: isLoadingCommissions } = useDentistPendingCommissions(
+  const { 
+    totalPendingCommission, 
+    pendingGross, 
+    pendingCardFees, 
+    pendingNet,
+    transactionCount,
+    isLoading: isLoadingCommissions,
+    refetch: refetchCommissions 
+  } = useDentistPendingCommissions(
     dentist?.id,
     dentist?.commission_percentage ?? 50
   );
@@ -188,14 +196,46 @@ export default function Profile() {
                               Calculando...
                             </div>
                           ) : (
-                            <>
+                            <div className="space-y-3">
                               <div className="text-3xl font-bold text-primary">
                                 R$ {totalPendingCommission.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                               </div>
-                              <p className="text-sm text-muted-foreground mt-1">
-                                Total de comissões pendentes de pagamento
-                              </p>
-                            </>
+                              
+                              {transactionCount > 0 && (
+                                <div className="text-xs space-y-1 text-muted-foreground border-t pt-2">
+                                  <div className="flex justify-between">
+                                    <span>Bruto ({transactionCount} transações):</span>
+                                    <span>R$ {pendingGross.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Taxas de cartão:</span>
+                                    <span>- R$ {pendingCardFees.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                                  </div>
+                                  <div className="flex justify-between font-medium">
+                                    <span>Líquido:</span>
+                                    <span>R$ {pendingNet.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                                  </div>
+                                  <div className="flex justify-between font-semibold text-primary">
+                                    <span>Comissão ({dentist?.commission_percentage ?? 50}%):</span>
+                                    <span>R$ {totalPendingCommission.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              <div className="flex items-center justify-between">
+                                <p className="text-sm text-muted-foreground">
+                                  Total de comissões pendentes
+                                </p>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => refetchCommissions()}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <RefreshCw className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
                           )}
                         </div>
                       </div>

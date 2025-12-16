@@ -1,11 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+interface PendingCommissionData {
+  totalPendingCommission: number;
+  pendingGross: number;
+  pendingCardFees: number;
+  pendingNet: number;
+  transactionCount: number;
+}
+
 export const useDentistPendingCommissions = (dentistId?: string, commissionPercentage?: number) => {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["dentist-pending-commissions", dentistId, commissionPercentage],
-    queryFn: async () => {
-      if (!dentistId) return { totalPendingCommission: 0 };
+    queryFn: async (): Promise<PendingCommissionData> => {
+      if (!dentistId) {
+        return { totalPendingCommission: 0, pendingGross: 0, pendingCardFees: 0, pendingNet: 0, transactionCount: 0 };
+      }
 
       const toNumber = (value: unknown) => {
         const n = typeof value === "number" ? value : Number(value);
@@ -13,16 +23,15 @@ export const useDentistPendingCommissions = (dentistId?: string, commissionPerce
       };
 
       // Fetch all paid revenue transactions for this dentist
+      // Using the same approach as useFechamento.calculateCommissions
       const { data: transactions, error: transactionsError } = await supabase
         .from("financial_transactions")
-        .select(
-          `
+        .select(`
           id,
           amount,
           payment_method_id,
           transaction_date
-        `
-        )
+        `)
         .eq("dentist_id", dentistId)
         .eq("type", "Receita")
         .eq("status", "Pago");
@@ -74,6 +83,7 @@ export const useDentistPendingCommissions = (dentistId?: string, commissionPerce
       // Calculate pending revenue (only transactions NOT in any settled period)
       let pendingGross = 0;
       let pendingCardFees = 0;
+      let transactionCount = 0;
 
       transactions?.forEach((transaction) => {
         // Skip transactions that are within a settled period
@@ -83,6 +93,7 @@ export const useDentistPendingCommissions = (dentistId?: string, commissionPerce
 
         const amount = toNumber(transaction.amount);
         pendingGross += amount;
+        transactionCount++;
 
         // Deduct card fees if applicable
         if (transaction.payment_method_id && feeMap.has(transaction.payment_method_id)) {
@@ -104,6 +115,7 @@ export const useDentistPendingCommissions = (dentistId?: string, commissionPerce
         pendingGross,
         pendingCardFees,
         pendingNet,
+        transactionCount,
       };
     },
     enabled: !!dentistId,
@@ -111,6 +123,12 @@ export const useDentistPendingCommissions = (dentistId?: string, commissionPerce
 
   return {
     totalPendingCommission: data?.totalPendingCommission || 0,
+    pendingGross: data?.pendingGross || 0,
+    pendingCardFees: data?.pendingCardFees || 0,
+    pendingNet: data?.pendingNet || 0,
+    transactionCount: data?.transactionCount || 0,
     isLoading,
+    error,
+    refetch,
   };
 };
