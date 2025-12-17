@@ -67,12 +67,14 @@ interface BudgetFormProps {
   onSubmit: (data: any) => void;
   initialData?: Budget;
   isSubmitting?: boolean;
+  preselectedPatientId?: string;
 }
 
 export const BudgetForm = ({
   onSubmit,
   initialData,
   isSubmitting,
+  preselectedPatientId,
 }: BudgetFormProps) => {
   const { patients } = usePatients();
   const { dentists } = useDentists();
@@ -121,6 +123,7 @@ export const BudgetForm = ({
           notes: initialData.notes || "",
         }
       : {
+          patient_id: preselectedPatientId || "",
           budget_date: new Date(),
           status: "Pendente",
           valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),

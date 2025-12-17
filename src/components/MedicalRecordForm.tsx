@@ -24,13 +24,15 @@ interface MedicalRecordFormProps {
   onOpenChange: (open: boolean) => void;
   record?: MedicalRecord | null;
   mode?: 'create' | 'edit';
+  preselectedPatientId?: string;
 }
 
 export const MedicalRecordForm = ({ 
   open, 
   onOpenChange, 
   record = null,
-  mode = 'create'
+  mode = 'create',
+  preselectedPatientId
 }: MedicalRecordFormProps) => {
   const { patients } = usePatients();
   const { createMedicalRecord, updateMedicalRecord, isCreating, isUpdating } = useMedicalRecords();
@@ -58,13 +60,13 @@ export const MedicalRecordForm = ({
       // Reset form for create mode
       const today = getTodayLocalDate();
       setFormData({
-        patient_id: '',
+        patient_id: preselectedPatientId || '',
         record_date: today,
         observations: '',
       });
       setOdontogram({});
     }
-  }, [record, mode, open]);
+  }, [record, mode, open, preselectedPatientId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

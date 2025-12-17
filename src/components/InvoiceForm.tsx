@@ -13,6 +13,7 @@ import { format } from "date-fns";
 interface InvoiceFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  preselectedPatientId?: string;
 }
 
 interface InvoiceItem {
@@ -21,11 +22,11 @@ interface InvoiceItem {
   unitPrice: number;
 }
 
-export const InvoiceForm = ({ open, onOpenChange }: InvoiceFormProps) => {
+export const InvoiceForm = ({ open, onOpenChange, preselectedPatientId }: InvoiceFormProps) => {
   const { patients } = usePatients();
   const { dentists } = useDentists();
 
-  const [selectedPatient, setSelectedPatient] = useState("");
+  const [selectedPatient, setSelectedPatient] = useState(preselectedPatientId || "");
   const [selectedDentist, setSelectedDentist] = useState("");
   const [cpfCnpj, setCpfCnpj] = useState("");
   const [invoiceDate, setInvoiceDate] = useState(format(new Date(), "yyyy-MM-dd"));

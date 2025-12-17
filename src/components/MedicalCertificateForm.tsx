@@ -15,13 +15,14 @@ import { getTodayLocalDate } from "@/lib/utils";
 interface MedicalCertificateFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  preselectedPatientId?: string;
 }
 
-export const MedicalCertificateForm = ({ open, onOpenChange }: MedicalCertificateFormProps) => {
+export const MedicalCertificateForm = ({ open, onOpenChange, preselectedPatientId }: MedicalCertificateFormProps) => {
   const { patients } = usePatients();
   const { dentists } = useDentists();
 
-  const [selectedPatient, setSelectedPatient] = useState("");
+  const [selectedPatient, setSelectedPatient] = useState(preselectedPatientId || "");
   const [selectedDentist, setSelectedDentist] = useState("");
   const [certificateDate, setCertificateDate] = useState(getTodayLocalDate());
   const [certificateTime, setCertificateTime] = useState(format(new Date(), "HH:mm"));

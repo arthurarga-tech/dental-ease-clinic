@@ -304,7 +304,7 @@ const Pacientes = () => {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => openViewDialog(patient)}
+                            onClick={() => navigate(`/paciente/${patient.id}?tab=dados`)}
                             className="h-8 text-xs"
                           >
                             <Eye className="w-3.5 h-3.5 mr-1" />
@@ -313,7 +313,7 @@ const Pacientes = () => {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => navigate(`/prontuario?patient=${patient.id}`)}
+                            onClick={() => navigate(`/paciente/${patient.id}?tab=prontuario`)}
                             className="h-8 text-xs"
                           >
                             <ClipboardList className="w-3.5 h-3.5 mr-1" />
@@ -322,7 +322,7 @@ const Pacientes = () => {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => navigate(`/orcamento?patient=${patient.id}`)}
+                            onClick={() => navigate(`/paciente/${patient.id}?tab=orcamentos`)}
                             className="h-8 text-xs"
                           >
                             <DollarSign className="w-3.5 h-3.5 mr-1" />

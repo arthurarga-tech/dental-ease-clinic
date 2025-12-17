@@ -13,13 +13,14 @@ import { format } from "date-fns";
 interface PrescriptionFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  preselectedPatientId?: string;
 }
 
-export const PrescriptionForm = ({ open, onOpenChange }: PrescriptionFormProps) => {
+export const PrescriptionForm = ({ open, onOpenChange, preselectedPatientId }: PrescriptionFormProps) => {
   const { patients } = usePatients();
   const { dentists } = useDentists();
 
-  const [selectedPatient, setSelectedPatient] = useState("");
+  const [selectedPatient, setSelectedPatient] = useState(preselectedPatientId || "");
   const [selectedDentist, setSelectedDentist] = useState("");
   const [prescriptionDate, setPrescriptionDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [prescriptionTime, setPrescriptionTime] = useState(format(new Date(), "HH:mm"));

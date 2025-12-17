@@ -8,6 +8,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import DentistDashboard from "./pages/DentistDashboard";
 import Pacientes from "./pages/Pacientes";
+import FichaPaciente from "./pages/FichaPaciente";
 import Agenda from "./pages/Agenda";
 import Orcamento from "./pages/Orcamento";
 import Prontuario from "./pages/Prontuario";
@@ -58,6 +59,13 @@ const App = () => (
             <ProtectedRoute>
               <MainLayout>
                 <Pacientes />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/paciente/:id" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <FichaPaciente />
               </MainLayout>
             </ProtectedRoute>
           } />
