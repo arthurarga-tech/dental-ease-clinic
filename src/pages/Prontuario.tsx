@@ -175,7 +175,7 @@ const Prontuario = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredRecords.map((record) => (
+              {[...filteredRecords].sort((a, b) => a.patients.name.localeCompare(b.patients.name, 'pt-BR')).map((record) => (
                 <Card key={record.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-3 md:p-4">
                     <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">

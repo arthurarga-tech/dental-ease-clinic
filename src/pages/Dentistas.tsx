@@ -181,7 +181,7 @@ const Dentistas = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredDentists.map((dentist) => (
+              {[...filteredDentists].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')).map((dentist) => (
                 <div
                   key={dentist.id}
                   className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-3 md:p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"

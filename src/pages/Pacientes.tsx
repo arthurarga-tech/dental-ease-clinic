@@ -210,7 +210,7 @@ const Pacientes = () => {
             </div>
           ) : (
             <div className="space-y-3 sm:space-y-4">
-              {filteredPatients.map((patient) => {
+              {[...filteredPatients].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')).map((patient) => {
                 const statusInfo = calculatePatientStatus(patient.created_at, patient.last_appointment_date);
                 const indicators = getIndicators(patient.id);
                 
