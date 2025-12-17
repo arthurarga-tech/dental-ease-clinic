@@ -261,7 +261,7 @@ const Orcamento = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredBudgets.map((budget) => {
+                [...filteredBudgets].sort((a, b) => (a.patients?.name || '').localeCompare(b.patients?.name || '', 'pt-BR')).map((budget) => {
                   const patientAppointmentDentists = appointmentDentistsMap?.[budget.patient_id] || [];
                   const isCreatorAlsoAppointmentDentist = patientAppointmentDentists.some(
                     (d) => d.dentist_id === budget.dentist_id
