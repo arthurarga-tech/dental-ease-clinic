@@ -19,6 +19,7 @@ import { useDentists, type Dentist } from "@/hooks/useDentists";
 import { DentistForm } from "@/components/DentistForm";
 import { DentistViewDialog } from "@/components/DentistViewDialog";
 import { DentistDeleteDialog } from "@/components/DentistDeleteDialog";
+import { formatBrazilianPhone } from "@/lib/phone-utils";
 
 const Dentistas = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -198,7 +199,7 @@ const Dentistas = () => {
                         <span className="font-medium">CRO:</span> {dentist.cro}
                       </div>
                       <div>
-                        <span className="font-medium">Telefone:</span> {dentist.phone}
+                        <span className="font-medium">Telefone:</span> {formatBrazilianPhone(dentist.phone)}
                       </div>
                       {dentist.email && (
                         <div>

@@ -7,6 +7,7 @@ import { Patient, usePatients } from "@/hooks/usePatients";
 import { useAuth } from "@/hooks/useAuth";
 import { PatientForm } from "@/components/PatientForm";
 import { calculatePatientStatus, parseLocalDate, calculateAge } from "@/lib/utils";
+import { formatBrazilianPhone } from "@/lib/phone-utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -76,7 +77,7 @@ export const PatientFileData = ({ patient }: PatientFileDataProps) => {
                 <Phone className="w-4 h-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm text-muted-foreground">Telefone</p>
-                  <p className="font-medium">{patient.phone}</p>
+                  <p className="font-medium">{formatBrazilianPhone(patient.phone)}</p>
                 </div>
               </div>
 

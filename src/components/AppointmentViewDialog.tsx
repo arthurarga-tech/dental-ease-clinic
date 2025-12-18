@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, User, Phone, FileText } from "lucide-react";
 import { Appointment } from "@/hooks/useAppointments";
+import { formatBrazilianPhone } from "@/lib/phone-utils";
 
 interface AppointmentViewDialogProps {
   appointment: Appointment | null;
@@ -82,7 +83,7 @@ export const AppointmentViewDialog = ({ appointment, open, onOpenChange }: Appoi
                 <Phone className="w-5 h-5 text-primary" />
                 <div>
                   <p className="text-sm text-muted-foreground">Telefone</p>
-                  <p className="font-medium">{appointment.patients.phone}</p>
+                  <p className="font-medium">{formatBrazilianPhone(appointment.patients.phone)}</p>
                 </div>
               </div>
 

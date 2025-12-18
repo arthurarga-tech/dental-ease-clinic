@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Patient } from "@/hooks/usePatients";
 import { calculatePatientStatus, parseLocalDate, calculateAge } from "@/lib/utils";
+import { formatBrazilianPhone } from "@/lib/phone-utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -89,7 +90,7 @@ export const PatientViewDialog = ({ patient, open, onOpenChange }: PatientViewDi
                 <Phone className="w-4 h-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm text-muted-foreground">Telefone</p>
-                  <p className="font-medium">{patient.phone}</p>
+                  <p className="font-medium">{formatBrazilianPhone(patient.phone)}</p>
                 </div>
               </div>
 

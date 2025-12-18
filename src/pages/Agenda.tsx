@@ -19,7 +19,8 @@ import {
   Stethoscope,
   ChevronDown,
   CalendarX,
-  UserX
+  UserX,
+  MessageCircle
 } from "lucide-react";
 import { useAppointments, Appointment } from "@/hooks/useAppointments";
 import { AppointmentForm } from "@/components/AppointmentForm";
@@ -27,6 +28,7 @@ import { AppointmentViewDialog } from "@/components/AppointmentViewDialog";
 import { AppointmentDeleteDialog } from "@/components/AppointmentDeleteDialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { generateWhatsAppUrl, generateAppointmentConfirmationMessage, formatBrazilianPhone } from "@/lib/phone-utils";
 
 const Agenda = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -114,6 +116,17 @@ const Agenda = () => {
 
   const handleStatusUpdate = (appointmentId: string, newStatus: string) => {
     updateAppointment({ id: appointmentId, status: newStatus as any });
+  };
+
+  const handleWhatsAppConfirmation = (appointment: Appointment) => {
+    const message = generateAppointmentConfirmationMessage(
+      appointment.patients.name,
+      appointment.appointment_date,
+      appointment.appointment_time,
+      appointment.dentists?.name
+    );
+    const whatsappUrl = generateWhatsAppUrl(appointment.patients.phone, message);
+    window.open(whatsappUrl, '_blank');
   };
 
   return (
@@ -234,9 +247,22 @@ const Agenda = () => {
                           </div>
                           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                             <Phone className="w-3 h-3 flex-shrink-0" />
-                            <span>{appointment.patients.phone}</span>
+                            <span>{formatBrazilianPhone(appointment.patients.phone)}</span>
                           </div>
                         </div>
+                        
+                        {/* WhatsApp Confirmation Button */}
+                        {appointment.status === "Agendado" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full h-8 text-xs text-green-600 border-green-600 hover:bg-green-50 hover:text-green-700"
+                            onClick={() => handleWhatsAppConfirmation(appointment)}
+                          >
+                            <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
+                            Confirmar via WhatsApp
+                          </Button>
+                        )}
                         
                         {/* Actions */}
                         <div className="flex gap-2 pt-1 border-t border-border">

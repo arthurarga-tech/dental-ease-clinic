@@ -13,6 +13,7 @@ import { useDentistPatients } from "@/hooks/useDentistPatients";
 import { usePatientIndicators } from "@/hooks/usePatientIndicators";
 import { useAuth } from "@/hooks/useAuth";
 import { calculatePatientStatus, parseLocalDate } from "@/lib/utils";
+import { formatBrazilianPhone } from "@/lib/phone-utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
@@ -285,7 +286,7 @@ const Pacientes = () => {
                         <div className="grid grid-cols-1 gap-1.5 text-xs text-muted-foreground">
                           <div className="flex items-center gap-2">
                             <Phone className="w-3.5 h-3.5 flex-shrink-0" />
-                            <span className="truncate">{patient.phone}</span>
+                            <span className="truncate">{formatBrazilianPhone(patient.phone)}</span>
                           </div>
                           {patient.email && (
                             <div className="flex items-center gap-2">

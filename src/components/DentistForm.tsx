@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useDentists, type Dentist, type AvailabilitySlot } from "@/hooks/useDentists";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2 } from "lucide-react";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 interface DentistFormProps {
   open: boolean;
@@ -208,12 +209,10 @@ export const DentistForm = ({ open, onOpenChange, dentist, prefillData }: Dentis
             
             <div className="space-y-2">
               <Label htmlFor="phone">Telefone *</Label>
-              <Input
+              <PhoneInput
                 id="phone"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="(11) 99999-9999"
-                required
+                onChange={(value) => setFormData({ ...formData, phone: value })}
               />
             </div>
             
