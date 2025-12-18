@@ -31,6 +31,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { usePatients } from "@/hooks/usePatients";
+import { useDentistPatients } from "@/hooks/useDentistPatients";
 import { useDentists } from "@/hooks/useDentists";
 import { Budget } from "@/hooks/useBudgets";
 import { PROCEDURE_CATEGORIES, ProcedureItem } from "@/data/procedures";
@@ -76,12 +77,16 @@ export const BudgetForm = ({
   isSubmitting,
   preselectedPatientId,
 }: BudgetFormProps) => {
-  const { patients } = usePatients();
+  const { patients: allPatients } = usePatients();
+  const { patients: dentistPatients } = useDentistPatients();
   const { dentists } = useDentists();
   const { dentist: currentDentist } = useDentistProfile();
   const { userRole } = useAuth();
   
   const isDentistUser = userRole === 'dentista' || userRole === 'dentist';
+  
+  // Use dentist's patient list if user is a dentist
+  const patients = isDentistUser ? dentistPatients : allPatients;
 
   const [procedures, setProcedures] = useState<Procedure[]>(() => {
     if (initialData?.procedures) {

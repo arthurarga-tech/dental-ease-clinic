@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePatients } from "@/hooks/usePatients";
+import { useDentistPatients } from "@/hooks/useDentistPatients";
 import { useMedicalRecords, MedicalRecord, NewMedicalRecord } from "@/hooks/useMedicalRecords";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { Odontogram } from "@/components/Odontogram";
 import { z } from "zod";
 import { getTodayLocalDate } from "@/lib/utils";
@@ -34,10 +36,15 @@ export const MedicalRecordForm = ({
   mode = 'create',
   preselectedPatientId
 }: MedicalRecordFormProps) => {
-  const { patients } = usePatients();
+  const { patients: allPatients } = usePatients();
+  const { patients: dentistPatients } = useDentistPatients();
+  const { userRole } = useAuth();
   const { createMedicalRecord, updateMedicalRecord, isCreating, isUpdating } = useMedicalRecords();
   const { toast } = useToast();
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  const isDentistUser = userRole === 'dentista' || userRole === 'dentist';
+  const patients = isDentistUser ? dentistPatients : allPatients;
   
   const [formData, setFormData] = useState({
     patient_id: '',
