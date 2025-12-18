@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
 import { NewPatient } from "@/hooks/usePatients";
 import { PatientPhotoUpload } from "./PatientPhotoUpload";
 import { parseLocalDate } from "@/lib/utils";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 const calculateAge = (birthDate: string): number => {
   const today = new Date();
@@ -132,7 +133,11 @@ export const PatientForm = ({ onSubmit, onCancel, isLoading = false, initialData
             <FormItem>
               <FormLabel className="text-sm">Telefone *</FormLabel>
               <FormControl>
-                <Input placeholder="(11) 99999-9999" className="text-base" {...field} />
+                <PhoneInput
+                  value={field.value}
+                  onChange={field.onChange}
+                  className="text-base"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

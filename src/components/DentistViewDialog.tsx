@@ -6,6 +6,7 @@ import { type Dentist } from "@/hooks/useDentists";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Edit, Mail, Phone, MapPin, Calendar, IdCard } from "lucide-react";
+import { formatBrazilianPhone } from "@/lib/phone-utils";
 
 interface DentistViewDialogProps {
   dentist: Dentist | null;
@@ -69,7 +70,7 @@ export const DentistViewDialog = ({ dentist, open, onOpenChange, onEdit }: Denti
                 <Phone className="w-5 h-5 text-muted-foreground" />
                 <div>
                   <p className="text-sm text-muted-foreground">Telefone</p>
-                  <p className="font-medium">{dentist.phone}</p>
+                  <p className="font-medium">{formatBrazilianPhone(dentist.phone)}</p>
                 </div>
               </div>
 

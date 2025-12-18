@@ -14,6 +14,7 @@ import { PatientForm } from "@/components/PatientForm";
 import { Loader2, UserPlus } from "lucide-react";
 import { NewAppointment, Appointment } from "@/hooks/useAppointments";
 import { parseLocalDate, getTodayLocalDate } from "@/lib/utils";
+import { formatBrazilianPhone } from "@/lib/phone-utils";
 
 const appointmentSchema = z.object({
   patient_id: z.string().min(1, "Selecione um paciente"),
@@ -159,7 +160,7 @@ export const AppointmentForm = ({ onSubmit, onCancel, isLoading, initialDate, ap
                   <SelectContent>
                     {patients.map((patient) => (
                       <SelectItem key={patient.id} value={patient.id} className="text-sm">
-                        {patient.name} - {patient.phone}
+                        {patient.name} - {formatBrazilianPhone(patient.phone)}
                       </SelectItem>
                     ))}
                   </SelectContent>
